@@ -1,8 +1,10 @@
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
-var camera, scene, renderer;
+var scene, renderer;
 var robot;
+var active_camera;
+var cameras = new Array(5);
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -43,18 +45,54 @@ function createScene(){
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
-function createCamera() {   
-    'use strict';
-
-    camera = new THREE.PerspectiveCamera(20,
-                                         window.innerWidth / window.innerHeight,
-                                         1,
-                                         1000);
-    camera.position.x = 40;
-    camera.position.y = 50;
-    camera.position.z = 60;
-    camera.lookAt(scene.position);
+function change_camera(number) {
+    active_camera = number;
 }
+
+function createCameras() {
+    active_camera = 0;
+    createFrontCamera();
+    createLateralCamera();
+    createTopCamera();
+    createIsometricOrtogonalCamera();
+    createIsometricPerspectiveCamera();
+}
+
+function createFrontCamera() {
+    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[0].position.set(10, 0, 0);
+    cameras[0].lookAt(scene.position);
+}
+
+function createLateralCamera() {
+    'use strict'
+    cameras[1] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[1].position.set(0, 10, 0);
+    cameras[1].lookAt(scene.position);
+}
+
+function createTopCamera() {
+    'use strict'
+    cameras[2] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[2].position.set(0, 0, 10);
+    cameras[2].lookAt(scene.position);
+}
+
+function createIsometricOrtogonalCamera() {
+    'use strict'
+    cameras[3] = new THREE.OrthographicCamera( window.innerWidth / - 32, window.innerWidth / 32, window.innerHeight / 32, window.innerHeight / - 32, 1, 100);
+    cameras[3].position.set(10, 10, 10);
+    cameras[3].rotation.z = 0;
+    cameras[3].lookAt(scene.position);
+}
+
+function createIsometricPerspectiveCamera() {
+    'use strict'
+    cameras[4] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[4].position.set(10, 10, 10);
+    cameras[4].lookAt(scene.position);
+}
+
 
 /////////////////////
 /* CREATE LIGHT(S) */
@@ -123,9 +161,8 @@ function update(){
 /////////////
 function render() {
     'use strict';
-
-    renderer.render(scene, camera);
-
+    renderer.clear();
+    renderer.render(scene, cameras[active_camera]);
 }
 
 ////////////////////////////////
@@ -141,7 +178,7 @@ function init() {
     document.body.appendChild(renderer.domElement);
 
     createScene();
-    createCamera();
+    createCameras();
 
     render();
 
@@ -173,14 +210,14 @@ function animate() {
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
 ////////////////////////////
-function onResize() { 
+function onResize() {
     'use strict';
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     
     if (window.innerHeight > 0 && window.innerWidth > 0) {
-        camera.aspect = window.innerWidth / window.innerHeight; // what happened
-        camera.updateProjectionMatrix();
+        cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
+        cameras[active_camera].updateProjectionMatrix();
     }
     
     render();
@@ -193,38 +230,25 @@ function onKeyDown(e) {
     'use strict';
 
     switch(e.keyCode) {
-    
+    // Camera changes
     case 49:
-        camera.position.x = 20;
-        camera.position.y = 20;
-        camera.position.z = 60;
-        camera.lookAt(scene.position);
+        change_camera(0);
         break;
-
     case 50:
-        camera.position.x = 60;
-        camera.position.y = 20;
-        camera.position.z = 20;
-        camera.lookAt(scene.position);
+        change_camera(1);
         break;
-
     case 51:
-        camera.position.x = 20;
-        camera.position.y = 60;
-        camera.position.z = 20;
-        camera.lookAt(scene.position);
+        change_camera(2);
+        break;
+    case 52:
+        change_camera(3);
+        break;
+    case 53:
+        change_camera(4);
         break;
 
-    case 52:
+    case 54:
         robot.userData.rotating = !robot.userData.rotating;
-        break;    
-    
-    case 53:
-        camera.position.x = 40;
-        camera.position.y = 50;
-        camera.position.z = 60;
-        camera.lookAt(scene.position);
-        break;
 
     case 69:  //e
     case 101: //E
