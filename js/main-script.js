@@ -12,6 +12,7 @@ var cameras = new Array(5);
 function createScene(){
     'use strict';
     var lighting;
+    var mirror = new THREE.Vector3(-1, 1 ,1); // Mirror on y axis
 
     scene = new THREE.Scene();
 
@@ -27,6 +28,7 @@ function createScene(){
     /* --------------------------------------------------------------- */
 
     /* BODY */
+    var body = new THREE.Object3D();
     var chest, waist, abdomen, abdomen_tire_left, abdomen_tire_right;
     var chest_length = 6 * wheel_height, chest_height = 10 / 3 * wheel_radius, chest_depth = 2 * wheel_radius, waist_length = 4 * wheel_height, waist_height = 2 * wheel_radius, waist_depth = 2 * wheel_radius, abdomen_length = 4 * wheel_height, abdomen_height = 2 * wheel_radius, abdomen_depth = 2 * wheel_radius;
 
@@ -37,73 +39,76 @@ function createScene(){
     chest.position.set(0, 1.5*waist_height + 0.5*chest_height, 0);
     
     abdomen = createCube(abdomen_length, abdomen_height, abdomen_depth);
-    abdomen_tire_left = createCylinder(wheel_radius, wheel_radius, wheel_height);
-    abdomen_tire_right = createCylinder(wheel_radius, wheel_radius, wheel_height);
 
+    abdomen_tire_left = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height));
     abdomen_tire_left.rotateZ((Math.PI)/2);
-    abdomen_tire_right.rotateZ((Math.PI)/2);
-
     abdomen_tire_left.position.set(-(abdomen_length + wheel_height) / 2, 0, 0);
-    abdomen_tire_right.position.set((abdomen_length + wheel_height) / 2, 0, 0);
 
+    abdomen_tire_right = new THREE.Object3D();
+    abdomen_tire_right.copy(abdomen_tire_left);
+    abdomen_tire_right.position.setX(-abdomen_tire_left.position.x);
+
+
+    body.add(waist, chest, abdomen, abdomen_tire_left, abdomen_tire_right);
     /* --------------------------------------------------------------- */
 
     /* LEGS */
-
-    var left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, leg_fitting_l, leg_fitting_r, left_foot, right_foot;
+    var legs = new THREE.Object3D();
+    var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
+    var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, foot;
     var thigh_length = wheel_height / 2, thigh_height = 2 * wheel_radius, leg_width = 7 / 4 * wheel_height, leg_depth = 2 * wheel_radius, leg_height = 8 * wheel_radius + wheel_height, foot_length = 11 / 4 * wheel_height, foot_depth = 5 / 3 * wheel_radius, foot_height = wheel_height;
 
-    left_thigh = createCube(thigh_length, thigh_height, thigh_length)
-    left_thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
-    right_thigh = createCube(thigh_length, thigh_height, thigh_length)
-    right_thigh.position.set(abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
-    left_leg = createCube(leg_width, leg_height, leg_depth)
-    left_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
-    right_leg = createCube(leg_width, leg_height, leg_depth)
-    right_leg.position.set(abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
-    leg_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
-    leg_wheel_l1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
-    leg_wheel_l1.rotateZ((Math.PI)/2);
-    leg_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
-    leg_wheel_l2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
-    leg_wheel_l2.rotateZ((Math.PI)/2);
-    leg_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
-    leg_wheel_r1.position.set((abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
-    leg_wheel_r1.rotateZ((Math.PI)/2);
-    leg_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
-    leg_wheel_r2.position.set((abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
-    leg_wheel_r2.rotateZ((Math.PI)/2);
-    left_foot = createCube(foot_length, foot_height, foot_depth)
-    left_foot.position.set(-(abdomen_length / 4 - leg_width / 2 + foot_length / 2), -(abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
-    right_foot = createCube(foot_length, foot_height, foot_depth)
-    right_foot.position.set((abdomen_length / 4 - leg_width / 2 + foot_length / 2), -(abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
+    thigh = createCube(thigh_length, thigh_height, thigh_length)
+    thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
+    upper_leg = createCube(leg_width, leg_height, leg_depth)
+    upper_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
+
+    leg_wheel_1 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
+    leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
+    leg_wheel_1.rotateZ((Math.PI)/2);
+    leg_wheel_2 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
+    leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
+    leg_wheel_2.rotateZ((Math.PI)/2);
+    foot = createCube(foot_length, foot_height, foot_depth)
+    foot.position.set(-(abdomen_length / 4 - leg_width / 2 + foot_length / 2), -(abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
+
+    left_leg.add(thigh, upper_leg, foot, leg_wheel_1, leg_wheel_2);
+
+    right_leg.copy(left_leg);
+    right_leg.scale.multiply(mirror);
+    right_leg.position.setX(-left_leg.position.x);
+
+    legs.add(left_leg, right_leg);
     /* --------------------------------------------------------------- */
 
     /* ARMS */
-    var forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r;
+    var arms = new THREE.Object3D();
+    var left_arm = new THREE.Object3D(), right_arm = new THREE.Object3D();
+    var forearm, arm, exhaust;
     var forearm_width = wheel_height, forearm_depth = 4 * wheel_radius, forearm_height = 2 * wheel_radius, arm_width = wheel_height, arm_depth = 2 * wheel_radius, arm_height = 10 / 3 * wheel_radius, exhaust_radius = 2 / 3 * wheel_radius, exhaust_height = 6 * wheel_radius;
 
-    forearm_l = createCube(forearm_width, forearm_height, forearm_depth);
-    forearm_l.position.set(-(abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
-    forearm_r = createCube(forearm_width, forearm_height, forearm_depth);
-    forearm_r.position.set((abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
-    arm_l = createCube(arm_width, arm_height, arm_depth);
-    arm_l.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), (abdomen_height / 2 + forearm_height + arm_height / 2), -(abdomen_depth + arm_depth) / 2)
-    arm_r = createCube(arm_width, arm_height, arm_depth);
-    arm_r.position.set((abdomen_length / 2 + wheel_height + arm_width / 2), (abdomen_height / 2 + forearm_height + arm_height / 2), -(abdomen_depth + arm_depth) / 2)
-    exhaust_l = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
-    exhaust_l.position.set(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
-    exhaust_r = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
-    exhaust_r.position.set((abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
+    forearm = createCube(forearm_width, forearm_height, forearm_depth);
+    forearm.position.set(-(abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
+    arm = createCube(arm_width, arm_height, arm_depth);
+    arm.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), (abdomen_height / 2 + forearm_height + arm_height / 2), -(abdomen_depth + arm_depth) / 2)
+    exhaust = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
+    exhaust.position.set(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
 
+    left_arm.add(forearm, arm, exhaust);
+    right_arm.copy(left_arm);
+    right_arm.scale.multiply(mirror);
+    right_arm.position.setX(left_arm.position.x);
+
+    arms.add(left_arm, right_arm);
     /* --------------------------------------------------------------- */
 
     /* HEAD */
-    var head, eye_l, eye_r, antler_l, antler_r;
+    var head = new THREE.Object3D();
+    var skull, eye_l, eye_r, antler_l, antler_r;
     var head_length = wheel_height, head_height = wheel_height, head_depth = head_height / 2, eyes_length = head_length / 4, eyes_height = head_length / 4, eyes_depth = head_length / 4, antlers_length = eyes_length,  antlers_height = eyes_height, antlers_depth = eyes_depth;
 
-    head = createCube(head_length, head_height, head_depth);
-    head.position.set(0, 1.5*waist_height + chest_height + 0.5*head_height);
+    skull = createCube(head_length, head_height, head_depth);
+    skull.position.set(0, 1.5*waist_height + chest_height + 0.5*head_height);
     eye_l = createCube(eyes_length, eyes_height, eyes_depth);
     eye_l.position.set(-0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
     eye_r = createCube(eyes_length, eyes_height, eyes_depth);
@@ -118,12 +123,13 @@ function createScene(){
     antler_l.material.color.set("white")
     antler_r.material.color.set("white")
 
+    head.add(skull, eye_l, eye_r, antler_l, antler_r);
     /* --------------------------------------------------------------- */
 
 
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, step : 0};
-    robot.add(head, eye_l, eye_r, antler_l, antler_r, chest, abdomen ,waist, abdomen_tire_left, abdomen_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
+    robot.add(head, body, legs, arms);
 
     scene.add(robot);
 
