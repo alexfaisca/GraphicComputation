@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot;
+var robot, trailer;
 var active_camera;
 var cameras = new Array(5);
 
@@ -87,16 +87,20 @@ function createScene(){
     robot.add(abdomen, abd_tire_left, abd_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
 
     scene.add(robot);
+
+    createTrailer();
 }
 
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
 function change_camera(number) {
+    'use strict'
     active_camera = number;
 }
 
 function createCameras() {
+    'use strict'
     active_camera = 0;
     createFrontCamera();
     createLateralCamera();
@@ -106,29 +110,30 @@ function createCameras() {
 }
 
 function createFrontCamera() {
+    'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[0].position.set(10, 0, 0);
+    cameras[0].position.set(0, 0, 15);
     cameras[0].lookAt(scene.position);
 }
 
 function createLateralCamera() {
     'use strict'
     cameras[1] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[1].position.set(0, 10, 0);
+    cameras[1].position.set(15, 0, 0);
     cameras[1].lookAt(scene.position);
 }
 
 function createTopCamera() {
     'use strict'
     cameras[2] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[2].position.set(0, 0, 10);
+    cameras[2].position.set(0, 15, 0);
     cameras[2].lookAt(scene.position);
 }
 
 function createIsometricOrtogonalCamera() {
     'use strict'
     cameras[3] = new THREE.OrthographicCamera( window.innerWidth / - 32, window.innerWidth / 32, window.innerHeight / 32, window.innerHeight / - 32, 1, 100);
-    cameras[3].position.set(10, 10, 10);
+    cameras[3].position.set(15, 15, 15);
     cameras[3].rotation.z = 0;
     cameras[3].lookAt(scene.position);
 }
@@ -136,7 +141,7 @@ function createIsometricOrtogonalCamera() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[4] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[4].position.set(10, 10, 10);
+    cameras[4].position.set(15, 15, 15);
     cameras[4].lookAt(scene.position);
 }
 
@@ -163,7 +168,7 @@ function createCube(x, y, z) {
     return mesh;
 }
 
-function createCylinder(x, y, z) {
+function createCylinder(x, y, z){
     'use strict';
 
     var mycylinder = new THREE.CylinderGeometry(x, y, z, 10);
@@ -177,6 +182,44 @@ function createCylinder(x, y, z) {
     mesh.position.set(0, 0, 0);
 
     return mesh;
+}
+
+function createTrailer(){
+    var container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2;
+    var trailer_origin_distance = 15, abdomen_height = 1.5, front_wheel_distance = 5.75, back_wheel_distance = 7.75, support_distance = 6.75;
+    var container_length = 4, container_height = 8, container_depth = 17;
+    var support_length = 2, support_height = 1, support_depth = 3.5;
+    var wheel_radius = 0.75, wheel_height = 1, abdomen_length = 4;
+
+    container = createCube(container_length, container_height, container_depth);
+    container.position.set(0, (container_height + abdomen_height) / 2, -trailer_origin_distance);
+
+    support = createCube(support_length, support_height, support_depth);
+    support.position.set(0, 0, - trailer_origin_distance - support_distance);
+
+    trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+    trailer_wheel_l1.rotateZ((Math.PI)/2);
+    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -trailer_origin_distance - front_wheel_distance)
+
+    trailer_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+    trailer_wheel_l2.rotateZ((Math.PI)/2);
+    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -trailer_origin_distance - back_wheel_distance)
+
+    trailer_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+    trailer_wheel_r1.rotateZ((Math.PI)/2);
+    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -trailer_origin_distance - front_wheel_distance)
+
+    trailer_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+    trailer_wheel_r2.rotateZ((Math.PI)/2);
+    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height),0, -trailer_origin_distance - back_wheel_distance)
+
+    // TODO: How will both connection pieces connect?
+
+    trailer = new THREE.Object3D();
+    trailer.userData = {rotating : 0, step : 0};
+    trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
+
+    scene.add(trailer);
 }
 
 //////////////////////
@@ -249,6 +292,11 @@ function animate() {
         robot.rotateZ(0);
     }
 
+    if (trailer.userData.rotating) {
+        trailer.rotateOnAxis(new THREE.Vector3(0, 1, 0), step);
+        trailer.rotateZ(0);
+    }
+
     render();
 
     requestAnimationFrame(animate);
@@ -296,6 +344,7 @@ function onKeyDown(e) {
 
     case 54: // 6
         robot.userData.rotating = !robot.userData.rotating;
+        trailer.userData.rotating = !trailer.userData.rotating;
         break;
 
     case 69:  //e
