@@ -63,9 +63,28 @@ function createScene(){
     right_foot = createCube(foot_length, foot_height, foot_depth)
     right_foot.position.set((abdomen_length / 4 - leg_width / 2 + foot_length / 2), -(abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
     /* --------------------------------------------------------------- */
+
+    /* ARMS */
+    var forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r;
+    var forearm_width = 1, forearm_depth = 2 * abdomen_depth, forearm_height = 1.5, arm_width = 1, arm_depth = abdomen_depth, arm_height = 2.5, exhaust_radius = 0.5, exhaust_height = 4.75;
+
+    forearm_l = createCube(forearm_width, forearm_height, forearm_depth);
+    forearm_l.position.set(-(abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
+    forearm_r = createCube(forearm_width, forearm_height, forearm_depth);
+    forearm_r.position.set((abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
+    arm_l = createCube(arm_width, arm_height, arm_depth);
+    arm_l.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), (abdomen_height / 2 + forearm_height + arm_height / 2), -(abdomen_depth + arm_depth) / 2)
+    arm_r = createCube(arm_width, arm_height, arm_depth);
+    arm_r.position.set((abdomen_length / 2 + wheel_height + arm_width / 2), (abdomen_height / 2 + forearm_height + arm_height / 2), -(abdomen_depth + arm_depth) / 2)
+    exhaust_l = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
+    exhaust_l.position.set(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
+    exhaust_r = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
+    exhaust_r.position.set((abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
+    /* --------------------------------------------------------------- */
+
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, step : 0};
-    robot.add(abdomen, abd_tire_left, abd_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot);
+    robot.add(abdomen, abd_tire_left, abd_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
 
     scene.add(robot);
 }
