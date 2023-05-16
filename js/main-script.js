@@ -263,6 +263,7 @@ function createTrailer(){
     trailer = new THREE.Object3D();
     trailer.userData = {rotating : 0, step : 0};
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
+    trailer.velocity = new THREE.Vector3(0,0,0);
 
     scene.add(trailer);
 }
@@ -342,9 +343,24 @@ function animate() {
         trailer.rotateZ(0);
     }
 
+    updateTrailerPosition();
+
     render();
 
     requestAnimationFrame(animate);
+}
+
+function updateTrailerPosition() {
+    trailer.position = trailer.position.add(trailer.velocity);
+}
+
+function move_trailer(x, z){
+    if(x != 0){
+        trailer.velocity.setComponent(0, x);
+    }
+    if(z != 0){
+        trailer.velocity.setComponent(2, z);
+    }
 }
 
 ////////////////////////////
@@ -390,6 +406,20 @@ function onKeyDown(e) {
         break;
     case 53: // 5
         change_camera(4);
+        break;
+
+    // Trailer Movement
+    case 37: // Left
+        move_trailer(0.05, 0);
+        break;
+    case 38: // Up
+        move_trailer(0, 0.05);
+        break;
+    case 39: // Right
+        move_trailer(-0.05, 0);
+        break;
+    case 40: // Down
+        move_trailer(0, -0.05);
         break;
 
     case 54: // 6
