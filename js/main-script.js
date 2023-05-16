@@ -11,20 +11,7 @@ var cameras = new Array(5);
 /////////////////////
 function createScene(){
     'use strict';
-    
-    var head, eyes, antlers, chest, waist, abdomen;
-    var abd_tire_left, abd_tire_right;
     var lighting;
-
-    var head_length = 1, head_height = 1, head_depth = 0.5,
-        eyes_length = 0.25, eyes_height = 0.25, eyes_depth = 0.25,
-        antlers_length = 0.25,  antlers_height = 0.25, antlers_depth = 0.25,
-        chest_length = 6, chest_height = 2.5, chest_depth = 1.5,
-        waist_length = 4, waist_height = 1.5, waist_depth = 1.5,
-        abdomen_length = 4, abdomen_height = 1.5, abdomen_depth = 1.5,
-        thigh_length = 0.5, thigh_height = 1.5,
-        leg_width = 1.75, leg_depth = 1.5, leg_height = 7, wheel_radius = 0.75, wheel_height = 1, foot_length = 2.75,
-        foot_depth = 1.25, foot_height = 1;
 
     scene = new THREE.Scene();
 
@@ -35,13 +22,13 @@ function createScene(){
     lighting.position.set(5, 5, 5);
     scene.add(lighting);
 
-    head = createCube(head_length, head_height, head_depth);
-    head.position.set(0, 1.5*waist_height + chest_height + 0.5*head_height);
+    var wheel_radius = 0.75, wheel_height = 1;
 
-    //eyes
+    /* --------------------------------------------------------------- */
 
-    let a = createCube(eyes_length, eyes_height, eyes_depth);
-    a.position.set(0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
+    /* BODY */
+    var chest, waist, abdomen, abdomen_tire_left, abdomen_tire_right;
+    var chest_length = 6 * wheel_height, chest_height = 10 / 3 * wheel_radius, chest_depth = 2 * wheel_radius, waist_length = 4 * wheel_height, waist_height = 2 * wheel_radius, waist_depth = 2 * wheel_radius, abdomen_length = 4 * wheel_height, abdomen_height = 2 * wheel_radius, abdomen_depth = 2 * wheel_radius;
 
     waist = createCube(waist_length, waist_height, waist_depth);
     waist.position.set(0, waist_height, 0);
@@ -50,18 +37,21 @@ function createScene(){
     chest.position.set(0, 1.5*waist_height + 0.5*chest_height, 0);
     
     abdomen = createCube(abdomen_length, abdomen_height, abdomen_depth);
-    abd_tire_left = createCylinder(wheel_radius, wheel_radius, wheel_height);
-    abd_tire_right = createCylinder(wheel_radius, wheel_radius, wheel_height);
+    abdomen_tire_left = createCylinder(wheel_radius, wheel_radius, wheel_height);
+    abdomen_tire_right = createCylinder(wheel_radius, wheel_radius, wheel_height);
 
-    abd_tire_left.rotateZ((Math.PI)/2);
-    abd_tire_right.rotateZ((Math.PI)/2);
+    abdomen_tire_left.rotateZ((Math.PI)/2);
+    abdomen_tire_right.rotateZ((Math.PI)/2);
 
-    abd_tire_left.position.set(-(abdomen_length + wheel_height) / 2, 0, 0);
-    abd_tire_right.position.set((abdomen_length + wheel_height) / 2, 0, 0);
+    abdomen_tire_left.position.set(-(abdomen_length + wheel_height) / 2, 0, 0);
+    abdomen_tire_right.position.set((abdomen_length + wheel_height) / 2, 0, 0);
+
+    /* --------------------------------------------------------------- */
 
     /* LEGS */
 
     var left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, leg_fitting_l, leg_fitting_r, left_foot, right_foot;
+    var thigh_length = wheel_height / 2, thigh_height = 2 * wheel_radius, leg_width = 7 / 4 * wheel_height, leg_depth = 2 * wheel_radius, leg_height = 8 * wheel_radius + wheel_height, foot_length = 11 / 4 * wheel_height, foot_depth = 5 / 3 * wheel_radius, foot_height = wheel_height;
 
     left_thigh = createCube(thigh_length, thigh_height, thigh_length)
     left_thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
@@ -91,7 +81,7 @@ function createScene(){
 
     /* ARMS */
     var forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r;
-    var forearm_width = 1, forearm_depth = 2 * abdomen_depth, forearm_height = 1.5, arm_width = 1, arm_depth = abdomen_depth, arm_height = 2.5, exhaust_radius = 0.5, exhaust_height = 4.75;
+    var forearm_width = wheel_height, forearm_depth = 4 * wheel_radius, forearm_height = 2 * wheel_radius, arm_width = wheel_height, arm_depth = 2 * wheel_radius, arm_height = 10 / 3 * wheel_radius, exhaust_radius = 2 / 3 * wheel_radius, exhaust_height = 6 * wheel_radius;
 
     forearm_l = createCube(forearm_width, forearm_height, forearm_depth);
     forearm_l.position.set(-(abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
@@ -105,11 +95,30 @@ function createScene(){
     exhaust_l.position.set(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
     exhaust_r = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
     exhaust_r.position.set((abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
+
     /* --------------------------------------------------------------- */
+
+    /* HEAD */
+    var head, eye_l, eye_r, antler_l, antler_r;
+    var head_length = wheel_height, head_height = wheel_height, head_depth = head_height / 2, eyes_length = head_length / 4, eyes_height = head_length / 4, eyes_depth = head_length / 4, antlers_length = eyes_length,  antlers_height = eyes_height, antlers_depth = eyes_depth;
+
+    head = createCube(head_length, head_height, head_depth);
+    head.position.set(0, 1.5*waist_height + chest_height + 0.5*head_height);
+    eye_l = createCube(eyes_length, eyes_height, eyes_depth);
+    eye_l.position.set(-0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
+    eye_r = createCube(eyes_length, eyes_height, eyes_depth);
+    eye_r.position.set(0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
+    antler_l = createCube(antlers_depth, antlers_height, antlers_depth);
+    antler_l.position.set(-0.25*head_length, 1.5*waist_height + chest_height + head_height + antlers_height / 2, 0);
+    antler_r = createCube(antlers_depth, antlers_height, antlers_depth);
+    antler_r.position.set(0.25*head_length, 1.5*waist_height + chest_height + head_height + antlers_height / 2, 0);
+
+    /* --------------------------------------------------------------- */
+
 
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, step : 0};
-    robot.add(head, chest, abdomen ,waist, abd_tire_left, abd_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
+    robot.add(head, eye_l, eye_r, antler_l, antler_r, chest, abdomen ,waist, abdomen_tire_left, abdomen_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
 
     scene.add(robot);
 
