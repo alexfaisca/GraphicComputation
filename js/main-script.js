@@ -12,11 +12,19 @@ var cameras = new Array(5);
 function createScene(){
     'use strict';
     
-    var abdomen;
+    var head, eyes, antlers, chest, waist, abdomen;
     var abd_tire_left, abd_tire_right;
     var lighting;
-    var left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, leg_fitting_l, leg_fitting_r, left_foot, right_foot;
-    var abdomen_length = 4, abdomen_height = 1.5, abdomen_depth = 1.5, thigh_length = 0.5, thigh_height = 1.5, leg_width = 1.75, leg_depth = 1.5, leg_height = 7, wheel_radius = 0.75, wheel_height = 1, foot_length = 2.75, foot_depth = 1.25, foot_height = 1;
+
+    var head_length = 1, head_height = 1, head_depth = 0.5,
+        eyes_length = 0.25, eyes_height = 0.25, eyes_depth = 0.25,
+        antlers_length = 0.25,  antlers_height = 0.25, antlers_depth = 0.25,
+        chest_length = 6, chest_height = 2.5, chest_depth = 1.5,
+        waist_length = 4, waist_height = 1.5, waist_depth = 1.5,
+        abdomen_length = 4, abdomen_height = 1.5, abdomen_depth = 1.5,
+        thigh_length = 0.5, thigh_height = 1.5,
+        leg_width = 1.75, leg_depth = 1.5, leg_height = 7, wheel_radius = 0.75, wheel_height = 1, foot_length = 2.75,
+        foot_depth = 1.25, foot_height = 1;
 
     scene = new THREE.Scene();
 
@@ -26,6 +34,20 @@ function createScene(){
     lighting = new THREE.DirectionalLight(0xffffff, 1)
     lighting.position.set(5, 5, 5);
     scene.add(lighting);
+
+    head = createCube(head_length, head_height, head_depth);
+    head.position.set(0, 1.5*waist_height + chest_height + 0.5*head_height);
+
+    //eyes
+
+    let a = createCube(eyes_length, eyes_height, eyes_depth);
+    a.position.set(0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
+
+    waist = createCube(waist_length, waist_height, waist_depth);
+    waist.position.set(0, waist_height, 0);
+
+    chest = createCube(chest_length, chest_height, chest_depth);
+    chest.position.set(0, 1.5*waist_height + 0.5*chest_height, 0);
     
     abdomen = createCube(abdomen_length, abdomen_height, abdomen_depth);
     abd_tire_left = createCylinder(wheel_radius, wheel_radius, wheel_height);
@@ -38,6 +60,9 @@ function createScene(){
     abd_tire_right.position.set((abdomen_length + wheel_height) / 2, 0, 0);
 
     /* LEGS */
+
+    var left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, leg_fitting_l, leg_fitting_r, left_foot, right_foot;
+
     left_thigh = createCube(thigh_length, thigh_height, thigh_length)
     left_thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
     right_thigh = createCube(thigh_length, thigh_height, thigh_length)
@@ -84,7 +109,7 @@ function createScene(){
 
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, step : 0};
-    robot.add(abdomen, abd_tire_left, abd_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
+    robot.add(head, chest, abdomen ,waist, abd_tire_left, abd_tire_right, left_thigh, right_thigh, left_leg, right_leg, leg_wheel_l1, leg_wheel_l2, leg_wheel_r1, leg_wheel_r2, left_foot, right_foot, forearm_l, forearm_r, arm_l, arm_r, exhaust_l, exhaust_r);
 
     scene.add(robot);
 
@@ -141,7 +166,7 @@ function createIsometricOrtogonalCamera() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[4] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[4].position.set(15, 15, 15);
+    cameras[4].position.set(12, 12, 12);
     cameras[4].lookAt(scene.position);
 }
 
@@ -309,7 +334,12 @@ function onResize() {
     'use strict';
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    
+
+    if (cameras[active_camera] instanceof THREE.OrthographicCamera) {
+        // Does orthograpic need window resize?
+        //cameras[active_camera].updateProjectionMatrix();
+    }
+    else
     if (window.innerHeight > 0 && window.innerWidth > 0) {
         cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
         cameras[active_camera].updateProjectionMatrix();
