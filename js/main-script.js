@@ -113,6 +113,11 @@ function createScene(){
     antler_r = createCube(antlers_depth, antlers_height, antlers_depth);
     antler_r.position.set(0.25*head_length, 1.5*waist_height + chest_height + head_height + antlers_height / 2, 0);
 
+    eye_l.material.color.set("white")
+    eye_r.material.color.set("white")
+    antler_l.material.color.set("white")
+    antler_r.material.color.set("white")
+
     /* --------------------------------------------------------------- */
 
 
