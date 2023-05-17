@@ -351,18 +351,21 @@ function updateTrailerPosition() {
 }
 
 function move_trailer(x, z){
-
-    trailer.velocity.setComponent(0, x);
-    trailer.velocity.setComponent(2, z);
-
-    /*
     if(x != 0 && trailer.velocity.getComponent(0) * x <= 0){
         trailer.velocity.setComponent(0, trailer.velocity.getComponent(0) + x);
     }
     if(z != 0 && trailer.velocity.getComponent(2) * z <= 0){
         trailer.velocity.setComponent(2, trailer.velocity.getComponent(2) + z);
     }
-    */
+    if(x == 0 && z ==0){
+        trailer.velocity.setComponent(0, 0);
+        trailer.velocity.setComponent(2, 0);
+    }
+    // Velocity vector length remains unchanged
+    if(trailer.velocity.getComponent(0) !== 0 && trailer.velocity.getComponent(2) !== 0){
+        trailer.velocity.setComponent(0, trailer.velocity.getComponent(0) * 0.707);
+        trailer.velocity.setComponent(0, trailer.velocity.getComponent(2) * 0.707);
+    }
 }
 
 ////////////////////////////
