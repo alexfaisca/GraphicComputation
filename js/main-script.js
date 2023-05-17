@@ -320,9 +320,7 @@ function init() {
 
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("front_view", onKeyDown);
-    window.addEventListener("sided_view", onKeyDown);
-    window.addEventListener("top_view", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
 }
 
 /////////////////////
@@ -334,13 +332,11 @@ function animate() {
     let step = 0.01;
 
     if (robot.userData.rotating) {
-        robot.rotateOnAxis(new THREE.Vector3(0, 1, 0), step);
-        robot.rotateZ(0);
+        robot.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
     }
 
     if (trailer.userData.rotating) {
-        trailer.rotateOnAxis(new THREE.Vector3(0, 1, 0), step);
-        trailer.rotateZ(0);
+        trailer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
     }
 
     updateTrailerPosition();
@@ -355,12 +351,18 @@ function updateTrailerPosition() {
 }
 
 function move_trailer(x, z){
+
+    trailer.velocity.setComponent(0, x);
+    trailer.velocity.setComponent(2, z);
+
+    /*
     if(x != 0 && trailer.velocity.getComponent(0) * x <= 0){
         trailer.velocity.setComponent(0, trailer.velocity.getComponent(0) + x);
     }
     if(z != 0 && trailer.velocity.getComponent(2) * z <= 0){
         trailer.velocity.setComponent(2, trailer.velocity.getComponent(2) + z);
     }
+    */
 }
 
 ////////////////////////////
@@ -371,11 +373,8 @@ function onResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    if (cameras[active_camera] instanceof THREE.OrthographicCamera) {
-        // Does orthograpic need window resize?
-        //cameras[active_camera].updateProjectionMatrix();
-    }
-    else
+    // Ortho camera, does it need resizing?
+
     if (window.innerHeight > 0 && window.innerWidth > 0) {
         cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
         cameras[active_camera].updateProjectionMatrix();
@@ -410,16 +409,16 @@ function onKeyDown(e) {
 
     // Trailer Movement
     case 37: // Left
-        move_trailer(0.05, 0);
-        break;
-    case 38: // Up
-        move_trailer(0, 0.05);
-        break;
-    case 39: // Right
         move_trailer(-0.05, 0);
         break;
-    case 40: // Down
+    case 38: // Up
         move_trailer(0, -0.05);
+        break;
+    case 39: // Right
+        move_trailer(0.05, 0);
+        break;
+    case 40: // Down
+        move_trailer(0, 0.05);
         break;
 
     case 54: // 6
@@ -445,5 +444,20 @@ function onKeyDown(e) {
 ///////////////////////
 function onKeyUp(e){
     'use strict';
+    switch (e.keyCode) {
+
+    case 37: // Left
+        move_trailer(0, 0);
+        break;
+    case 38: // Up
+        move_trailer(0, 0);
+        break;
+    case 39: // Right
+        move_trailer(0, 0);
+        break;
+    case 40: // Down
+        move_trailer(0, 0);
+        break;
+    }
 
 }
