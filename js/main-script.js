@@ -97,7 +97,7 @@ function createScene(){
     left_arm.add(forearm, arm, exhaust);
     right_arm.copy(left_arm);
     right_arm.scale.multiply(mirror);
-    right_arm.position.setX(left_arm.position.x);
+    right_arm.position.setX(-left_arm.position.x);
 
     arms.add(left_arm, right_arm);
     /* --------------------------------------------------------------- */
@@ -355,11 +355,11 @@ function updateTrailerPosition() {
 }
 
 function move_trailer(x, z){
-    if(x != 0){
-        trailer.velocity.setComponent(0, x);
+    if(x != 0 && trailer.velocity.getComponent(0) * x <= 0){
+        trailer.velocity.setComponent(0, trailer.velocity.getComponent(0) + x);
     }
-    if(z != 0){
-        trailer.velocity.setComponent(2, z);
+    if(z != 0 && trailer.velocity.getComponent(2) * z <= 0){
+        trailer.velocity.setComponent(2, trailer.velocity.getComponent(2) + z);
     }
 }
 
