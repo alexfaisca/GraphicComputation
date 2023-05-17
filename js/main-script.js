@@ -128,7 +128,7 @@ function createScene(){
 
 
     robot = new THREE.Object3D();
-    robot.userData = {rotating : 0, step : 0};
+    robot.userData = {rotating : 0, step : 0, rotate_head : 0};
     robot.add(head, body, legs, arms);
 
     scene.add(robot);
@@ -261,9 +261,9 @@ function createTrailer(){
     // TODO: How will both connection pieces connect?
 
     trailer = new THREE.Object3D();
-    trailer.userData = {rotating : 0, step : 0};
+    trailer.userData = {rotating : 0, step : 0, velocity : new THREE.Vector3(0,0,0)};
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
-    trailer.velocity = new THREE.Vector3(0,0,0);
+
 
     scene.add(trailer);
 }
@@ -329,43 +329,58 @@ function init() {
 function animate() {
     'use strict';
 
-    let step = 0.01;
-
-    if (robot.userData.rotating) {
-        robot.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
-    }
-
-    if (trailer.userData.rotating) {
-        trailer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
-    }
-
+    rotateRobot();
+    rotateTrailer();
     updateTrailerPosition();
+    updateHeadPosition();
 
     render();
 
     requestAnimationFrame(animate);
 }
 
+function rotateRobot(){
+    let step = 0.01;
+    if (robot.userData.rotating) {
+        robot.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
+    }
+}
+
+function rotateTrailer(){
+    let step = 0.01;
+    if (trailer.userData.rotating) {
+        trailer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
+    }
+}
+
 function updateTrailerPosition() {
-    trailer.position = trailer.position.add(trailer.velocity);
+    trailer.position = trailer.position.add(trailer.userData.velocity);
+}
+
+function updateHeadPosition() {
+    // rotate on world axis?
 }
 
 function move_trailer(x, z){
-    if(x != 0 && trailer.velocity.getComponent(0) * x <= 0){
-        trailer.velocity.setComponent(0, trailer.velocity.getComponent(0) + x);
+    if(x != 0 && trailer.userData.velocity.getComponent(0) * x <= 0){
+        trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(0) + x);
     }
-    if(z != 0 && trailer.velocity.getComponent(2) * z <= 0){
-        trailer.velocity.setComponent(2, trailer.velocity.getComponent(2) + z);
+    if(z != 0 && trailer.userData.velocity.getComponent(2) * z <= 0){
+        trailer.userData.velocity.setComponent(2, trailer.userData.velocity.getComponent(2) + z);
     }
     if(x == 0 && z ==0){
-        trailer.velocity.setComponent(0, 0);
-        trailer.velocity.setComponent(2, 0);
+        trailer.userData.velocity.setComponent(0, 0);
+        trailer.userData.velocity.setComponent(2, 0);
     }
     // Velocity vector length remains unchanged
-    if(trailer.velocity.getComponent(0) !== 0 && trailer.velocity.getComponent(2) !== 0){
-        trailer.velocity.setComponent(0, trailer.velocity.getComponent(0) * 0.707);
-        trailer.velocity.setComponent(0, trailer.velocity.getComponent(2) * 0.707);
+    if(trailer.userData.velocity.getComponent(0) !== 0 && trailer.userData.velocity.getComponent(2) !== 0){
+        trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(0) * 0.707);
+        trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(2) * 0.707);
     }
+}
+
+function move_head(x){
+    robot.userData.rotate_head = x;
 }
 
 ////////////////////////////
@@ -436,6 +451,15 @@ function onKeyDown(e) {
                 node.material.wireframe = !node.material.wireframe;
         })
         break;
+
+    // Move head
+    case 82: // r
+        move_head(1);
+        break;
+
+    case 70: // f
+        move_head(-1);
+        break;
     }
 
     render();
@@ -461,6 +485,12 @@ function onKeyUp(e){
     case 40: // Down
         move_trailer(0, 0);
         break;
-    }
 
+    case 82: // r
+        move_head(0);
+        break;
+    case 70: // f
+        move_head(0);
+        break;
+    }
 }
