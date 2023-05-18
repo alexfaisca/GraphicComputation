@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false;
+var robot, trailer, wireframe = false, left_arm, right_arm;
 var active_camera;
 var cameras = new Array(5);
 
@@ -83,21 +83,27 @@ function createScene(){
 
     /* ARMS */
     var arms = new THREE.Object3D();
-    var left_arm = new THREE.Object3D(), right_arm = new THREE.Object3D();
+    left_arm = new THREE.Object3D(), right_arm = new THREE.Object3D();
     var forearm, arm, exhaust;
     var forearm_width = wheel_height, forearm_depth = 4 * wheel_radius, forearm_height = 2 * wheel_radius, arm_width = wheel_height, arm_depth = 2 * wheel_radius, arm_height = 10 / 3 * wheel_radius, exhaust_radius = 2 / 3 * wheel_radius, exhaust_height = 6 * wheel_radius;
 
     forearm = createCube(forearm_width, forearm_height, forearm_depth);
-    forearm.position.set(-(abdomen_length / 2 + wheel_height + forearm_width / 2), (abdomen_height / 2 + forearm_height / 2), -(abdomen_depth / 2))
+    forearm.position.set(0, forearm_height / 2, 0)
     arm = createCube(arm_width, arm_height, arm_depth);
-    arm.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), (abdomen_height / 2 + forearm_height + arm_height / 2), -(abdomen_depth + arm_depth) / 2)
+    arm.position.set(0, (forearm_height + arm_height / 2), - arm_depth / 2)
     exhaust = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
-    exhaust.position.set(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
+    exhaust.position.set(-exhaust_radius, forearm_height + exhaust_height / 2, -(arm_depth - exhaust_radius))
 
     left_arm.add(forearm, arm, exhaust);
+    left_arm.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), abdomen_height / 2, -(abdomen_depth) / 2)
+    left_arm.userData = {unravel : 0}
+    left_arm.unravel = 0;
     right_arm.copy(left_arm, true);
     right_arm.scale.multiply(mirror);
     right_arm.position.setX(-left_arm.position.x);
+
+    left_arm.name = "left_arm"
+    right_arm.name = "right_arm"
 
     arms.add(left_arm, right_arm);
     /* --------------------------------------------------------------- */
@@ -333,10 +339,24 @@ function animate() {
     rotateTrailer();
     updateTrailerPosition();
     updateHeadPosition();
+    unravel_arms();
 
     render();
 
     requestAnimationFrame(animate);
+}
+
+function unravel_arms() {
+    let step = 0.01
+    if (left_arm.unravel < 0) if (left_arm.position.x < -2.5){
+        left_arm.position.x += step;
+        right_arm.position.x -= step;
+    }
+    if (left_arm.unravel > 0) if (left_arm.position.x > -3.5) {
+        left_arm.position.x -= step;
+        right_arm.position.x += step;
+    }
+
 }
 
 function rotateRobot(){
@@ -439,13 +459,11 @@ function onKeyDown(e) {
         move_trailer(0, 0.05);
         break;
 
-    case 54: // 6
+    case 55: // 7
         robot.userData.rotating = !robot.userData.rotating;
         trailer.userData.rotating = !trailer.userData.rotating;
         break;
-
-    case 69:  //e
-    case 101: //E
+    case 54: //6
         wireframe = !wireframe
         scene.traverse(function (node) {
             if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
@@ -459,6 +477,14 @@ function onKeyDown(e) {
 
     case 70: // f
         move_head(-1);
+        break;
+    case 69: //E
+    case 101: //e
+        left_arm.unravel = left_arm.unravel >= 0 ? 1 : 0;
+        break;
+    case 68: //D
+    case 100: //d
+        left_arm.unravel = left_arm.unravel <= 0 ? -1 : 0;
         break;
     }
 
@@ -491,6 +517,14 @@ function onKeyUp(e){
         break;
     case 70: // f
         move_head(0);
+        break;
+    case 69: //E
+    case 101: //e
+        left_arm.unravel = 0;
+        break;
+    case 68: //D
+    case 100: //d
+        left_arm.unravel = 0;
         break;
     }
 }
