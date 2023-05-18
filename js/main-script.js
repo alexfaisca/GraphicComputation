@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer;
+var robot, trailer, wireframe = false;
 var active_camera;
 var cameras = new Array(5);
 
@@ -95,7 +95,7 @@ function createScene(){
     exhaust.position.set(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius), (abdomen_height / 2 + forearm_height + exhaust_height / 2), -(abdomen_depth / 2 + arm_depth - exhaust_radius))
 
     left_arm.add(forearm, arm, exhaust);
-    right_arm.copy(left_arm);
+    right_arm.copy(left_arm, true);
     right_arm.scale.multiply(mirror);
     right_arm.position.setX(-left_arm.position.x);
 
@@ -446,9 +446,9 @@ function onKeyDown(e) {
 
     case 69:  //e
     case 101: //E
+        wireframe = !wireframe
         scene.traverse(function (node) {
-            if (node instanceof THREE.Mesh)
-                node.material.wireframe = !node.material.wireframe;
+            if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
         })
         break;
 
