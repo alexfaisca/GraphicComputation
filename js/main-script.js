@@ -377,10 +377,10 @@ function updateTrailerPosition() {
 function updateHeadPosition() {
     //TODO: why doesn't this work?
     if(robot.userData.rotate_head === 1){
-        //head.position.x += 0.05;
+        head.position.x += 0.05;
     }
     if(robot.userData.rotate_head === -1){
-        //head.position.x -= 0.05;
+        head.position.x -= 0.05;
     }
 }
 
@@ -508,17 +508,17 @@ function compute_arm_velocity() {
 }
 
 function compute_head_movement(){
-    if(key_press_map[82] && key_press_map[70]){
+    if((key_press_map[82] || key_press_map[114]) && (key_press_map[70] || key_press_map[102])){
         move_head(0);
         render();
         return;
     }
-    if(key_press_map[82]){
+    if(key_press_map[82] || key_press_map[114]){
         move_head(1);
         render();
         return;
     }
-    if(key_press_map[70]){
+    if(key_press_map[70] || key_press_map[102]){
         move_head(-1);
         render();
         return;
@@ -628,11 +628,15 @@ function onKeyUp(e){
         break;
 
     // Head Movement
+    case 102:
     case 70: // f
         key_press_map[70] = 0;
+        compute_head_movement();
         break;
+    case 114:
     case 82: // r
         key_press_map[82] = 0;
+        compute_head_movement();
         break;
 
     case 69: //E
@@ -646,7 +650,4 @@ function onKeyUp(e){
         compute_arm_velocity();
         break;
     }
-
-    compute_trailer_movement();
-    compute_head_movement();
 }
