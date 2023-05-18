@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, left_arm, right_arm;
+var robot, trailer, wireframe = false, left_arm, right_arm, head;
 var active_camera;
 var cameras = new Array(5);
 var key_press_map = {};
@@ -111,15 +111,15 @@ function createScene(){
     var head_length = wheel_height, head_height = wheel_height, head_depth = head_height / 2, eyes_length = head_length / 4, eyes_height = head_length / 4, eyes_depth = head_length / 4, antlers_length = eyes_length,  antlers_height = eyes_height, antlers_depth = eyes_depth;
 
     skull = createCube(head_length, head_height, head_depth);
-    skull.position.set(0, 1.5*waist_height + chest_height + 0.5*head_height);
+    skull.position.set(0,  0.5*head_height);
     eye_l = createCube(eyes_length, eyes_height, eyes_depth);
-    eye_l.position.set(-0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
+    eye_l.position.set(-0.25*head_length,  + 0.75*head_height, 0.5*head_depth);
     eye_r = createCube(eyes_length, eyes_height, eyes_depth);
-    eye_r.position.set(0.25*head_length, 1.5*waist_height + chest_height + 0.75*head_height, 0.5*head_depth);
+    eye_r.position.set(0.25*head_length, 0.75*head_height, 0.5*head_depth);
     antler_l = createCube(antlers_depth, antlers_height, antlers_depth);
-    antler_l.position.set(-0.25*head_length, 1.5*waist_height + chest_height + head_height + antlers_height / 2, 0);
+    antler_l.position.set(-0.25*head_length, head_height + antlers_height / 2, 0);
     antler_r = createCube(antlers_depth, antlers_height, antlers_depth);
-    antler_r.position.set(0.25*head_length, 1.5*waist_height + chest_height + head_height + antlers_height / 2, 0);
+    antler_r.position.set(0.25*head_length, head_height + antlers_height / 2, 0);
 
     eye_l.material.color.set("white")
     eye_r.material.color.set("white")
@@ -127,6 +127,7 @@ function createScene(){
     antler_r.material.color.set("white")
 
     head.add(skull, eye_l, eye_r, antler_l, antler_r);
+    head.position.set(0, 1.5*waist_height + chest_height, 0);
     /* --------------------------------------------------------------- */
 
 
@@ -343,6 +344,18 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
+function unravel_arms() {
+    let step = 0.01
+    if (left_arm.unravel < 0) if (left_arm.position.x < -2.5){
+        left_arm.position.x += step;
+        right_arm.position.x -= step;
+    }
+    if (left_arm.unravel > 0) if (left_arm.position.x > -3.5) {
+        left_arm.position.x -= step;
+        right_arm.position.x += step;
+    }
+}
+
 function rotateRobot(){
     let step = 0.01;
     if (robot.userData.rotating) {
@@ -362,7 +375,13 @@ function updateTrailerPosition() {
 }
 
 function updateHeadPosition() {
-    // rotate on world axis?
+    //TODO: why doesn't this work?
+    if(robot.userData.rotate_head === 1){
+        //head.position.x += 0.05;
+    }
+    if(robot.userData.rotate_head === -1){
+        //head.position.x -= 0.05;
+    }
 }
 
 function updateArmPosition() {
@@ -383,8 +402,8 @@ function move_trailer(x, z){
     }
 }
 
-function move_head(x){
-    robot.userData.rotate_head = x;
+function move_head(a){
+    robot.userData.rotate_head = a;
 }
 
 function compute_trailer_movement() {
@@ -467,24 +486,45 @@ function compute_trailer_movement() {
     render();
 }
 
+
 function compute_arm_velocity() {
-    if(key_press_map[68] && key_press_map[69]) {
+    if (key_press_map[68] && key_press_map[69]) {
         left_arm.userData.velocity.set(0, 0, 0);
         right_arm.userData.velocity.set(0, 0, 0);
         return;
     }
-    if(key_press_map[68]) if(left_arm.position.x < -2.5) {
+    if (key_press_map[68]) if (left_arm.position.x < -2.5) {
         left_arm.userData.velocity.set(1, 0, 0);
         right_arm.userData.velocity.set(-1, 0, 0);
         return;
     }
-    if(key_press_map[69]) if(left_arm.position.x > -3.5) {
+    if (key_press_map[69]) if (left_arm.position.x > -3.5) {
         left_arm.userData.velocity.set(-1, 0, 0);
         right_arm.userData.velocity.set(1, 0, 0);
         return;
     }
     left_arm.userData.velocity.set(0, 0, 0);
     right_arm.userData.velocity.set(0, 0, 0);
+}
+
+function compute_head_movement(){
+    if(key_press_map[82] && key_press_map[70]){
+        move_head(0);
+        render();
+        return;
+    }
+    if(key_press_map[82]){
+        move_head(1);
+        render();
+        return;
+    }
+    if(key_press_map[70]){
+        move_head(-1);
+        render();
+        return;
+    }
+    move_head(0);
+    render();
 }
 
 ////////////////////////////
@@ -513,6 +553,7 @@ function onKeyDown(e) {
 
     key_press_map[e.keyCode] = e.type == 'keydown'
     compute_trailer_movement();
+    compute_head_movement();
 
     switch(e.keyCode) {
     // Camera changes
@@ -531,41 +572,19 @@ function onKeyDown(e) {
     case 53: // 5
         change_camera(4);
         break;
+
     case 54: //6
         wireframe = !wireframe
         scene.traverse(function (node) {
             if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
         })
         break;
+
     case 55: // 7
         robot.userData.rotating = !robot.userData.rotating;
         trailer.userData.rotating = !trailer.userData.rotating;
         break;
-    // Trailer Movement
-    case 37: // Left
-        key_press_map[37] = 1;
-        compute_trailer_movement();
-        break;
-    case 38: // Up
-        key_press_map[38] = 1;
-        compute_trailer_movement();
-        break;
-    case 39: // Right
-        key_press_map[39] = 1;
-        compute_trailer_movement();
-        break;
-    case 40: // Down
-        key_press_map[40] = 1;
-        compute_trailer_movement();
-        break;
-    // Move head
-    case 82: // r
-        move_head(1);
-        break;
 
-    case 70: // f
-        move_head(-1);
-        break;
     // Arm movement
     case 69: //E
     case 101: //e
@@ -590,6 +609,7 @@ function onKeyUp(e){
     'use strict';
     switch (e.keyCode) {
 
+    // Trailer Movement
     case 37: // Left
         key_press_map[37] = 0;
         compute_trailer_movement();
@@ -607,12 +627,14 @@ function onKeyUp(e){
         compute_trailer_movement();
         break;
 
-    case 82: // r
-        move_head(0);
-        break;
+    // Head Movement
     case 70: // f
-        move_head(0);
+        key_press_map[70] = 0;
         break;
+    case 82: // r
+        key_press_map[82] = 0;
+        break;
+
     case 69: //E
     case 101: //e
         key_press_map[69] = 0;
@@ -625,4 +647,6 @@ function onKeyUp(e){
         break;
     }
 
+    compute_trailer_movement();
+    compute_head_movement();
 }
