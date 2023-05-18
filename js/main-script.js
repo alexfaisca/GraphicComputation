@@ -5,6 +5,7 @@ var scene, renderer;
 var robot, trailer, wireframe = false, left_arm, right_arm;
 var active_camera;
 var cameras = new Array(5);
+var key_press_map = {};
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -382,25 +383,99 @@ function updateHeadPosition() {
 }
 
 function move_trailer(x, z){
-    if(x != 0 && trailer.userData.velocity.getComponent(0) * x <= 0){
-        trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(0) + x);
-    }
-    if(z != 0 && trailer.userData.velocity.getComponent(2) * z <= 0){
-        trailer.userData.velocity.setComponent(2, trailer.userData.velocity.getComponent(2) + z);
-    }
-    if(x == 0 && z ==0){
-        trailer.userData.velocity.setComponent(0, 0);
-        trailer.userData.velocity.setComponent(2, 0);
-    }
+
+    trailer.userData.velocity.setComponent(0, x);
+    trailer.userData.velocity.setComponent(2, z);
+
     // Velocity vector length remains unchanged
     if(trailer.userData.velocity.getComponent(0) !== 0 && trailer.userData.velocity.getComponent(2) !== 0){
         trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(0) * 0.707);
-        trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(2) * 0.707);
+        trailer.userData.velocity.setComponent(2, trailer.userData.velocity.getComponent(2) * 0.707);
     }
 }
 
 function move_head(x){
     robot.userData.rotate_head = x;
+}
+
+function compute_trailer_movement() {
+    if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
+        move_trailer(0, 0);
+        render();
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39] && key_press_map[38]){ // Left + Right + Up
+        move_trailer(0, -0.05);
+        render();
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39] && key_press_map[40]){ // Left + Right + Down
+        move_trailer(0, 0.05);
+        render();
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40] && key_press_map[37]){ // Up + Down + Left
+        move_trailer(-0.05, 0);
+        render();
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40] && key_press_map[39]){ // Up + Down + Right
+        move_trailer(0.05, 0);
+        render();
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40]){ // Up + Down
+        move_trailer(0.0, 0);
+        render();
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39]){ // Left + Right
+        move_trailer(0.0, 0);
+        render();
+        return;
+    }
+    if(key_press_map[38] && key_press_map[39]){ // Up + Right
+        move_trailer(0.05, -0.05);
+        render();
+        return;
+    }
+    if(key_press_map[38] && key_press_map[37]){ // Up + Left
+        move_trailer(-0.05, -0.05);
+        render();
+        return;
+    }
+    if(key_press_map[40] && key_press_map[39]){ // Down + Right
+        move_trailer(0.05, 0.05);
+        render();
+        return;
+    }
+    if(key_press_map[40] && key_press_map[37]){ // Down + Left
+        move_trailer(-0.05, 0.05);
+        render();
+        return;
+    }
+    if(key_press_map[37]){
+        move_trailer(-0.05, 0);
+        render();
+        return;
+    }
+    if(key_press_map[38]){
+        move_trailer(0, -0.05);
+        render();
+        return;
+    }
+    if(key_press_map[39]){
+        move_trailer(0.05, 0);
+        render();
+        return;
+    }
+    if(key_press_map[40]){
+        move_trailer(0, 0.05);
+        render();
+        return;
+    }
+    move_trailer(0,0);
+    render();
 }
 
 ////////////////////////////
@@ -427,6 +502,9 @@ function onResize() {
 function onKeyDown(e) {
     'use strict';
 
+    key_press_map[e.keyCode] = e.type == 'keydown'
+    compute_trailer_movement();
+
     switch(e.keyCode) {
     // Camera changes
     case 49: // 1
@@ -444,7 +522,16 @@ function onKeyDown(e) {
     case 53: // 5
         change_camera(4);
         break;
-
+    case 54: //6
+        wireframe = !wireframe
+        scene.traverse(function (node) {
+            if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
+        })
+        break;
+    case 55: // 7
+        robot.userData.rotating = !robot.userData.rotating;
+        trailer.userData.rotating = !trailer.userData.rotating;
+        break;
     // Trailer Movement
     case 37: // Left
         move_trailer(-0.05, 0);
@@ -458,18 +545,6 @@ function onKeyDown(e) {
     case 40: // Down
         move_trailer(0, 0.05);
         break;
-
-    case 55: // 7
-        robot.userData.rotating = !robot.userData.rotating;
-        trailer.userData.rotating = !trailer.userData.rotating;
-        break;
-    case 54: //6
-        wireframe = !wireframe
-        scene.traverse(function (node) {
-            if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
-        })
-        break;
-
     // Move head
     case 82: // r
         move_head(1);
@@ -478,6 +553,7 @@ function onKeyDown(e) {
     case 70: // f
         move_head(-1);
         break;
+    // Arm movement
     case 69: //E
     case 101: //e
         left_arm.unravel = left_arm.unravel >= 0 ? 1 : 0;
@@ -500,16 +576,16 @@ function onKeyUp(e){
     switch (e.keyCode) {
 
     case 37: // Left
-        move_trailer(0, 0);
+        key_press_map[37] = 0;
         break;
     case 38: // Up
-        move_trailer(0, 0);
+        key_press_map[38] = 0;
         break;
     case 39: // Right
-        move_trailer(0, 0);
+        key_press_map[39] = 0;
         break;
     case 40: // Down
-        move_trailer(0, 0);
+        key_press_map[40] = 0;
         break;
 
     case 82: // r
@@ -527,4 +603,6 @@ function onKeyUp(e){
         left_arm.unravel = 0;
         break;
     }
+
+    compute_trailer_movement();
 }
