@@ -2,10 +2,11 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, left_arm, right_arm;
+var robot, trailer, wireframe = false, left_arm, right_arm, feet, feet_axis;
 var active_camera;
 var cameras = new Array(5);
 var key_press_map = {};
+var m1 = new THREE.Matrix4(), m2 = new THREE.Matrix4(), m3 = new THREE.Matrix4()
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -56,30 +57,53 @@ function createScene(){
     /* LEGS */
     var legs = new THREE.Object3D();
     var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
-    var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, foot;
+    var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, left_foot, right_foot;
     var thigh_length = wheel_height / 2, thigh_height = 2 * wheel_radius, leg_width = 7 / 4 * wheel_height, leg_depth = 2 * wheel_radius, leg_height = 8 * wheel_radius + wheel_height, foot_length = 11 / 4 * wheel_height, foot_depth = 5 / 3 * wheel_radius, foot_height = wheel_height;
 
     thigh = createCube(thigh_length, thigh_height, thigh_length)
-    thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
+    thigh.position.set(-abdomen_length / 4, -(-abdomen_height + thigh_height) / 2, 0)
     upper_leg = createCube(leg_width, leg_height, leg_depth)
-    upper_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
+    upper_leg.position.set(-abdomen_length / 4, -(-abdomen_height / 2 + thigh_height + leg_height / 2), 0)
 
     leg_wheel_1 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
-    leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
+    leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(-abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
     leg_wheel_1.rotateZ((Math.PI)/2);
     leg_wheel_2 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
-    leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
+    leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(-abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
     leg_wheel_2.rotateZ((Math.PI)/2);
-    foot = createCube(foot_length, foot_height, foot_depth)
-    foot.position.set(-(abdomen_length / 4 - leg_width / 2 + foot_length / 2), -(abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
 
-    left_leg.add(thigh, upper_leg, foot, leg_wheel_1, leg_wheel_2);
-
+    left_leg.add(thigh, upper_leg, leg_wheel_1, leg_wheel_2);
     right_leg.copy(left_leg);
     right_leg.scale.multiply(mirror);
     right_leg.position.setX(-left_leg.position.x);
 
-    legs.add(left_leg, right_leg);
+    left_foot = new THREE.Object3D();
+    left_foot.add(createCube(foot_length, foot_height, foot_depth));
+    left_foot.position.set(-(abdomen_length / 4 - leg_width / 2 + foot_length / 2), foot_height / 2, foot_depth / 2);
+    right_foot = new THREE.Object3D().copy(left_foot);
+    right_foot.scale.multiply(mirror);
+    right_foot.position.setX(-left_foot.position.x);
+
+    const points = [];
+    points.push( new THREE.Vector3( -1, 0, 0) );
+    points.push( new THREE.Vector3( 1, 0, 0,) );
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+    feet_axis = new THREE.Line( geometry, new THREE.LineBasicMaterial({color: 'blue'}));
+    feet_axis.position.set(0, -(-abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
+    scene.add( feet_axis );
+
+    m1.makeTranslation(0, -(-abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
+    feet = new THREE.Object3D()
+    feet.add(left_foot, right_foot);
+    feet.userData = {rotating: 0, rotationAngle: 0, axis: new THREE.Vector3(0, -(abdomen_height / 2 + thigh_height + leg_height + foot_height / 2), leg_depth / 2)};
+    feet.name = "feet";
+
+    feet_axis.add(feet)
+
+    legs.add(left_leg, right_leg, feet_axis);
+    legs.name = "legs";
+
     /* --------------------------------------------------------------- */
 
     /* ARMS */
@@ -92,7 +116,7 @@ function createScene(){
     arm = createCube(arm_width, arm_height, arm_depth);
     arm.position.set(0, (forearm_height + arm_height / 2), - arm_depth / 2)
     exhaust = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
-    exhaust.position.set(-exhaust_radius, forearm_height + exhaust_height / 2, -(arm_depth - exhaust_radius))
+    exhaust.position.set(-arm_width / 2 -exhaust_radius, forearm_height + exhaust_height / 2, -(arm_depth - exhaust_radius))
 
     left_arm.add(forearm, arm, exhaust);
     left_arm.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), abdomen_height / 2, -(abdomen_depth) / 2)
@@ -100,10 +124,12 @@ function createScene(){
     right_arm.scale.multiply(mirror);
     right_arm.position.setX(-left_arm.position.x);
 
-    left_arm.name = "left_arm"
-    right_arm.name = "right_arm"
-    left_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)}
-    right_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)}/* --------------------------------------------------------------- */
+    left_arm.name = "left_arm";
+    right_arm.name = "right_arm";
+    left_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)};
+    right_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)};
+
+    /* --------------------------------------------------------------- */
 
     /* HEAD */
     var head = new THREE.Object3D();
@@ -337,6 +363,7 @@ function animate() {
     updateTrailerPosition();
     updateHeadPosition();
     updateArmPosition();
+    updateFeetPosition();
 
     render();
 
@@ -369,6 +396,20 @@ function updateArmPosition() {
     let step = 0.03
     left_arm.position.add(left_arm.userData.velocity.multiplyScalar(step));
     right_arm.position.add(right_arm.userData.velocity.multiplyScalar(step));
+}
+
+function updateFeetPosition() {
+    let step = 0.01, coords;
+    console.log(feet.position)
+    if(feet.userData.rotating != 0) {
+        coords = feet.position
+        console.log('update' + feet.userData.rotating);
+        console.log(feet.userData.axis);
+        feet_axis.position.addScaledVector(feet.userData.axis, -1)
+        feet_axis.rotateOnAxis(new THREE.Vector3(1,0,0), feet.userData.rotating * step);
+        feet.userData.rotationAngle += feet.userData.rotating * step;
+        feet_axis.position.addScaledVector(feet.userData.axis, 1)
+    }
 }
 
 function move_trailer(x, z){
@@ -487,6 +528,26 @@ function compute_arm_velocity() {
     right_arm.userData.velocity.set(0, 0, 0);
 }
 
+function compute_feet_rotation() {
+    if(key_press_map[65] && key_press_map[81]) {
+        feet.userData.rotating = 0;
+        return;
+    }
+    if(key_press_map[81]) if(feet.userData.rotationAngle > 0) {
+        console.log('CLOSE')
+        feet.userData.rotating = -1;
+        console.log(feet.userData.rotating)
+        return;
+    }
+    if(key_press_map[65]) if(feet.userData.rotationAngle < Math.PI) {
+        console.log('OPEN')
+        feet.userData.rotating = 1;
+        console.log(feet.userData.rotating)
+        return;
+    }
+    feet.userData.rotating = 0;
+}
+
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
 ////////////////////////////
@@ -577,6 +638,17 @@ function onKeyDown(e) {
         key_press_map[68] = 1;
         compute_arm_velocity();
         break;
+    // Feet movement
+    case 65: //A
+    case 97: //a
+        key_press_map[65] = 1;
+        compute_feet_rotation();
+        break;
+    case 81: //Q
+    case 113: //q
+        key_press_map[81] = 1;
+        compute_feet_rotation();
+        break;
     }
 
     render();
@@ -622,6 +694,17 @@ function onKeyUp(e){
     case 100: //d
         key_press_map[68] = 0;
         compute_arm_velocity();
+        break;
+    // Feet movement
+    case 65: //A
+    case 97: //a
+        key_press_map[65] = 0;
+        compute_feet_rotation();
+        break;
+    case 81: //Q
+    case 113: //q
+        key_press_map[81] = 0;
+        compute_feet_rotation();
         break;
     }
 
