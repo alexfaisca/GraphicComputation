@@ -89,7 +89,7 @@ function createScene(){
     feet_axis_points.push( new THREE.Vector3( 1, 0, 0,) );
     const feet_axis_geometry = new THREE.BufferGeometry().setFromPoints(feet_axis_points);
 
-    feet_axis = new THREE.Line( feet_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
+    feet_axis = new THREE.Line(feet_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
     feet_axis.position.set(0, -(-abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
     scene.add( feet_axis );
 
@@ -537,17 +537,17 @@ function compute_trailer_movement() {
 
 
 function compute_arm_velocity() {
-    if ((key_press_map[68] || key_press_map[100]) && (key_press_map[69] || key_press_map[101])) {
+    if (key_press_map[68] && key_press_map[69]) {
         left_arm.userData.velocity.set(0, 0, 0);
         right_arm.userData.velocity.set(0, 0, 0);
         return;
     }
-    if (key_press_map[68] || key_press_map[100]) if (left_arm.position.x < -2.5) {
+    if (key_press_map[68]) if (left_arm.position.x < -2.5) {
         left_arm.userData.velocity.set(1, 0, 0);
         right_arm.userData.velocity.set(-1, 0, 0);
         return;
     }
-    if (key_press_map[69] || key_press_map[101]) if (left_arm.position.x > -3.5) {
+    if (key_press_map[69]) if (left_arm.position.x > -3.5) {
         left_arm.userData.velocity.set(-1, 0, 0);
         right_arm.userData.velocity.set(1, 0, 0);
         return;
@@ -558,7 +558,7 @@ function compute_arm_velocity() {
 
 function compute_leg_rotation()
 {
-    if ((key_press_map[83]) && (key_press_map[87])) {
+    if (key_press_map[83] && key_press_map[87]) {
         legs.userData.rotating = 0;
         return;
     }
@@ -576,7 +576,7 @@ function compute_leg_rotation()
 }
 
 function compute_feet_rotation() {
-    if ((key_press_map[65]) && (key_press_map[81])) {
+    if (key_press_map[65] && key_press_map[81]) {
         feet_axis.userData.rotating = 0;
         return;
     }
@@ -592,8 +592,7 @@ function compute_feet_rotation() {
 }
 
 function compute_head_rotation() {
-<<<<<<< HEAD
-    if((key_press_map[82]) && (key_press_map[70])){
+    if(key_press_map[82] && key_press_map[70]){
         head_axis.userData.rotating = 0
         return;
     }
@@ -602,17 +601,6 @@ function compute_head_rotation() {
         return;
     }
     if(key_press_map[70])if(head_axis.userData.rotationAngle < Math.PI) {
-=======
-    if((key_press_map[82] || key_press_map[114]) && (key_press_map[70] || key_press_map[102])){
-        head_axis.userData.rotating = 0
-        return;
-    }
-    if(key_press_map[82] || key_press_map[114]) if(head_axis.userData.rotationAngle > 0) {
-        head_axis.userData.rotating = -1;
-        return;
-    }
-    if(key_press_map[70] || key_press_map[102])if(head_axis.userData.rotationAngle < Math.PI) {
->>>>>>> 637051f (Cleanup.)
         head_axis.userData.rotating = 1;
         return;
     }
