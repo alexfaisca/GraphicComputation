@@ -400,8 +400,8 @@ function updateTrailerPosition() {
 function updateHeadPosition() {
     let step = 0.02;
     if(head_axis.userData.rotating != 0) {
-        head_axis.rotateX(head_axis.userData.rotating * step);
-        head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
+       head_axis.rotateX(head_axis.userData.rotating * step);
+       head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
     }
     if(head_axis.userData.rotating == 0) {
         if(head_axis.userData.rotationAngle < 0) {
@@ -459,7 +459,7 @@ function updateFeetPosition() {
     }
 }
 
-function move_trailer(x, z){
+function update_trailer_velocity(x, z){
 
     trailer.userData.velocity.setComponent(0, x);
     trailer.userData.velocity.setComponent(2, z);
@@ -473,97 +473,81 @@ function move_trailer(x, z){
 
 function compute_trailer_movement() {
     if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
-        move_trailer(0, 0);
-        render();
+        update_trailer_velocity(0, 0);
         return;
     }
     if(key_press_map[37] && key_press_map[39] && key_press_map[38]){ // Left + Right + Up
-        move_trailer(0, -0.05);
-        render();
+        update_trailer_velocity(0, -0.05);
         return;
     }
     if(key_press_map[37] && key_press_map[39] && key_press_map[40]){ // Left + Right + Down
-        move_trailer(0, 0.05);
-        render();
+        update_trailer_velocity(0, 0.05);
         return;
     }
     if(key_press_map[38] && key_press_map[40] && key_press_map[37]){ // Up + Down + Left
-        move_trailer(-0.05, 0);
-        render();
+        update_trailer_velocity(-0.05, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[40] && key_press_map[39]){ // Up + Down + Right
-        move_trailer(0.05, 0);
-        render();
+        update_trailer_velocity(0.05, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[40]){ // Up + Down
-        move_trailer(0.0, 0);
-        render();
+        update_trailer_velocity(0.0, 0);
         return;
     }
     if(key_press_map[37] && key_press_map[39]){ // Left + Right
-        move_trailer(0.0, 0);
-        render();
+        update_trailer_velocity(0.0, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[39]){ // Up + Right
-        move_trailer(0.05, -0.05);
-        render();
+        update_trailer_velocity(0.05, -0.05);
         return;
     }
     if(key_press_map[38] && key_press_map[37]){ // Up + Left
-        move_trailer(-0.05, -0.05);
-        render();
+        update_trailer_velocity(-0.05, -0.05);
         return;
     }
     if(key_press_map[40] && key_press_map[39]){ // Down + Right
-        move_trailer(0.05, 0.05);
-        render();
+        update_trailer_velocity(0.05, 0.05);
         return;
     }
     if(key_press_map[40] && key_press_map[37]){ // Down + Left
-        move_trailer(-0.05, 0.05);
-        render();
+        update_trailer_velocity(-0.05, 0.05);
         return;
     }
     if(key_press_map[37]){
-        move_trailer(-0.05, 0);
-        render();
+        update_trailer_velocity(-0.05, 0);
         return;
     }
     if(key_press_map[38]){
-        move_trailer(0, -0.05);
-        render();
+        update_trailer_velocity(0, -0.05);
         return;
     }
     if(key_press_map[39]){
-        move_trailer(0.05, 0);
-        render();
+        update_trailer_velocity(0.05, 0);
         return;
     }
     if(key_press_map[40]){
-        move_trailer(0, 0.05);
-        render();
+        update_trailer_velocity(0, 0.05);
         return;
     }
-    move_trailer(0,0);
-    render();
+    update_trailer_velocity(0,0);
 }
 
 
 function compute_arm_velocity() {
-    if (key_press_map[68] && key_press_map[69]) {
+    if ((key_press_map[68] || key_press_map[100]) && (key_press_map[69] || key_press_map[101])) {
         left_arm.userData.velocity.set(0, 0, 0);
         right_arm.userData.velocity.set(0, 0, 0);
         return;
     }
-    if (key_press_map[68]) if (left_arm.position.x < -2.5) {
+    if (key_press_map[68] || key_press_map[100]) if (left_arm.position.x < -2.5) {
         left_arm.userData.velocity.set(1, 0, 0);
         right_arm.userData.velocity.set(-1, 0, 0);
         return;
     }
-    if (key_press_map[69]) if (left_arm.position.x > -3.5) {
+    if (key_press_map[69] || key_press_map[101]) if (left_arm.position.x > -3.5) {
         left_arm.userData.velocity.set(-1, 0, 0);
         right_arm.userData.velocity.set(1, 0, 0);
         return;
@@ -608,6 +592,7 @@ function compute_feet_rotation() {
 }
 
 function compute_head_rotation() {
+<<<<<<< HEAD
     if((key_press_map[82]) && (key_press_map[70])){
         head_axis.userData.rotating = 0
         return;
@@ -617,6 +602,17 @@ function compute_head_rotation() {
         return;
     }
     if(key_press_map[70])if(head_axis.userData.rotationAngle < Math.PI) {
+=======
+    if((key_press_map[82] || key_press_map[114]) && (key_press_map[70] || key_press_map[102])){
+        head_axis.userData.rotating = 0
+        return;
+    }
+    if(key_press_map[82] || key_press_map[114]) if(head_axis.userData.rotationAngle > 0) {
+        head_axis.userData.rotating = -1;
+        return;
+    }
+    if(key_press_map[70] || key_press_map[102])if(head_axis.userData.rotationAngle < Math.PI) {
+>>>>>>> 637051f (Cleanup.)
         head_axis.userData.rotating = 1;
         return;
     }
@@ -647,10 +643,6 @@ function onResize() {
 function onKeyDown(e) {
     'use strict';
 
-    key_press_map[e.keyCode] = e.type == 'keydown'
-    compute_trailer_movement();
-    compute_head_rotation();
-
     switch(e.keyCode) {
     // Camera changes
     case 49: // 1
@@ -679,6 +671,35 @@ function onKeyDown(e) {
     case 55: // 7
         robot.userData.rotating = !robot.userData.rotating;
         trailer.userData.rotating = !trailer.userData.rotating;
+        break;
+
+    // Trailer Movement
+    case 37: // Left
+        key_press_map[37] = 1;
+        compute_trailer_movement();
+        break;
+    case 38: // Up
+        key_press_map[38] = 1;
+        compute_trailer_movement();
+        break;
+    case 39: // Right
+        key_press_map[39] = 1;
+        compute_trailer_movement();
+        break;
+    case 40: // Down
+        key_press_map[40] = 1;
+        compute_trailer_movement();
+        break;
+    // Head Movement
+    case 102:
+    case 70: // f
+        key_press_map[70] = 1;
+        compute_head_rotation();
+        break;
+    case 114:
+    case 82: // r
+        key_press_map[82] = 1;
+        compute_head_rotation();
         break;
     // Arm movement
     case 69: //E
