@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, left_arm, right_arm, head, feet_axis;
+var robot, trailer, wireframe = false, left_arm, right_arm, head_axis, feet_axis;
 var active_camera;
 var cameras = new Array(5);
 var key_press_map = {};
@@ -84,17 +84,17 @@ function createScene(){
     right_foot.scale.multiply(mirror);
     right_foot.position.setX(-left_foot.position.x);
 
-    const points = [];
-    points.push( new THREE.Vector3( -1, 0, 0) );
-    points.push( new THREE.Vector3( 1, 0, 0,) );
-    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+    const feet_axis_points = [];
+    feet_axis_points.push( new THREE.Vector3( -1, 0, 0) );
+    feet_axis_points.push( new THREE.Vector3( 1, 0, 0,) );
+    const feet_axis_geometry = new THREE.BufferGeometry().setFromPoints(feet_axis_points);
 
-    feet_axis = new THREE.Line( geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
+    feet_axis = new THREE.Line( feet_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
     feet_axis.position.set(0, -(-abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
     scene.add( feet_axis );
 
     feet_axis.add(left_foot, right_foot)
-    feet_axis.userData = {rotating: 0, rotationAngle: 0, axis: new THREE.Vector3(0, -(abdomen_height / 2 + thigh_height + leg_height + foot_height / 2), leg_depth / 2)};
+    feet_axis.userData = {rotating: 0, rotationAngle: 0};
     feet_axis.name = "feet";
 
 
@@ -129,34 +129,43 @@ function createScene(){
     /* --------------------------------------------------------------- */
 
     /* HEAD */
-    var head = new THREE.Object3D();
     var skull, eye_l, eye_r, antler_l, antler_r;
     var head_length = wheel_height, head_height = wheel_height, head_depth = head_height / 2, eyes_length = head_length / 4, eyes_height = head_length / 4, eyes_depth = head_length / 4, antlers_length = eyes_length,  antlers_height = eyes_height, antlers_depth = eyes_depth;
 
     skull = createCube(head_length, head_height, head_depth);
-    skull.position.set(0,  0.5*head_height);
+    skull.position.set(0,  head_height / 2, - head_depth / 2);
     eye_l = createCube(eyes_length, eyes_height, eyes_depth);
-    eye_l.position.set(-0.25*head_length,  + 0.75*head_height, 0.5*head_depth);
+    eye_l.position.set(-0.25*head_length,  0.75*head_height, 0.5*head_depth - head_depth / 2);
     eye_r = createCube(eyes_length, eyes_height, eyes_depth);
-    eye_r.position.set(0.25*head_length, 0.75*head_height, 0.5*head_depth);
+    eye_r.position.set(0.25*head_length, 0.75*head_height, 0.5*head_depth - head_depth / 2);
     antler_l = createCube(antlers_depth, antlers_height, antlers_depth);
-    antler_l.position.set(-0.25*head_length, head_height + antlers_height / 2, 0);
-    antler_r = createCube(antlers_depth, antlers_height, antlers_depth);
-    antler_r.position.set(0.25*head_length, head_height + antlers_height / 2, 0);
+    antler_l.position.set(-0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
+    antler_r = createCube(antlers_depth, 0.5 * antlers_height, antlers_depth);
+    antler_r.position.set(0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
 
     eye_l.material.color.set("white")
     eye_r.material.color.set("white")
     antler_l.material.color.set("white")
     antler_r.material.color.set("white")
 
-    head.add(skull, eye_l, eye_r, antler_l, antler_r);
-    head.position.set(0, 1.5*waist_height + chest_height, 0);
+    const head_axis_points = [];
+    head_axis_points.push( new THREE.Vector3( -1, 0, 0) );
+    head_axis_points.push( new THREE.Vector3( 1, 0, 0,) );
+    const head_axis_geometry = new THREE.BufferGeometry().setFromPoints(head_axis_points);
+
+    head_axis = new THREE.Line( head_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
+    head_axis.position.set(0, 1.5*waist_height + chest_height, head_depth / 2);
+    scene.add( head_axis );
+
+    head_axis.add(skull, eye_l, eye_r, antler_l, antler_r);
+    head_axis.userData = {rotating: 0, rotationAngle: 0};
+    head_axis.name = "head";
     /* --------------------------------------------------------------- */
 
 
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, step : 0, rotate_head : 0};
-    robot.add(head, body, legs, left_arm, right_arm);
+    robot.add(head_axis, body, legs, left_arm, right_arm);
 
     scene.add(robot);
 
@@ -399,12 +408,20 @@ function updateTrailerPosition() {
 }
 
 function updateHeadPosition() {
-    //TODO: why doesn't this work?
-    if(robot.userData.rotate_head === 1){
-        head.position.x += 0.05;
+    let step = 0.02;
+    if(head_axis.userData.rotating != 0) {
+        head_axis.rotateX(head_axis.userData.rotating * step);
+        head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
     }
-    if(robot.userData.rotate_head === -1){
-        head.position.x -= 0.05;
+    if(head_axis.userData.rotating == 0) {
+        if(head_axis.userData.rotationAngle < 0) {
+            head_axis.userData.rotationAngle = 0;
+            head_axis.rotation.x = head_axis.userData.rotationAngle;
+        }
+        if(head_axis.userData.rotationAngle > Math.PI) {
+            head_axis.userData.rotationAngle = Math.PI;
+            head_axis.rotation.x = head_axis.userData.rotationAngle;
+        }
     }
 }
 
@@ -552,40 +569,36 @@ function compute_arm_velocity() {
 
 function compute_feet_rotation()
 {
-    if (key_press_map[65] && key_press_map[81]) {
+    if ((key_press_map[65] || key_press_map[97]) && (key_press_map[81] || key_press_map[113])) {
         feet_axis.userData.rotating = 0;
         return;
     }
-    if (key_press_map[81]) if (feet_axis.userData.rotationAngle > 0) {
+    if (key_press_map[81] || key_press_map[113]) if (feet_axis.userData.rotationAngle > 0) {
         feet_axis.userData.rotating = -1;
         return;
     }
-    if (key_press_map[65]) if (feet_axis.userData.rotationAngle < Math.PI) {
+    if (key_press_map[65] || key_press_map[97]) if (feet_axis.userData.rotationAngle < Math.PI) {
         feet_axis.userData.rotating = 1;
         return;
     }
     feet_axis.userData.rotating = 0;
 }
 
-    function compute_head_movement(){
-    if((key_press_map[82] || key_press_map[114]) && (key_press_map[70] || key_press_map[102])){
-        move_head(0);
-        render();
-        return;
+    function compute_head_rotation() {
+        if((key_press_map[82] || key_press_map[114]) && (key_press_map[70] || key_press_map[102])){
+            head_axis.userData.rotating = 0
+            return;
+        }
+        if(key_press_map[82] || key_press_map[114]) if(head_axis.userData.rotationAngle > 0) {
+            head_axis.userData.rotating = -1;
+            return;
+        }
+        if(key_press_map[70] || key_press_map[102])if(head_axis.userData.rotationAngle < Math.PI) {
+            head_axis.userData.rotating = 1;
+            return;
+        }
+        head_axis.userData.rotating = 0;
     }
-    if(key_press_map[82] || key_press_map[114]){
-        move_head(1);
-        render();
-        return;
-    }
-    if(key_press_map[70] || key_press_map[102]){
-        move_head(-1);
-        render();
-        return;
-    }
-    move_head(0);
-    render();
-}
 
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
@@ -613,7 +626,7 @@ function onKeyDown(e) {
 
     key_press_map[e.keyCode] = e.type == 'keydown'
     compute_trailer_movement();
-    compute_head_movement();
+    compute_head_rotation();
 
     switch(e.keyCode) {
     // Camera changes
@@ -700,12 +713,12 @@ function onKeyUp(e){
     case 102:
     case 70: // f
         key_press_map[70] = 0;
-        compute_head_movement();
+        compute_head_rotation();
         break;
     case 114:
     case 82: // r
         key_press_map[82] = 0;
-        compute_head_movement();
+        compute_head_rotation();
         break;
     // Arm movement
     case 69: //E
