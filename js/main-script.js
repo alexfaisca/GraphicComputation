@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, left_arm, right_arm, head, feet, feet_axis;
+var robot, trailer, wireframe = false, left_arm, right_arm, head, feet_axis;
 var active_camera;
 var cameras = new Array(5);
 var key_press_map = {};
@@ -89,17 +89,14 @@ function createScene(){
     points.push( new THREE.Vector3( 1, 0, 0,) );
     const geometry = new THREE.BufferGeometry().setFromPoints( points );
 
-    feet_axis = new THREE.Line( geometry, new THREE.LineBasicMaterial({color: 'blue'}));
+    feet_axis = new THREE.Line( geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
     feet_axis.position.set(0, -(-abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
     scene.add( feet_axis );
 
-    m1.makeTranslation(0, -(-abdomen_height / 2 + thigh_height + leg_height - foot_height / 2), leg_depth / 2 + foot_depth / 2)
-    feet = new THREE.Object3D()
-    feet.add(left_foot, right_foot);
-    feet.userData = {rotating: 0, rotationAngle: 0, axis: new THREE.Vector3(0, -(abdomen_height / 2 + thigh_height + leg_height + foot_height / 2), leg_depth / 2)};
-    feet.name = "feet";
+    feet_axis.add(left_foot, right_foot)
+    feet_axis.userData = {rotating: 0, rotationAngle: 0, axis: new THREE.Vector3(0, -(abdomen_height / 2 + thigh_height + leg_height + foot_height / 2), leg_depth / 2)};
+    feet_axis.name = "feet";
 
-    feet_axis.add(feet)
 
     legs.add(left_leg, right_leg, feet_axis);
     legs.name = "legs";
@@ -412,22 +409,27 @@ function updateHeadPosition() {
 }
 
 function updateArmPosition() {
-    let step = 0.03
+    let step = 0.05
     left_arm.position.add(left_arm.userData.velocity.multiplyScalar(step));
     right_arm.position.add(right_arm.userData.velocity.multiplyScalar(step));
 }
 
 function updateFeetPosition() {
-    let step = 0.01, coords;
-    console.log(feet.position)
-    if(feet.userData.rotating != 0) {
-        coords = feet.position
-        console.log('update' + feet.userData.rotating);
-        console.log(feet.userData.axis);
-        feet_axis.position.addScaledVector(feet.userData.axis, -1)
-        feet_axis.rotateOnAxis(new THREE.Vector3(1,0,0), feet.userData.rotating * step);
-        feet.userData.rotationAngle += feet.userData.rotating * step;
-        feet_axis.position.addScaledVector(feet.userData.axis, 1)
+    let step = 0.02;
+    if(feet_axis.userData.rotating != 0) {
+        feet_axis.rotateX(feet_axis.userData.rotating * step);
+        feet_axis.userData.rotationAngle += feet_axis.userData.rotating * step;
+    }
+    if(feet_axis.userData.rotating == 0) {
+        if(feet_axis.userData.rotationAngle < 0) {
+            feet_axis.userData.rotationAngle = 0;
+            feet_axis.rotation.x = feet_axis.userData.rotationAngle;
+        }
+        if(feet_axis.userData.rotationAngle > Math.PI) {
+            feet_axis.userData.rotationAngle = Math.PI;
+            feet_axis.rotation.x = feet_axis.userData.rotationAngle;
+        }
+
     }
 }
 
@@ -551,22 +553,18 @@ function compute_arm_velocity() {
 function compute_feet_rotation()
 {
     if (key_press_map[65] && key_press_map[81]) {
-        feet.userData.rotating = 0;
+        feet_axis.userData.rotating = 0;
         return;
     }
-    if (key_press_map[81]) if (feet.userData.rotationAngle > 0) {
-        console.log('CLOSE')
-        feet.userData.rotating = -1;
-        console.log(feet.userData.rotating)
+    if (key_press_map[81]) if (feet_axis.userData.rotationAngle > 0) {
+        feet_axis.userData.rotating = -1;
         return;
     }
-    if (key_press_map[65]) if (feet.userData.rotationAngle < Math.PI) {
-        console.log('OPEN')
-        feet.userData.rotating = 1;
-        console.log(feet.userData.rotating)
+    if (key_press_map[65]) if (feet_axis.userData.rotationAngle < Math.PI) {
+        feet_axis.userData.rotating = 1;
         return;
     }
-    feet.userData.rotating = 0;
+    feet_axis.userData.rotating = 0;
 }
 
     function compute_head_movement(){
