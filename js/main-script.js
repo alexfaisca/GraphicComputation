@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, left_arm, right_arm, head_axis, feet_axis;
+var robot, trailer, wireframe = false, legs, left_arm, right_arm, head_axis, feet_axis;
 var active_camera;
 var cameras = new Array(5);
 var key_press_map = {};
@@ -55,7 +55,7 @@ function createScene(){
     /* --------------------------------------------------------------- */
 
     /* LEGS */
-    var legs = new THREE.Object3D();
+    legs = new THREE.Object3D();
     var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
     var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, left_foot, right_foot;
     var thigh_length = wheel_height / 2, thigh_height = 2 * wheel_radius, leg_width = 7 / 4 * wheel_height, leg_depth = 2 * wheel_radius, leg_height = 8 * wheel_radius + wheel_height, foot_length = 11 / 4 * wheel_height, foot_depth = 5 / 3 * wheel_radius, foot_height = wheel_height;
@@ -99,6 +99,7 @@ function createScene(){
 
 
     legs.add(left_leg, right_leg, feet_axis);
+    legs.userData = {rotating: 0, rotationAngle: 0};
     legs.name = "legs";
 
     /* --------------------------------------------------------------- */
@@ -370,23 +371,12 @@ function animate() {
     updateTrailerPosition();
     updateHeadPosition();
     updateArmPosition();
+    updateLegPosition();
     updateFeetPosition();
 
     render();
 
     requestAnimationFrame(animate);
-}
-
-function unravel_arms() {
-    let step = 0.01
-    if (left_arm.unravel < 0) if (left_arm.position.x < -2.5){
-        left_arm.position.x += step;
-        right_arm.position.x -= step;
-    }
-    if (left_arm.unravel > 0) if (left_arm.position.x > -3.5) {
-        left_arm.position.x -= step;
-        right_arm.position.x += step;
-    }
 }
 
 function rotateRobot(){
@@ -431,6 +421,25 @@ function updateArmPosition() {
     right_arm.position.add(right_arm.userData.velocity.multiplyScalar(step));
 }
 
+function updateLegPosition() {
+    let step = 0.01;
+    if(legs.userData.rotating != 0) {
+        legs.rotateX(legs.userData.rotating * step);
+        legs.userData.rotationAngle += legs.userData.rotating * step;
+    }
+    if(legs.userData.rotating == 0) {
+        if(legs.userData.rotationAngle < 0) {
+            legs.userData.rotationAngle = 0;
+            legs.rotation.x = legs.userData.rotationAngle;
+        }
+        if(legs.userData.rotationAngle > Math.PI / 2) {
+            legs.userData.rotationAngle = Math.PI / 2;
+            legs.rotation.x = legs.userData.rotationAngle;
+        }
+
+    }
+}
+
 function updateFeetPosition() {
     let step = 0.02;
     if(feet_axis.userData.rotating != 0) {
@@ -460,10 +469,6 @@ function move_trailer(x, z){
         trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(0) * 0.707);
         trailer.userData.velocity.setComponent(2, trailer.userData.velocity.getComponent(2) * 0.707);
     }
-}
-
-function move_head(a){
-    robot.userData.rotate_head = a;
 }
 
 function compute_trailer_movement() {
@@ -567,38 +572,56 @@ function compute_arm_velocity() {
     right_arm.userData.velocity.set(0, 0, 0);
 }
 
-function compute_feet_rotation()
+function compute_leg_rotation()
 {
-    if ((key_press_map[65] || key_press_map[97]) && (key_press_map[81] || key_press_map[113])) {
+    if ((key_press_map[83]) && (key_press_map[87])) {
+        legs.userData.rotating = 0;
+        return;
+    }
+    if (key_press_map[87]) if (legs.userData.rotationAngle > 0) {
+        console.log('open')
+        legs.userData.rotating = -1;
+        return;
+    }
+    if (key_press_map[83]) if (legs.userData.rotationAngle < Math.PI / 2) {
+        console.log('close')
+        legs.userData.rotating = 1;
+        return;
+    }
+    legs.userData.rotating = 0;
+}
+
+function compute_feet_rotation() {
+    if ((key_press_map[65]) && (key_press_map[81])) {
         feet_axis.userData.rotating = 0;
         return;
     }
-    if (key_press_map[81] || key_press_map[113]) if (feet_axis.userData.rotationAngle > 0) {
+    if (key_press_map[81]) if (feet_axis.userData.rotationAngle > 0) {
         feet_axis.userData.rotating = -1;
         return;
     }
-    if (key_press_map[65] || key_press_map[97]) if (feet_axis.userData.rotationAngle < Math.PI) {
+    if (key_press_map[65]) if (feet_axis.userData.rotationAngle < Math.PI) {
         feet_axis.userData.rotating = 1;
         return;
     }
     feet_axis.userData.rotating = 0;
 }
 
-    function compute_head_rotation() {
-        if((key_press_map[82] || key_press_map[114]) && (key_press_map[70] || key_press_map[102])){
-            head_axis.userData.rotating = 0
-            return;
-        }
-        if(key_press_map[82] || key_press_map[114]) if(head_axis.userData.rotationAngle > 0) {
-            head_axis.userData.rotating = -1;
-            return;
-        }
-        if(key_press_map[70] || key_press_map[102])if(head_axis.userData.rotationAngle < Math.PI) {
-            head_axis.userData.rotating = 1;
-            return;
-        }
-        head_axis.userData.rotating = 0;
+function compute_head_rotation() {
+    if((key_press_map[82]) && (key_press_map[70])){
+        head_axis.userData.rotating = 0
+        return;
     }
+    if(key_press_map[82]) if(head_axis.userData.rotationAngle > 0) {
+        head_axis.userData.rotating = -1;
+        return;
+    }
+    if(key_press_map[70])if(head_axis.userData.rotationAngle < Math.PI) {
+        head_axis.userData.rotating = 1;
+        return;
+    }
+    head_axis.userData.rotating = 0;
+}
 
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
@@ -667,6 +690,17 @@ function onKeyDown(e) {
     case 100: //d
         key_press_map[68] = 1;
         compute_arm_velocity();
+        break;
+    // Legs movement
+    case 83: //S
+    case 115: //s
+        key_press_map[83] = 1;
+        compute_leg_rotation();
+        break;
+    case 87: //W
+    case 119: //w
+        key_press_map[87] = 1;
+        compute_leg_rotation();
         break;
     // Feet movement
     case 65: //A
@@ -741,6 +775,17 @@ function onKeyUp(e){
     case 113: //q
         key_press_map[81] = 0;
         compute_feet_rotation();
+        break;
+    // Feet movement
+    case 83: //A
+    case 115: //a
+        key_press_map[83] = 0;
+        compute_leg_rotation();
+        break;
+    case 87: //Q
+    case 119: //q
+        key_press_map[87] = 0;
+        compute_leg_rotation();
         break;
     }
 }
