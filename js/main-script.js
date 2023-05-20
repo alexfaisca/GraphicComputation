@@ -61,15 +61,15 @@ function createScene(){
     var leg_fitting_radius = 0.25*wheel_height, leg_fitting_height = 0.25*wheel_height;
 
     thigh = createCube(thigh_length, thigh_height, thigh_length)
-    thigh.position.set(-abdomen_length / 4, -(-abdomen_height + thigh_height) / 2, 0)
+    thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
     upper_leg = createCube(leg_width, leg_height, leg_depth)
-    upper_leg.position.set(-abdomen_length / 4, -(-abdomen_height / 2 + thigh_height + leg_height / 2), 0)
+    upper_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
 
     leg_wheel_1 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
-    leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(-abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
+    leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
     leg_wheel_1.rotateZ((Math.PI)/2);
     leg_wheel_2 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
-    leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(-abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
+    leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
     leg_wheel_2.rotateZ((Math.PI)/2);
 
     leg_fitting = createCylinder(leg_fitting_radius, leg_fitting_radius, leg_fitting_height);
@@ -95,7 +95,7 @@ function createScene(){
     const feet_axis_geometry = new THREE.BufferGeometry().setFromPoints(feet_axis_points);
 
     feet_axis = new THREE.Line(feet_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
-    feet_axis.position.set(0, -(-abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
+    feet_axis.position.set(0, -(abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
     scene.add( feet_axis );
 
     feet_axis.add(left_foot, right_foot)
@@ -311,8 +311,6 @@ function createTrailer(){
     trailer.userData = {rotating : 0, step : 0, velocity : new THREE.Vector3(0,0,0)};
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
 
-    trailer.position.set(0, connection_piece_height, 0);
-
     scene.add(trailer);
 }
 
@@ -417,7 +415,7 @@ function updateTrailerPosition() {
 function updateHeadPosition() {
     let step = 0.02;
     if(head_axis.userData.rotating != 0) {
-       head_axis.rotateX(head_axis.userData.rotating * step);
+       head_axis.rotateX(-head_axis.userData.rotating * step);
        head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
     }
     if(head_axis.userData.rotating == 0) {
