@@ -6,7 +6,6 @@ var robot, trailer, wireframe = false, legs, left_arm, right_arm, head_axis, fee
 var active_camera;
 var cameras = new Array(5);
 var key_press_map = {};
-var m1 = new THREE.Matrix4(), m2 = new THREE.Matrix4(), m3 = new THREE.Matrix4()
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -59,6 +58,7 @@ function createScene(){
     var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
     var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, left_foot, right_foot;
     var thigh_length = wheel_height / 2, thigh_height = 2 * wheel_radius, leg_width = 7 / 4 * wheel_height, leg_depth = 2 * wheel_radius, leg_height = 8 * wheel_radius + wheel_height, foot_length = 11 / 4 * wheel_height, foot_depth = 5 / 3 * wheel_radius, foot_height = wheel_height;
+    var leg_fitting_radius = 0.25*wheel_height, leg_fitting_height = 0.25*wheel_height;
 
     thigh = createCube(thigh_length, thigh_height, thigh_length)
     thigh.position.set(-abdomen_length / 4, -(-abdomen_height + thigh_height) / 2, 0)
@@ -72,7 +72,12 @@ function createScene(){
     leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(-abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
     leg_wheel_2.rotateZ((Math.PI)/2);
 
-    left_leg.add(thigh, upper_leg, leg_wheel_1, leg_wheel_2);
+    leg_fitting = createCylinder(leg_fitting_radius, leg_fitting_radius, leg_fitting_height);
+    leg_fitting.rotateX((Math.PI)/2);
+    leg_fitting.position.set(abdomen_length / 4, -abdomen_height / 2 - thigh_height - 0.32*leg_height, -leg_width / 2);
+    leg_fitting.material.color.set(0xffff88);
+
+    left_leg.add(thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting);
     right_leg.copy(left_leg);
     right_leg.scale.multiply(mirror);
     right_leg.position.setX(-left_leg.position.x);
@@ -232,6 +237,8 @@ function createIsometricPerspectiveCamera() {
 /* CREATE LIGHT(S) */
 /////////////////////
 
+// The scene does not have lights.
+
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
@@ -272,35 +279,39 @@ function createTrailer(){
     var container_length = 4, container_height = 8, container_depth = 17;
     var support_length = 2, support_height = 1, support_depth = 3.5;
     var wheel_radius = 0.75, wheel_height = 1, abdomen_length = 4;
+    var connection_piece_origin_distance = trailer_origin_distance - 6, connection_piece_radius = 0.5, connection_piece_height = 0.25;
 
     container = createCube(container_length, container_height, container_depth);
-    container.position.set(0, (container_height + abdomen_height) / 2, -trailer_origin_distance);
+    container.position.set(0, connection_piece_height + (container_height + abdomen_height) / 2, -trailer_origin_distance);
 
     support = createCube(support_length, support_height, support_depth);
-    support.position.set(0, 0, - trailer_origin_distance - support_distance);
+    support.position.set(0, connection_piece_height, - trailer_origin_distance - support_distance);
 
     trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l1.rotateZ((Math.PI)/2);
-    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -trailer_origin_distance - front_wheel_distance)
+    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -trailer_origin_distance - front_wheel_distance)
 
     trailer_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l2.rotateZ((Math.PI)/2);
-    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -trailer_origin_distance - back_wheel_distance)
+    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -trailer_origin_distance - back_wheel_distance)
 
     trailer_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r1.rotateZ((Math.PI)/2);
-    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -trailer_origin_distance - front_wheel_distance)
+    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -trailer_origin_distance - front_wheel_distance)
 
     trailer_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r2.rotateZ((Math.PI)/2);
-    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height),0, -trailer_origin_distance - back_wheel_distance)
+    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -trailer_origin_distance - back_wheel_distance)
 
-    // TODO: How will both connection pieces connect?
+    connection_piece = createCylinder(connection_piece_radius, connection_piece_radius, connection_piece_height);
+    connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, -connection_piece_origin_distance);
+    connection_piece.material.color.set(0xffff88);
 
     trailer = new THREE.Object3D();
     trailer.userData = {rotating : 0, step : 0, velocity : new THREE.Vector3(0,0,0)};
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
 
+    trailer.position.set(0, connection_piece_height, 0);
 
     scene.add(trailer);
 }
@@ -311,6 +322,8 @@ function createTrailer(){
 function checkCollisions(){
     'use strict';
 
+    // Checks for the robot-ready-to-assemble-with-trailer state
+
 }
 
 ///////////////////////
@@ -318,6 +331,8 @@ function checkCollisions(){
 ///////////////////////
 function handleCollisions(){
     'use strict';
+
+    // Create bounding boxes
 
 }
 
@@ -327,6 +342,13 @@ function handleCollisions(){
 function update(){
     'use strict';
 
+    rotateRobot();
+    rotateTrailer();
+    updateTrailerPosition();
+    updateHeadPosition();
+    updateArmPosition();
+    updateLegPosition();
+    updateFeetPosition();
 }
 
 /////////////
@@ -335,6 +357,7 @@ function update(){
 function render() {
     'use strict';
     renderer.clear();
+    
     renderer.render(scene, cameras[active_camera]);
 }
 
@@ -366,13 +389,7 @@ function init() {
 function animate() {
     'use strict';
 
-    rotateRobot();
-    rotateTrailer();
-    updateTrailerPosition();
-    updateHeadPosition();
-    updateArmPosition();
-    updateLegPosition();
-    updateFeetPosition();
+    update();
 
     render();
 
@@ -615,12 +632,18 @@ function onResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Ortho camera, does it need resizing?
-
     if (window.innerHeight > 0 && window.innerWidth > 0) {
-        cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
-        cameras[active_camera].updateProjectionMatrix();
-    }
+
+        if (cameras[active_camera] instanceof THREE.OrthographicCamera) {
+           // Ortho camera, does it need resizing?
+        
+        }
+        else
+        for (let idx = 0; idx < cameras.length; idx++) {
+            cameras[idx].aspect = window.innerWidth / window.innerHeight;
+            cameras[idx].updateProjectionMatrix();
+        }
+    }   
     
     render();
 }
