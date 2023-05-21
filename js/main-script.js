@@ -9,7 +9,11 @@ var cameras = new Array(5);
 var aspect_ratio = 16/9;
 
 var key_press_map = {};
-var hitbox_init_set_map = {};
+var hitbox_init_set_map = { "head" : false,
+                            "arms" : false,
+                            "legs" : false,
+                            "feet" : false };
+var animation_mode = false;
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -117,7 +121,7 @@ function createCylinder(x, y, z) {
 
     var mycylinder = new THREE.CylinderGeometry(x, y, z, 10);
 
-    mycylinder.userData = {rotating: 0, step: 0};
+    mycylinder.userData = {rotating: 0};
 
     var material = new THREE.MeshPhongMaterial({color: 0x444444, wireframe: 1})
 
@@ -277,8 +281,17 @@ function createRobot() {
     // ---------------------------------------------------------
     // 3D Objects ASSEMBLY
     // ---------------------------------------------------------
+
+
     robot = new THREE.Object3D();
-    robot.userData = {rotating : 0, step : 0, rotate_head : 0};
+    robot.userData = {rotating : 0, rotate_head : 0,
+                      min_point : new THREE.Vector3(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius,
+                                                    -abdomen_height / 2,
+                                                    abdomen_depth / 2),
+                      max_point : new THREE.Vector3(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius),
+                                                    abdomen_height / 2 + waist_height + chest_height + head_height + antlers_height,
+                                                    -(abdomen_depth / 2 + thigh_height + leg_height + foot_height))
+                     };
     robot.add(head_axis, body, legs, left_arm, right_arm);
 
     scene.add(robot);
@@ -287,7 +300,7 @@ function createRobot() {
 function createTrailer() {
 
     var container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2;
-    var trailer_origin_distance = 15, abdomen_height = 1.5, front_wheel_distance = 5.75, back_wheel_distance = 7.75, support_distance = 6.75;
+    var trailer_origin_distance = 25, abdomen_height = 1.5, front_wheel_distance = 5.75, back_wheel_distance = 7.75, support_distance = 6.75;
     var container_length = 4, container_height = 8, container_depth = 17;
     var support_length = 2, support_height = 1, support_depth = 3.5;
     var wheel_radius = 0.75, wheel_height = 1, abdomen_length = 4;
@@ -325,9 +338,16 @@ function createTrailer() {
 
     // ASSEMBLY
     trailer = new THREE.Object3D();
-    trailer.userData = {rotating : 0, step : 0, velocity : new THREE.Vector3(0,0,0)};
+    trailer.userData = {rotating : 0, velocity : new THREE.Vector3(0,0,0),
+                        min_point : new THREE.Vector3(container_length / 2,
+                                                      connection_piece_height - abdomen_height / 2 - support_height,
+                                                      -trailer_origin_distance + container_depth / 2),
+                        max_point : new THREE.Vector3(-container_length / 2,
+                                                      connection_piece_height + abdomen_height / 2 + container_height,
+                                                      -trailer_origin_distance - container_depth / 2)
+                       };
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
-    trailer.position.set(0, 0, -25);
+    trailer.position.set(0, 0, -trailer_origin_distance);
 
     scene.add(trailer);
 }
@@ -338,8 +358,40 @@ function createTrailer() {
 function checkCollisions(){
     'use strict';
 
-    // Checks for the robot-ready-to-assemble-with-trailer state
+    if (!hitboxSetupCheck()) return;
     
+    if (
+    robot.userData.min_point.x >= trailer.userData.max_point.x &&
+    robot.userData.max_point.x <= trailer.userData.min_point.x &&
+    robot.userData.max_point.y >= trailer.userData.min_point.y &&
+    robot.userData.min_point.y <= trailer.userData.max_point.y &&
+    robot.userData.min_point.z >= trailer.userData.max_point.z &&
+    robot.userData.max_point.z <= trailer.userData.min_point.z
+    ) { handleCollisions(); console.log("Touchy!"); return;}
+    
+
+    console.log("Not touchy!");
+
+}
+
+function sayCollision() {
+    
+    // Debug purposes
+    console.log(robot.userData.min_point.x >= trailer.userData.max_point.x);
+    console.log(robot.userData.max_point.x <= trailer.userData.min_point.x);
+    console.log(robot.userData.min_point.y <= trailer.userData.max_point.y);
+    console.log(robot.userData.max_point.y >= trailer.userData.min_point.y);
+    console.log(robot.userData.min_point.z >= trailer.userData.max_point.z); 
+    console.log(robot.userData.max_point.z <= trailer.userData.min_point.z);
+
+}
+
+function hitboxSetupCheck() {
+        
+    // Checks for the robot ready-to-assemble-with-trailer state
+    for (let [, group_state] of Object.entries(hitbox_init_set_map))
+        if (!group_state) return false;
+    return true;
 }
 
 ///////////////////////
@@ -348,14 +400,14 @@ function checkCollisions(){
 function handleCollisions(){
     'use strict';
 
-    // Create bounding boxes
+    animation_mode = true;
 
 }
 
 ////////////
 /* UPDATE */
 ////////////
-function update(){
+function update() {
     'use strict';
 
     rotateRobot();
@@ -366,6 +418,7 @@ function update(){
     updateLegPosition();
     updateFeetPosition();
 
+    // For now checks and handles thereafter
     checkCollisions();
 }
 
@@ -430,6 +483,8 @@ function rotateTrailer(){
 
 function updateTrailerPosition() {
     trailer.position = trailer.position.add(trailer.userData.velocity);
+    trailer.userData.min_point.add(trailer.userData.velocity);
+    trailer.userData.max_point.add(trailer.userData.velocity);
 }
 
 function updateHeadPosition() {
@@ -696,19 +751,24 @@ function onKeyDown(e) {
     switch(e.keyCode) {
     // Camera changes
     case 49: // 1
-        change_camera(0);
+        if (!animation_mode)
+            change_camera(0);
         break;
     case 50: // 2
-        change_camera(1);
+        if (!animation_mode)
+            change_camera(1);
         break;
     case 51: // 3
-        change_camera(2);
+        if (!animation_mode)
+            change_camera(2);
         break;
     case 52: // 4
-        change_camera(3);
+        if (!animation_mode)
+            change_camera(3);
         break;
     case 53: // 5
-        change_camera(4);
+        if (!animation_mode)
+            change_camera(4);
         break;
 
     case 54: //6
