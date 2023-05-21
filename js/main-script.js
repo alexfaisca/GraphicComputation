@@ -5,7 +5,11 @@ var scene, renderer;
 var robot, trailer, wireframe = false, legs, left_arm, right_arm, head_axis, feet_axis;
 var active_camera;
 var cameras = new Array(5);
+
+var aspect_ratio = 16/9;
+
 var key_press_map = {};
+var hitbox_init_set_map = {};
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -13,22 +17,124 @@ var key_press_map = {};
 function createScene(){
     'use strict';
     var lighting;
-    var mirror = new THREE.Vector3(-1, 1 ,1); // Mirror on y axis
 
     scene = new THREE.Scene();
 
-    scene.add(new THREE.AxisHelper(10));
+    scene.add(new THREE.AxesHelper(10));
     scene.background = new THREE.Color(0xeeeeff);
 
     lighting = new THREE.DirectionalLight(0xffffff, 1)
     lighting.position.set(5, 5, 5);
     scene.add(lighting);
 
+    createRobot();
+    createTrailer();
+}
+
+//////////////////////
+/* CREATE CAMERA(S) */
+//////////////////////
+function change_camera(number) {
+    'use strict'
+    active_camera = number;
+}
+
+function createCameras() {
+    'use strict'
+    active_camera = 0;
+    createFrontCamera();
+    createLateralCamera();
+    createTopCamera();
+    createIsometricOrtogonalCamera();
+    createIsometricPerspectiveCamera();
+}
+
+function createFrontCamera() {
+    'use strict'
+    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[0].position.set(0, 0, 15);
+    cameras[0].lookAt(scene.position);
+}
+
+function createLateralCamera() {
+    'use strict'
+    cameras[1] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[1].position.set(15, 0, 0);
+    cameras[1].lookAt(scene.position);
+}
+
+function createTopCamera() {
+    'use strict'
+    cameras[2] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[2].position.set(0, 15, 0);
+    cameras[2].lookAt(scene.position);
+}
+
+function createIsometricOrtogonalCamera() {
+    'use strict'
+    cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 32, window.innerWidth / 32, window.innerHeight / 32, -window.innerHeight / 32, 1, 100);
+    cameras[3].position.set(15, 15, 15);
+    cameras[3].rotation.z = 0;
+    cameras[3].lookAt(scene.position);
+}
+
+function createIsometricPerspectiveCamera() {
+    'use strict'
+    cameras[4] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[4].position.set(12, 12, 12);
+    cameras[4].lookAt(scene.position);
+}
+
+
+/////////////////////
+/* CREATE LIGHT(S) */
+/////////////////////
+
+// The scene does not have lights.
+
+////////////////////////
+/* CREATE OBJECT3D(S) */
+////////////////////////
+
+// Cube primitive mesh
+function createCube(x, y, z) {
+    'use strict';   
+
+    var mycube = new THREE.BoxGeometry(x, y, z);
+    
+    var material = new THREE.MeshPhongMaterial({color: 0xff5555, wireframe: 1});
+    
+    var mesh = new THREE.Mesh(mycube, material);
+
+    mesh.position.set(0, 0, 0);
+    
+    return mesh;
+}
+
+// Cylinder primitive mesh
+function createCylinder(x, y, z) {
+    'use strict';
+
+    var mycylinder = new THREE.CylinderGeometry(x, y, z, 10);
+
+    mycylinder.userData = {rotating: 0, step: 0};
+
+    var material = new THREE.MeshPhongMaterial({color: 0x444444, wireframe: 1})
+
+    var mesh = new THREE.Mesh(mycylinder, material);
+
+    mesh.position.set(0, 0, 0);
+
+    return mesh;
+}
+
+function createRobot() {
+
     var wheel_radius = 0.75, wheel_height = 1;
+    var mirror = new THREE.Vector3(-1, 1 ,1); // Mirror on y axis
 
-    /* --------------------------------------------------------------- */
-
-    /* BODY */
+    // Create BODY
+    // ---------------------------------------------------------
     var body = new THREE.Object3D();
     var chest, waist, abdomen, abdomen_tire_left, abdomen_tire_right;
     var chest_length = 6 * wheel_height, chest_height = 10 / 3 * wheel_radius, chest_depth = 2 * wheel_radius, waist_length = 4 * wheel_height, waist_height = 2 * wheel_radius, waist_depth = 2 * wheel_radius, abdomen_length = 4 * wheel_height, abdomen_height = 2 * wheel_radius, abdomen_depth = 2 * wheel_radius;
@@ -51,9 +157,10 @@ function createScene(){
 
 
     body.add(waist, chest, abdomen, abdomen_tire_left, abdomen_tire_right);
-    /* --------------------------------------------------------------- */
 
-    /* LEGS */
+    // ---------------------------------------------------------
+    // Create LEGS
+    // ---------------------------------------------------------
     legs = new THREE.Object3D();
     var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
     var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, left_foot, right_foot;
@@ -107,9 +214,9 @@ function createScene(){
     legs.userData = {rotating: 0, rotationAngle: 0};
     legs.name = "legs";
 
-    /* --------------------------------------------------------------- */
-
-    /* ARMS */
+    // ---------------------------------------------------------
+    // Create ARMS
+    // ---------------------------------------------------------
     left_arm = new THREE.Object3D(), right_arm = new THREE.Object3D();
     var forearm, arm, exhaust;
     var forearm_width = wheel_height, forearm_depth = 4 * wheel_radius, forearm_height = 2 * wheel_radius, arm_width = wheel_height, arm_depth = 2 * wheel_radius, arm_height = 10 / 3 * wheel_radius, exhaust_radius = 2 / 3 * wheel_radius, exhaust_height = 6 * wheel_radius;
@@ -132,9 +239,9 @@ function createScene(){
     left_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)};
     right_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)};
 
-    /* --------------------------------------------------------------- */
-
-    /* HEAD */
+    // ---------------------------------------------------------
+    // Create HEAD
+    // ---------------------------------------------------------
     var skull, eye_l, eye_r, antler_l, antler_r;
     var head_length = wheel_height, head_height = wheel_height, head_depth = head_height / 2, eyes_length = head_length / 4, eyes_height = head_length / 4, eyes_depth = head_length / 4, antlers_length = eyes_length,  antlers_height = eyes_height, antlers_depth = eyes_depth;
 
@@ -166,150 +273,61 @@ function createScene(){
     head_axis.add(skull, eye_l, eye_r, antler_l, antler_r);
     head_axis.userData = {rotating: 0, rotationAngle: 0};
     head_axis.name = "head";
-    /* --------------------------------------------------------------- */
 
-
+    // ---------------------------------------------------------
+    // 3D Objects ASSEMBLY
+    // ---------------------------------------------------------
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, step : 0, rotate_head : 0};
     robot.add(head_axis, body, legs, left_arm, right_arm);
 
     scene.add(robot);
-
-    createTrailer();
 }
 
-//////////////////////
-/* CREATE CAMERA(S) */
-//////////////////////
-function change_camera(number) {
-    'use strict'
-    active_camera = number;
-}
+function createTrailer() {
 
-function createCameras() {
-    'use strict'
-    active_camera = 0;
-    createFrontCamera();
-    createLateralCamera();
-    createTopCamera();
-    createIsometricOrtogonalCamera();
-    createIsometricPerspectiveCamera();
-}
-
-function createFrontCamera() {
-    'use strict'
-    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[0].position.set(0, 0, 15);
-    cameras[0].lookAt(scene.position);
-}
-
-function createLateralCamera() {
-    'use strict'
-    cameras[1] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[1].position.set(15, 0, 0);
-    cameras[1].lookAt(scene.position);
-}
-
-function createTopCamera() {
-    'use strict'
-    cameras[2] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[2].position.set(0, 15, 0);
-    cameras[2].lookAt(scene.position);
-}
-
-function createIsometricOrtogonalCamera() {
-    'use strict'
-    cameras[3] = new THREE.OrthographicCamera( window.innerWidth / - 32, window.innerWidth / 32, window.innerHeight / 32, window.innerHeight / - 32, 1, 100);
-    cameras[3].position.set(15, 15, 15);
-    cameras[3].rotation.z = 0;
-    cameras[3].lookAt(scene.position);
-}
-
-function createIsometricPerspectiveCamera() {
-    'use strict'
-    cameras[4] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[4].position.set(12, 12, 12);
-    cameras[4].lookAt(scene.position);
-}
-
-
-/////////////////////
-/* CREATE LIGHT(S) */
-/////////////////////
-
-// The scene does not have lights.
-
-////////////////////////
-/* CREATE OBJECT3D(S) */
-////////////////////////
-
-function createCube(x, y, z) {
-    'use strict';   
-
-    var mycube = new THREE.BoxGeometry(x, y, z);
-    
-    var material = new THREE.MeshPhongMaterial({color: 0xff5555, wireframe: 1});
-    
-    var mesh = new THREE.Mesh(mycube, material);
-
-    mesh.position.set(0, 0, 0);
-    
-    return mesh;
-}
-
-function createCylinder(x, y, z){
-    'use strict';
-
-    var mycylinder = new THREE.CylinderGeometry(x, y, z, 10);
-
-    mycylinder.userData = {rotating: 0, step: 0};
-
-    var material = new THREE.MeshPhongMaterial({color: 0x444444, wireframe: 1})
-
-    var mesh = new THREE.Mesh(mycylinder, material);
-
-    mesh.position.set(0, 0, 0);
-
-    return mesh;
-}
-
-function createTrailer(){
     var container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2;
     var trailer_origin_distance = 15, abdomen_height = 1.5, front_wheel_distance = 5.75, back_wheel_distance = 7.75, support_distance = 6.75;
     var container_length = 4, container_height = 8, container_depth = 17;
     var support_length = 2, support_height = 1, support_depth = 3.5;
     var wheel_radius = 0.75, wheel_height = 1, abdomen_length = 4;
-    var connection_piece_origin_distance = trailer_origin_distance - 6, connection_piece_radius = 0.5, connection_piece_height = 0.25;
+    var connection_piece_distance = 6, connection_piece_radius = 0.5, connection_piece_height = 0.25;
 
+    // CONTAINER
     container = createCube(container_length, container_height, container_depth);
-    container.position.set(0, connection_piece_height + (container_height + abdomen_height) / 2, -trailer_origin_distance);
+    container.position.set(0, connection_piece_height + (container_height + abdomen_height) / 2, 0);
 
+    // SUPPORT
     support = createCube(support_length, support_height, support_depth);
-    support.position.set(0, connection_piece_height, - trailer_origin_distance - support_distance);
+    support.position.set(0, connection_piece_height, -support_distance);
 
+    // WHEELS
     trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l1.rotateZ((Math.PI)/2);
-    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -trailer_origin_distance - front_wheel_distance)
+    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -front_wheel_distance)
 
     trailer_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l2.rotateZ((Math.PI)/2);
-    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -trailer_origin_distance - back_wheel_distance)
+    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -back_wheel_distance)
 
     trailer_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r1.rotateZ((Math.PI)/2);
-    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -trailer_origin_distance - front_wheel_distance)
+    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -front_wheel_distance)
 
     trailer_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r2.rotateZ((Math.PI)/2);
-    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -trailer_origin_distance - back_wheel_distance)
+    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -back_wheel_distance)
 
+    // CONNECTION PIECE
     connection_piece = createCylinder(connection_piece_radius, connection_piece_radius, connection_piece_height);
-    connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, -connection_piece_origin_distance);
+    connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, connection_piece_distance);
     connection_piece.material.color.set(0xffff88);
 
+    // ASSEMBLY
     trailer = new THREE.Object3D();
     trailer.userData = {rotating : 0, step : 0, velocity : new THREE.Vector3(0,0,0)};
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
+    trailer.position.set(0, 0, -25);
 
     scene.add(trailer);
 }
@@ -321,7 +339,7 @@ function checkCollisions(){
     'use strict';
 
     // Checks for the robot-ready-to-assemble-with-trailer state
-
+    
 }
 
 ///////////////////////
@@ -347,6 +365,8 @@ function update(){
     updateArmPosition();
     updateLegPosition();
     updateFeetPosition();
+
+    checkCollisions();
 }
 
 /////////////
@@ -414,33 +434,55 @@ function updateTrailerPosition() {
 
 function updateHeadPosition() {
     let step = 0.02;
-    if(head_axis.userData.rotating != 0) {
-       head_axis.rotateX(-head_axis.userData.rotating * step);
+
+    if (head_axis.userData.rotating != 0) {
+       head_axis.rotateX(-head_axis.userData.rotating * step); // Minus sign for clockwise rotation
        head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
+       hitbox_init_set_map["head"] = false; console.log('head_not_ok');
     }
-    if(head_axis.userData.rotating == 0) {
-        if(head_axis.userData.rotationAngle < 0) {
+    if (head_axis.userData.rotating == 0) {
+        if (head_axis.userData.rotationAngle < 0) {
             head_axis.userData.rotationAngle = 0;
             head_axis.rotation.x = head_axis.userData.rotationAngle;
-        }
-        if(head_axis.userData.rotationAngle > Math.PI) {
+        }   
+        if (head_axis.userData.rotationAngle > Math.PI) {
             head_axis.userData.rotationAngle = Math.PI;
             head_axis.rotation.x = head_axis.userData.rotationAngle;
+            hitbox_init_set_map["head"] = true; console.log('head_ok');
         }
     }
 }
 
 function updateArmPosition() {
     let step = 0.05
-    left_arm.position.add(left_arm.userData.velocity.multiplyScalar(step));
-    right_arm.position.add(right_arm.userData.velocity.multiplyScalar(step));
+
+    if (left_arm.userData.velocity.x != 0) { // Only check for x component
+        left_arm.position.add(left_arm.userData.velocity.multiplyScalar(step));
+        right_arm.position.add(right_arm.userData.velocity.multiplyScalar(step));
+        hitbox_init_set_map["arms"] = false; console.log('arms_not_ok');
+    }
+    else {
+        if (left_arm.position.x < -3.5 && right_arm.position.x > 3.5) {
+            left_arm.position.x = -3.5;
+            right_arm.position.x = 3.5;
+        }
+        if (left_arm.position.x > -2.5 && right_arm.position.x < 2.5) {
+            left_arm.position.x = -2.5;
+            right_arm.position.x = 2.5;
+            hitbox_init_set_map["arms"] = true; console.log('arms_ok');
+        }
+
+    }
+
 }
 
 function updateLegPosition() {
     let step = 0.01;
-    if(legs.userData.rotating != 0) {
+
+    if (legs.userData.rotating != 0) {
         legs.rotateX(legs.userData.rotating * step);
         legs.userData.rotationAngle += legs.userData.rotating * step;
+        hitbox_init_set_map["legs"] = false; console.log('legs_not_ok');
     }
     if(legs.userData.rotating == 0) {
         if(legs.userData.rotationAngle < 0) {
@@ -450,6 +492,7 @@ function updateLegPosition() {
         if(legs.userData.rotationAngle > Math.PI / 2) {
             legs.userData.rotationAngle = Math.PI / 2;
             legs.rotation.x = legs.userData.rotationAngle;
+            hitbox_init_set_map["legs"] = true; console.log('legs_ok');
         }
 
     }
@@ -457,11 +500,13 @@ function updateLegPosition() {
 
 function updateFeetPosition() {
     let step = 0.02;
-    if(feet_axis.userData.rotating != 0) {
+
+    if (feet_axis.userData.rotating != 0) {
         feet_axis.rotateX(feet_axis.userData.rotating * step);
         feet_axis.userData.rotationAngle += feet_axis.userData.rotating * step;
+        hitbox_init_set_map["feet"] = false; console.log('feet_not_ok');
     }
-    if(feet_axis.userData.rotating == 0) {
+    if (feet_axis.userData.rotating == 0) {
         if(feet_axis.userData.rotationAngle < 0) {
             feet_axis.userData.rotationAngle = 0;
             feet_axis.rotation.x = feet_axis.userData.rotationAngle;
@@ -469,6 +514,7 @@ function updateFeetPosition() {
         if(feet_axis.userData.rotationAngle > Math.PI) {
             feet_axis.userData.rotationAngle = Math.PI;
             feet_axis.rotation.x = feet_axis.userData.rotationAngle;
+            hitbox_init_set_map["feet"] = true; console.log('feet_ok');
         }
 
     }
@@ -555,71 +601,59 @@ function compute_arm_velocity() {
     if (key_press_map[68] && key_press_map[69]) {
         left_arm.userData.velocity.set(0, 0, 0);
         right_arm.userData.velocity.set(0, 0, 0);
-        return;
     }
-    if (key_press_map[68]) if (left_arm.position.x < -2.5) {
+    else if (key_press_map[68] && left_arm.position.x < -2.5) {
         left_arm.userData.velocity.set(1, 0, 0);
         right_arm.userData.velocity.set(-1, 0, 0);
-        return;
     }
-    if (key_press_map[69]) if (left_arm.position.x > -3.5) {
+    else if (key_press_map[69] && left_arm.position.x > -3.5) {
         left_arm.userData.velocity.set(-1, 0, 0);
         right_arm.userData.velocity.set(1, 0, 0);
-        return;
     }
-    left_arm.userData.velocity.set(0, 0, 0);
-    right_arm.userData.velocity.set(0, 0, 0);
+    else {
+        left_arm.userData.velocity.set(0, 0, 0);
+        right_arm.userData.velocity.set(0, 0, 0);
+    }
 }
 
 function compute_leg_rotation()
 {
     if (key_press_map[83] && key_press_map[87]) {
         legs.userData.rotating = 0;
-        return;
     }
-    if (key_press_map[87]) if (legs.userData.rotationAngle > 0) {
-        console.log('open')
+    else if (key_press_map[87] && legs.userData.rotationAngle > 0) {
         legs.userData.rotating = -1;
-        return;
     }
-    if (key_press_map[83]) if (legs.userData.rotationAngle < Math.PI / 2) {
-        console.log('close')
+    else if (key_press_map[83] && legs.userData.rotationAngle < Math.PI / 2) {
         legs.userData.rotating = 1;
-        return;
     }
-    legs.userData.rotating = 0;
+    else legs.userData.rotating = 0;
 }
 
 function compute_feet_rotation() {
     if (key_press_map[65] && key_press_map[81]) {
         feet_axis.userData.rotating = 0;
-        return;
     }
-    if (key_press_map[81]) if (feet_axis.userData.rotationAngle > 0) {
+    else if (key_press_map[81] && feet_axis.userData.rotationAngle > 0) {
         feet_axis.userData.rotating = -1;
-        return;
     }
-    if (key_press_map[65]) if (feet_axis.userData.rotationAngle < Math.PI) {
+    else if (key_press_map[65] &&feet_axis.userData.rotationAngle < Math.PI) {
         feet_axis.userData.rotating = 1;
-        return;
     }
-    feet_axis.userData.rotating = 0;
+    else feet_axis.userData.rotating = 0;
 }
 
 function compute_head_rotation() {
-    if(key_press_map[82] && key_press_map[70]){
+    if (key_press_map[82] && key_press_map[70]){
         head_axis.userData.rotating = 0
-        return;
     }
-    if(key_press_map[82]) if(head_axis.userData.rotationAngle > 0) {
+    else if (key_press_map[82] && head_axis.userData.rotationAngle > 0) {
         head_axis.userData.rotating = -1;
-        return;
     }
-    if(key_press_map[70])if(head_axis.userData.rotationAngle < Math.PI) {
+    else if (key_press_map[70] && head_axis.userData.rotationAngle < Math.PI) {
         head_axis.userData.rotating = 1;
-        return;
     }
-    head_axis.userData.rotating = 0;
+    else head_axis.userData.rotating = 0;
 }
 
 ////////////////////////////
@@ -630,18 +664,25 @@ function onResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    if (window.innerHeight > 0 && window.innerWidth > 0) {
+    if (cameras[active_camera] instanceof THREE.OrthographicCamera &&
+    window.innerWidth / window.innerHeight > aspect_ratio) {
 
-        if (cameras[active_camera] instanceof THREE.OrthographicCamera) {
-           // Ortho camera, does it need resizing?
-        
-        }
-        else
+        // It kinf of works but leaves parts of the scene out
+        cameras[3].left = -window.innerWidth / 32;
+        cameras[3].right = window.innerWidth / 32;
+        cameras[3].top = window.innerHeight / 32;
+        cameras[3].bottom = -window.innerHeight / 32;
+        cameras[3].updateProjectionMatrix();
+    }
+    
+    if (window.innerWidth > 0 && window.innerHeight > 0) {
         for (let idx = 0; idx < cameras.length; idx++) {
+            if (cameras[idx] instanceof THREE.OrthographicCamera) continue;
             cameras[idx].aspect = window.innerWidth / window.innerHeight;
             cameras[idx].updateProjectionMatrix();
+            console.log(idx);
         }
-    }   
+    }
     
     render();
 }
@@ -700,14 +741,14 @@ function onKeyDown(e) {
         compute_trailer_movement();
         break;
     // Head Movement
-    case 102:
-    case 70: // f
-        key_press_map[70] = 1;
+    case 82: // R
+    case 114: // r
+        key_press_map[82] = 1;
         compute_head_rotation();
         break;
-    case 114:
-    case 82: // r
-        key_press_map[82] = 1;
+    case 70: // F
+    case 102: // f
+        key_press_map[70] = 1;
         compute_head_rotation();
         break;
     // Arm movement
@@ -722,25 +763,25 @@ function onKeyDown(e) {
         compute_arm_velocity();
         break;
     // Legs movement
-    case 83: //S
-    case 115: //s
-        key_press_map[83] = 1;
-        compute_leg_rotation();
-        break;
     case 87: //W
     case 119: //w
         key_press_map[87] = 1;
         compute_leg_rotation();
         break;
-    // Feet movement
-    case 65: //A
-    case 97: //a
-        key_press_map[65] = 1;
-        compute_feet_rotation();
+    case 83: //S
+    case 115: //s
+        key_press_map[83] = 1;
+        compute_leg_rotation();
         break;
+    // Feet movement
     case 81: //Q
     case 113: //q
         key_press_map[81] = 1;
+        compute_feet_rotation();
+        break;
+    case 65: //A
+    case 97: //a
+        key_press_map[65] = 1;
         compute_feet_rotation();
         break;
     }
@@ -774,48 +815,48 @@ function onKeyUp(e){
         compute_trailer_movement();
         break;
     // Head Movement
-    case 102:
-    case 70: // f
-        key_press_map[70] = 0;
-        compute_head_rotation();
-        break;
-    case 114:
-    case 82: // r
+    case 82: // R
+    case 114: // r
         key_press_map[82] = 0;
         compute_head_rotation();
         break;
-    // Arm movement
-    case 69: //E
-    case 101: //e
+    case 70: // F
+    case 102: // f
+        key_press_map[70] = 0;
+        compute_head_rotation();
+        break;
+    // Arms movement
+    case 69: // E
+    case 101: // e
         key_press_map[69] = 0;
         compute_arm_velocity();
         break;
-    case 68: //D
-    case 100: //d
+    case 68: // D
+    case 100: // d
         key_press_map[68] = 0;
         compute_arm_velocity();
         break;
-    // Feet movement
-    case 65: //A
-    case 97: //a
-        key_press_map[65] = 0;
-        compute_feet_rotation();
-        break;
-    case 81: //Q
-    case 113: //q
-        key_press_map[81] = 0;
-        compute_feet_rotation();
-        break;
-    // Feet movement
-    case 83: //A
-    case 115: //a
+    // Legs movement
+    case 83: // S 
+    case 115: // s
         key_press_map[83] = 0;
         compute_leg_rotation();
         break;
-    case 87: //Q
-    case 119: //q
+    case 87: // W
+    case 119: // w
         key_press_map[87] = 0;
         compute_leg_rotation();
+        break;
+    // Feet movement
+    case 81: // Q
+    case 113: // q
+        key_press_map[81] = 0;
+        compute_feet_rotation();
+        break;
+    case 65: // A
+    case 97: // a
+        key_press_map[65] = 0;
+        compute_feet_rotation();
         break;
     }
 }
