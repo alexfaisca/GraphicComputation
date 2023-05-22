@@ -6,7 +6,7 @@ var robot, trailer, wireframe = false, legs, left_arm, right_arm, head_axis, fee
 var active_camera;
 var cameras = new Array(5);
 
-var aspect_ratio = 16/9;
+var aspect_ratio = 16/9; var container;
 
 var key_press_map = {};
 var hitbox_init_set_map = { "head" : false,
@@ -14,6 +14,16 @@ var hitbox_init_set_map = { "head" : false,
                             "legs" : false,
                             "feet" : false };
 var animation_mode = false;
+
+// The point where the trailer drag animation stops
+var meeting_point = new THREE.Vector3(0, 0, 0);
+
+// Trailer constant velocity but arbitrary direction
+var trailer_drag = new THREE.Vector3(0, 0, 0);
+
+// Auxiliary vectors
+let v = new THREE.Vector3(0, 0, 0);
+let t = new THREE.Vector3(0, 0, 0);
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -293,13 +303,15 @@ function createRobot() {
                                                     abdomen_depth / 2)
                      };
     robot.add(head_axis, body, legs, left_arm, right_arm);
+    
+    meeting_point.add(new THREE.Vector3(0, 0, -abdomen_height / 2 - thigh_height - 0.32*leg_height));
 
     scene.add(robot);
 }
 
 function createTrailer() {
 
-    var container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2;
+    var support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2;
     var trailer_origin_distance = 25, abdomen_height = 1.5, front_wheel_distance = 5.75, back_wheel_distance = 7.75, support_distance = 6.75;
     var container_length = 4, container_height = 8, container_depth = 17;
     var support_length = 2, support_height = 1, support_depth = 3.5;
@@ -336,6 +348,10 @@ function createTrailer() {
     connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, connection_piece_distance);
     connection_piece.material.color.set(0xffff88);
 
+    // Add robot difference distance offset to the meeting point
+    
+    meeting_point.add(new THREE.Vector3(0, 0, -connection_piece_distance));
+
     // ASSEMBLY
     trailer = new THREE.Object3D();
     trailer.userData = {rotating : 0, velocity : new THREE.Vector3(0,0,0),
@@ -367,31 +383,29 @@ function checkCollisions(){
     robot.userData.max_point.y >= trailer.userData.min_point.y &&
     robot.userData.min_point.z <= trailer.userData.max_point.z &&
     robot.userData.max_point.z >= trailer.userData.min_point.z
-    ) { handleCollisions(); console.log("Touchy!"); return;}
-    
+    ) 
+    { 
+        // Camera keys won't work after this
+        animation_mode = true;
+        
+        handleCollisions();
+
+        console.log("Touchy!"); return;
+    }
 
     console.log("Not touchy!");
 
 }
 
+// DEBUGGING PURPOSES
 function sayCollision() {
     
-    // Debug purposes
     console.log(robot.userData.min_point.x <= trailer.userData.max_point.x);
     console.log(robot.userData.max_point.x >= trailer.userData.min_point.x);
     console.log(robot.userData.min_point.y <= trailer.userData.max_point.y);
     console.log(robot.userData.max_point.y >= trailer.userData.min_point.y);
     console.log(robot.userData.min_point.z <= trailer.userData.max_point.z); 
     console.log(robot.userData.max_point.z >= trailer.userData.min_point.z);
-
-    /*
-    a.minX <= b.maxX &&
-    a.maxX >= b.minX &&
-    a.minY <= b.maxY &&
-    a.maxY >= b.minY &&
-    a.minZ <= b.maxZ &&
-    a.maxZ >= b.minZ
-    */
 
 }
 
@@ -409,8 +423,28 @@ function hitboxSetupCheck() {
 function handleCollisions(){
     'use strict';
 
-    // Commented for debugging purposes
-    //animation_mode = true;
+    let step = 0.025;
+    
+    v.set(0,0,0)
+    t.set(0,0,0);
+    trailer_drag.set(0,0,0);
+
+    if (Math.abs(trailer.position.x - meeting_point.x) > 0.01 || Math.abs(trailer.position.z - meeting_point.z > 0.01)) {
+
+        v.add(meeting_point);
+        t.add(trailer.position);
+
+        trailer_drag.add(v.add(t.multiplyScalar(-1)));
+
+        trailer_drag.setLength(step);
+        
+        // Check for hitbox corner points too
+        trailer.position.add(trailer_drag);
+        trailer.userData.min_point.add(trailer_drag);
+        trailer.userData.max_point.add(trailer_drag);
+
+    }
+    else animation_mode = false; // After the trailer is in position, camera changes are allowed
 
 }
 
