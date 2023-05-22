@@ -163,7 +163,7 @@ function createRobot() {
     body.add(waist, chest, abdomen, abdomen_tire_left, abdomen_tire_right);
 
     // ---------------------------------------------------------
-    // Create LEGS
+    // Create LEGS and FEET
     // ---------------------------------------------------------
     legs = new THREE.Object3D();
     var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
@@ -285,12 +285,12 @@ function createRobot() {
 
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, rotate_head : 0,
-                      min_point : new THREE.Vector3(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius,
+                      min_point : new THREE.Vector3(-(abdomen_length / 2 + arm_width + 2 * exhaust_radius),
                                                     -abdomen_height / 2,
-                                                    abdomen_depth / 2),
-                      max_point : new THREE.Vector3(-(abdomen_length / 2 + wheel_height + arm_width + exhaust_radius),
+                                                    -(abdomen_depth / 2 + thigh_height + leg_height + foot_height / 2)),
+                      max_point : new THREE.Vector3(abdomen_length / 2 + arm_width + 2 * exhaust_radius,
                                                     abdomen_height / 2 + waist_height + chest_height + head_height + antlers_height,
-                                                    -(abdomen_depth / 2 + thigh_height + leg_height + foot_height))
+                                                    abdomen_depth / 2)
                      };
     robot.add(head_axis, body, legs, left_arm, right_arm);
 
@@ -339,12 +339,12 @@ function createTrailer() {
     // ASSEMBLY
     trailer = new THREE.Object3D();
     trailer.userData = {rotating : 0, velocity : new THREE.Vector3(0,0,0),
-                        min_point : new THREE.Vector3(container_length / 2,
-                                                      connection_piece_height - abdomen_height / 2 - support_height,
-                                                      -trailer_origin_distance + container_depth / 2),
-                        max_point : new THREE.Vector3(-container_length / 2,
+                        min_point : new THREE.Vector3(-container_length / 2,
+                                                      connection_piece_height + abdomen_height / 2 - support_height,
+                                                      -trailer_origin_distance - container_depth / 2),
+                        max_point : new THREE.Vector3(container_length / 2,
                                                       connection_piece_height + abdomen_height / 2 + container_height,
-                                                      -trailer_origin_distance - container_depth / 2)
+                                                      -trailer_origin_distance + container_depth / 2)
                        };
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
     trailer.position.set(0, 0, -trailer_origin_distance);
@@ -361,12 +361,12 @@ function checkCollisions(){
     if (!hitboxSetupCheck()) return;
     
     if (
-    robot.userData.min_point.x >= trailer.userData.max_point.x &&
-    robot.userData.max_point.x <= trailer.userData.min_point.x &&
-    robot.userData.max_point.y >= trailer.userData.min_point.y &&
+    robot.userData.min_point.x <= trailer.userData.max_point.x &&
+    robot.userData.max_point.x >= trailer.userData.min_point.x &&
     robot.userData.min_point.y <= trailer.userData.max_point.y &&
-    robot.userData.min_point.z >= trailer.userData.max_point.z &&
-    robot.userData.max_point.z <= trailer.userData.min_point.z
+    robot.userData.max_point.y >= trailer.userData.min_point.y &&
+    robot.userData.min_point.z <= trailer.userData.max_point.z &&
+    robot.userData.max_point.z >= trailer.userData.min_point.z
     ) { handleCollisions(); console.log("Touchy!"); return;}
     
 
@@ -377,12 +377,21 @@ function checkCollisions(){
 function sayCollision() {
     
     // Debug purposes
-    console.log(robot.userData.min_point.x >= trailer.userData.max_point.x);
-    console.log(robot.userData.max_point.x <= trailer.userData.min_point.x);
+    console.log(robot.userData.min_point.x <= trailer.userData.max_point.x);
+    console.log(robot.userData.max_point.x >= trailer.userData.min_point.x);
     console.log(robot.userData.min_point.y <= trailer.userData.max_point.y);
     console.log(robot.userData.max_point.y >= trailer.userData.min_point.y);
-    console.log(robot.userData.min_point.z >= trailer.userData.max_point.z); 
-    console.log(robot.userData.max_point.z <= trailer.userData.min_point.z);
+    console.log(robot.userData.min_point.z <= trailer.userData.max_point.z); 
+    console.log(robot.userData.max_point.z >= trailer.userData.min_point.z);
+
+    /*
+    a.minX <= b.maxX &&
+    a.maxX >= b.minX &&
+    a.minY <= b.maxY &&
+    a.maxY >= b.minY &&
+    a.minZ <= b.maxZ &&
+    a.maxZ >= b.minZ
+    */
 
 }
 
@@ -400,7 +409,8 @@ function hitboxSetupCheck() {
 function handleCollisions(){
     'use strict';
 
-    animation_mode = true;
+    // Commented for debugging purposes
+    //animation_mode = true;
 
 }
 
