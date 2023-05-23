@@ -324,24 +324,24 @@ function createTrailer() {
 
     // SUPPORT
     support = createCube(support_length, support_height, support_depth);
-    support.position.set(0, connection_piece_height, -support_distance);
+    support.position.set(0, support_height / 2, -support_distance);
 
     // WHEELS
     trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l1.rotateZ((Math.PI)/2);
-    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -front_wheel_distance)
+    trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -front_wheel_distance)
 
     trailer_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l2.rotateZ((Math.PI)/2);
-    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), connection_piece_height, -back_wheel_distance)
+    trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -back_wheel_distance)
 
     trailer_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r1.rotateZ((Math.PI)/2);
-    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -front_wheel_distance)
+    trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -front_wheel_distance)
 
     trailer_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r2.rotateZ((Math.PI)/2);
-    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), connection_piece_height, -back_wheel_distance)
+    trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -back_wheel_distance)
 
     // CONNECTION PIECE
     connection_piece = createCylinder(connection_piece_radius, connection_piece_radius, connection_piece_height);
@@ -374,6 +374,9 @@ function createTrailer() {
 function checkCollisions(){
     'use strict';
 
+    // Enable cameras again after possible collision check
+    if (animation_mode) !animation_mode;
+
     if (!hitboxSetupCheck()) return;
     
     if (
@@ -384,13 +387,10 @@ function checkCollisions(){
     robot.userData.min_point.z <= trailer.userData.max_point.z &&
     robot.userData.max_point.z >= trailer.userData.min_point.z
     ) 
-    { 
-        // Camera keys won't work after this
-        animation_mode = true;
-        
+    {   
         handleCollisions();
-
-        console.log("Touchy!"); return;
+        console.log("Touchy!");
+        return;
     }
 
     console.log("Not touchy!");
@@ -424,12 +424,15 @@ function handleCollisions(){
     'use strict';
 
     let step = 0.025;
+
+    // Camera keys won't work after this
+    animation_mode = true;
     
     v.set(0,0,0)
     t.set(0,0,0);
     trailer_drag.set(0,0,0);
 
-    if (Math.abs(trailer.position.x - meeting_point.x) > 0.01 || Math.abs(trailer.position.z - meeting_point.z > 0.01)) {
+    if (Math.abs(trailer.position.x - meeting_point.x) > 0.01 || Math.abs(trailer.position.z - meeting_point.z) > 0.01) {
 
         v.add(meeting_point);
         t.add(trailer.position);
