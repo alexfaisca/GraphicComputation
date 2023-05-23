@@ -529,7 +529,7 @@ function rotateTrailer(){
 }
 
 function updateTrailerPosition() {
-    trailer.position = trailer.position.add(trailer.userData.velocity);
+    trailer.position.add(trailer.userData.velocity);
     trailer.userData.min_point.add(trailer.userData.velocity);
     trailer.userData.max_point.add(trailer.userData.velocity);
 }
@@ -537,7 +537,7 @@ function updateTrailerPosition() {
 function updateHeadPosition() {
     let step = 0.02;
 
-    if (head_axis.userData.rotating != 0) {
+    if (head_axis.userData.rotating != 0 && head_axis.userData.rotationAngle >= 0 && head_axis.userData.rotationAngle <= Math.PI) {
        head_axis.rotateX(-head_axis.userData.rotating * step); // Minus sign for clockwise rotation
        head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
        hitbox_init_set_map["head"] = false; console.log('head_not_ok');
@@ -581,7 +581,7 @@ function updateArmPosition() {
 function updateLegPosition() {
     let step = 0.01;
 
-    if (legs.userData.rotating != 0) {
+    if (legs.userData.rotating != 0 && legs.userData.rotationAngle >= 0 && legs.userData.rotationAngle <= Math.PI / 2) {
         legs.rotateX(legs.userData.rotating * step);
         legs.userData.rotationAngle += legs.userData.rotating * step;
         hitbox_init_set_map["legs"] = false; console.log('legs_not_ok');
@@ -603,7 +603,7 @@ function updateLegPosition() {
 function updateFeetPosition() {
     let step = 0.02;
 
-    if (feet_axis.userData.rotating != 0) {
+    if (feet_axis.userData.rotating != 0 && feet_axis.userData.rotationAngle >= 0 && feet_axis.userData.rotationAngle <= Math.PI) {
         feet_axis.rotateX(feet_axis.userData.rotating * step);
         feet_axis.userData.rotationAngle += feet_axis.userData.rotating * step;
         hitbox_init_set_map["feet"] = false; console.log('feet_not_ok');
@@ -622,80 +622,79 @@ function updateFeetPosition() {
     }
 }
 
-function update_trailer_velocity(x, z){
+function updateTrailerVelocity(x, z){
 
-    trailer.userData.velocity.setComponent(0, x);
-    trailer.userData.velocity.setComponent(2, z);
+    trailer.userData.velocity.setX(x);
+    trailer.userData.velocity.setZ(z);
 
     // Velocity vector length remains unchanged
-    if(trailer.userData.velocity.getComponent(0) !== 0 && trailer.userData.velocity.getComponent(2) !== 0){
-        trailer.userData.velocity.setComponent(0, trailer.userData.velocity.getComponent(0) * 0.707);
-        trailer.userData.velocity.setComponent(2, trailer.userData.velocity.getComponent(2) * 0.707);
+    if(trailer.userData.velocity.x !== 0 && trailer.userData.velocity.z !== 0){
+        trailer.userData.velocity.setLength(0.05);
     }
 }
 
 function compute_trailer_movement() {
     if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
-        update_trailer_velocity(0, 0);
+        updateTrailerVelocity(0, 0);
         return;
     }
     if(key_press_map[37] && key_press_map[39] && key_press_map[38]){ // Left + Right + Up
-        update_trailer_velocity(0, -0.05);
+        updateTrailerVelocity(0, -0.05);
         return;
     }
     if(key_press_map[37] && key_press_map[39] && key_press_map[40]){ // Left + Right + Down
-        update_trailer_velocity(0, 0.05);
+        updateTrailerVelocity(0, 0.05);
         return;
     }
     if(key_press_map[38] && key_press_map[40] && key_press_map[37]){ // Up + Down + Left
-        update_trailer_velocity(-0.05, 0);
+        updateTrailerVelocity(-0.05, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[40] && key_press_map[39]){ // Up + Down + Right
-        update_trailer_velocity(0.05, 0);
+        updateTrailerVelocity(0.05, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[40]){ // Up + Down
-        update_trailer_velocity(0.0, 0);
+        updateTrailerVelocity(0.0, 0);
         return;
     }
     if(key_press_map[37] && key_press_map[39]){ // Left + Right
-        update_trailer_velocity(0.0, 0);
+        updateTrailerVelocity(0.0, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[39]){ // Up + Right
-        update_trailer_velocity(0.05, -0.05);
+        updateTrailerVelocity(0.05, -0.05);
         return;
     }
     if(key_press_map[38] && key_press_map[37]){ // Up + Left
-        update_trailer_velocity(-0.05, -0.05);
+        updateTrailerVelocity(-0.05, -0.05);
         return;
     }
     if(key_press_map[40] && key_press_map[39]){ // Down + Right
-        update_trailer_velocity(0.05, 0.05);
+        updateTrailerVelocity(0.05, 0.05);
         return;
     }
     if(key_press_map[40] && key_press_map[37]){ // Down + Left
-        update_trailer_velocity(-0.05, 0.05);
+        updateTrailerVelocity(-0.05, 0.05);
         return;
     }
     if(key_press_map[37]){
-        update_trailer_velocity(-0.05, 0);
+        updateTrailerVelocity(-0.05, 0);
         return;
     }
     if(key_press_map[38]){
-        update_trailer_velocity(0, -0.05);
+        updateTrailerVelocity(0, -0.05);
         return;
     }
     if(key_press_map[39]){
-        update_trailer_velocity(0.05, 0);
+        updateTrailerVelocity(0.05, 0);
         return;
     }
     if(key_press_map[40]){
-        update_trailer_velocity(0, 0.05);
+        updateTrailerVelocity(0, 0.05);
         return;
     }
-    update_trailer_velocity(0,0);
+    updateTrailerVelocity(0,0);
 }
 
 
@@ -818,7 +817,7 @@ function onKeyDown(e) {
             change_camera(4);
         break;
 
-    case 54: //6
+    case 54: // 6
         wireframe = !wireframe
         scene.traverse(function (node) {
             if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
@@ -859,24 +858,24 @@ function onKeyDown(e) {
         compute_head_rotation();
         break;
     // Arm movement
-    case 69: //E
-    case 101: //e
+    case 69: // E
+    case 101: // e
         key_press_map[69] = 1;
         compute_arm_velocity();
         break;
-    case 68: //D
-    case 100: //d
+    case 68: // D
+    case 100: // d
         key_press_map[68] = 1;
         compute_arm_velocity();
         break;
     // Legs movement
-    case 87: //W
-    case 119: //w
+    case 87: // W
+    case 119: // w
         key_press_map[87] = 1;
         compute_leg_rotation();
         break;
-    case 83: //S
-    case 115: //s
+    case 83: // S
+    case 115: // s
         key_press_map[83] = 1;
         compute_leg_rotation();
         break;
@@ -886,8 +885,8 @@ function onKeyDown(e) {
         key_press_map[81] = 1;
         compute_feet_rotation();
         break;
-    case 65: //A
-    case 97: //a
+    case 65: // A
+    case 97: // a
         key_press_map[65] = 1;
         compute_feet_rotation();
         break;
