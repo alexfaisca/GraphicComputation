@@ -881,8 +881,8 @@ function onKeyDown(e) {
         compute_leg_rotation();
         break;
     // Feet movement
-    case 81: //Q
-    case 113: //q
+    case 81: // Q
+    case 113: // q
         key_press_map[81] = 1;
         compute_feet_rotation();
         break;
