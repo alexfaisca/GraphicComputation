@@ -375,7 +375,7 @@ function checkCollisions(){
     'use strict';
 
     // Enable cameras again after possible collision check
-    if (animation_mode) !animation_mode;
+    if (animation_mode) animation_mode = false;
 
     if (!hitboxSetupCheck()) return;
     
