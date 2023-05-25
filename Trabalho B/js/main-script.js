@@ -556,11 +556,11 @@ function updateHeadPosition() {
 }
 
 function updateArmPosition() {
-    let step = 0.05
+    let step = 0.01
 
-    if (left_arm.userData.velocity.x != 0) { // Only check for x component
-        left_arm.position.add(left_arm.userData.velocity.multiplyScalar(step));
-        right_arm.position.add(right_arm.userData.velocity.multiplyScalar(step));
+    if (left_arm.userData.velocity.x != 0 && left_arm.position.x >= -3.5 && left_arm.position.x <= -2.5) { // Only check for x component
+        left_arm.position.x += left_arm.userData.velocity.x * step;
+        right_arm.position.x += right_arm.userData.velocity.x * step;
         hitbox_init_set_map["arms"] = false; console.log('arms_not_ok');
     }
     else {
@@ -573,7 +573,6 @@ function updateArmPosition() {
             right_arm.position.x = 2.5;
             hitbox_init_set_map["arms"] = true; console.log('arms_ok');
         }
-
     }
 
 }
@@ -586,7 +585,7 @@ function updateLegPosition() {
         legs.userData.rotationAngle += legs.userData.rotating * step;
         hitbox_init_set_map["legs"] = false; console.log('legs_not_ok');
     }
-    if(legs.userData.rotating == 0) {
+    else if (legs.userData.rotating == 0) {
         if(legs.userData.rotationAngle < 0) {
             legs.userData.rotationAngle = 0;
             legs.rotation.x = legs.userData.rotationAngle;
@@ -700,20 +699,20 @@ function compute_trailer_movement() {
 
 function compute_arm_velocity() {
     if (key_press_map[68] && key_press_map[69]) {
-        left_arm.userData.velocity.set(0, 0, 0);
-        right_arm.userData.velocity.set(0, 0, 0);
+        left_arm.userData.velocity.setX(0);
+        right_arm.userData.velocity.setX(0);
     }
     else if (key_press_map[68] && left_arm.position.x < -2.5) {
-        left_arm.userData.velocity.set(1, 0, 0);
-        right_arm.userData.velocity.set(-1, 0, 0);
+        left_arm.userData.velocity.setX(1);
+        right_arm.userData.velocity.setX(-1);
     }
     else if (key_press_map[69] && left_arm.position.x > -3.5) {
-        left_arm.userData.velocity.set(-1, 0, 0);
-        right_arm.userData.velocity.set(1, 0, 0);
+        left_arm.userData.velocity.setX(-1);
+        right_arm.userData.velocity.setX(1);
     }
     else {
-        left_arm.userData.velocity.set(0, 0, 0);
-        right_arm.userData.velocity.set(0, 0, 0);
+        left_arm.userData.velocity.setX(0);
+        right_arm.userData.velocity.setX(0);
     }
 }
 
