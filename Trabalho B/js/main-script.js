@@ -26,6 +26,13 @@ var trailer_drag = new THREE.Vector3(0, 0, 0);
 let v = new THREE.Vector3(0, 0, 0);
 let t = new THREE.Vector3(0, 0, 0);
 
+//Clock
+var trailer_clock = new THREE.Clock();
+var head_clock = new THREE.Clock();
+var arms_clock = new THREE.Clock();
+var legs_clock = new THREE.Clock();
+var feet_clock = new THREE.Clock();
+
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
@@ -599,18 +606,21 @@ function rotateTrailer(){
 
 function updateTrailerPosition() {
     compute_trailer_movement();
+    var delta = trailer_clock.getDelta();
+
+    trailer.userData.velocity = trailer.userData.velocity.multiplyScalar(delta);
     trailer.position.add(trailer.userData.velocity);
     trailer.userData.min_point.add(trailer.userData.velocity);
     trailer.userData.max_point.add(trailer.userData.velocity);
 }
 
 function updateHeadPosition() {
-    let step = 0.02;
     compute_head_rotation();
+    var delta = head_clock.getDelta();
 
     if (head_axis.userData.rotating != 0 && head_axis.userData.rotationAngle >= 0 && head_axis.userData.rotationAngle <= Math.PI) {
-       head_axis.rotateX(-head_axis.userData.rotating * step); // Minus sign for clockwise rotation
-       head_axis.userData.rotationAngle += head_axis.userData.rotating * step;
+       head_axis.rotateX(-head_axis.userData.rotating * delta); // Minus sign for clockwise rotation
+       head_axis.userData.rotationAngle += head_axis.userData.rotating * delta;
        hitbox_init_set_map["head"] = false; console.log('head_not_ok');
     }
     if (head_axis.userData.rotating == 0) {
@@ -627,12 +637,13 @@ function updateHeadPosition() {
 }
 
 function updateArmPosition() {
-    let step = 0.01
     compute_arm_velocity();
+    var delta = arms_clock.getDelta();
+
 
     if (left_arm.userData.velocity.x != 0 && left_arm.position.x >= -3.5 && left_arm.position.x <= -2.5) { // Only check for x component
-        left_arm.position.x += left_arm.userData.velocity.x * step;
-        right_arm.position.x += right_arm.userData.velocity.x * step;
+        left_arm.position.x += left_arm.userData.velocity.x * delta;
+        right_arm.position.x += right_arm.userData.velocity.x * delta;
         hitbox_init_set_map["arms"] = false; console.log('arms_not_ok');
     }
     else {
@@ -650,12 +661,13 @@ function updateArmPosition() {
 }
 
 function updateLegPosition() {
-    let step = 0.01;
     compute_leg_rotation();
+    var delta = legs_clock.getDelta();
+
 
     if (legs.userData.rotating != 0 && legs.userData.rotationAngle >= 0 && legs.userData.rotationAngle <= Math.PI / 2) {
-        legs.rotateX(legs.userData.rotating * step);
-        legs.userData.rotationAngle += legs.userData.rotating * step;
+        legs.rotateX(legs.userData.rotating * delta);
+        legs.userData.rotationAngle += legs.userData.rotating * delta;
         hitbox_init_set_map["legs"] = false; console.log('legs_not_ok');
     }
     else if (legs.userData.rotationAngle < 0 || legs.userData.rotationAngle > Math.PI / 2) {
@@ -673,12 +685,12 @@ function updateLegPosition() {
 }
 
 function updateFeetPosition() {
-    let step = 0.02;
     compute_feet_rotation();
+    var delta = feet_clock.getDelta();
 
     if (feet_axis.userData.rotating != 0 && feet_axis.userData.rotationAngle >= 0 && feet_axis.userData.rotationAngle <= Math.PI) {
-        feet_axis.rotateX(feet_axis.userData.rotating * step);
-        feet_axis.userData.rotationAngle += feet_axis.userData.rotating * step;
+        feet_axis.rotateX(feet_axis.userData.rotating * delta);
+        feet_axis.userData.rotationAngle += feet_axis.userData.rotating * delta;
         hitbox_init_set_map["feet"] = false; console.log('feet_not_ok');
     }
     if (feet_axis.userData.rotating == 0) {
@@ -696,13 +708,12 @@ function updateFeetPosition() {
 }
 
 function updateTrailerVelocity(x, z){
-
     trailer.userData.velocity.setX(x);
     trailer.userData.velocity.setZ(z);
 
     // Velocity vector length remains unchanged
     if(trailer.userData.velocity.x !== 0 && trailer.userData.velocity.z !== 0){
-        trailer.userData.velocity.setLength(0.05);
+        trailer.userData.velocity.setLength(4);
     }
 }
 
@@ -712,59 +723,59 @@ function compute_trailer_movement() {
         return;
     }
     if(key_press_map[37] && key_press_map[39] && key_press_map[38]){ // Left + Right + Up
-        updateTrailerVelocity(0, -0.05);
+        updateTrailerVelocity(0, -4);
         return;
     }
     if(key_press_map[37] && key_press_map[39] && key_press_map[40]){ // Left + Right + Down
-        updateTrailerVelocity(0, 0.05);
+        updateTrailerVelocity(0, 4);
         return;
     }
     if(key_press_map[38] && key_press_map[40] && key_press_map[37]){ // Up + Down + Left
-        updateTrailerVelocity(-0.05, 0);
+        updateTrailerVelocity(-4, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[40] && key_press_map[39]){ // Up + Down + Right
-        updateTrailerVelocity(0.05, 0);
+        updateTrailerVelocity(4, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[40]){ // Up + Down
-        updateTrailerVelocity(0.0, 0);
+        updateTrailerVelocity(0, 0);
         return;
     }
     if(key_press_map[37] && key_press_map[39]){ // Left + Right
-        updateTrailerVelocity(0.0, 0);
+        updateTrailerVelocity(0, 0);
         return;
     }
     if(key_press_map[38] && key_press_map[39]){ // Up + Right
-        updateTrailerVelocity(0.05, -0.05);
+        updateTrailerVelocity(4, -4);
         return;
     }
     if(key_press_map[38] && key_press_map[37]){ // Up + Left
-        updateTrailerVelocity(-0.05, -0.05);
+        updateTrailerVelocity(-4, -4);
         return;
     }
     if(key_press_map[40] && key_press_map[39]){ // Down + Right
-        updateTrailerVelocity(0.05, 0.05);
+        updateTrailerVelocity(4, 4);
         return;
     }
     if(key_press_map[40] && key_press_map[37]){ // Down + Left
-        updateTrailerVelocity(-0.05, 0.05);
+        updateTrailerVelocity(-4, 4);
         return;
     }
     if(key_press_map[37]){
-        updateTrailerVelocity(-0.05, 0);
+        updateTrailerVelocity(-4, 0);
         return;
     }
     if(key_press_map[38]){
-        updateTrailerVelocity(0, -0.05);
+        updateTrailerVelocity(0, -4);
         return;
     }
     if(key_press_map[39]){
-        updateTrailerVelocity(0.05, 0);
+        updateTrailerVelocity(4, 0);
         return;
     }
     if(key_press_map[40]){
-        updateTrailerVelocity(0, 0.05);
+        updateTrailerVelocity(0, 4);
         return;
     }
     updateTrailerVelocity(0,0);
