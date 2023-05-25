@@ -2,9 +2,10 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, legs, left_arm, right_arm, head_axis, feet_axis;
+var robot, trailer, wireframe = false, toggle_wireframe = false, legs, left_arm, right_arm, head_axis, feet_axis;
 var active_camera;
 var cameras = new Array(5);
+var wireframe_objects = new Array(25);
 
 var aspect_ratio = 16/9; var container;
 
@@ -149,23 +150,28 @@ function createRobot() {
 
     // Create BODY
     // ---------------------------------------------------------
-    var body = new THREE.Object3D();
-    var chest, waist, abdomen, abdomen_tire_left, abdomen_tire_right;
+    var body = new THREE.Object3D(), abdomen_tire_left = new THREE.Object3D(), abdomen_tire_right = new THREE.Object3D();;
+    var chest, waist, abdomen, abdomen_tire;
     var chest_length = 6 * wheel_height, chest_height = 10 / 3 * wheel_radius, chest_depth = 2 * wheel_radius, waist_length = 4 * wheel_height, waist_height = 2 * wheel_radius, waist_depth = 2 * wheel_radius, abdomen_length = 4 * wheel_height, abdomen_height = 2 * wheel_radius, abdomen_depth = 2 * wheel_radius;
 
     waist = createCube(waist_length, waist_height, waist_depth);
     waist.position.set(0, waist_height, 0);
+    wireframe_objects.push(waist);
 
     chest = createCube(chest_length, chest_height, chest_depth);
     chest.position.set(0, 1.5*waist_height + 0.5*chest_height, 0);
+    wireframe_objects.push(chest);
     
     abdomen = createCube(abdomen_length, abdomen_height, abdomen_depth);
+    wireframe_objects.push(abdomen);
 
-    abdomen_tire_left = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height));
-    abdomen_tire_left.rotateZ((Math.PI)/2);
+    abdomen_tire = createCylinder(wheel_radius, wheel_radius, wheel_height);
+    abdomen_tire.rotateZ((Math.PI)/2);
+    wireframe_objects.push(abdomen_tire);
+
+    abdomen_tire_left.add(abdomen_tire);
     abdomen_tire_left.position.set(-(abdomen_length + wheel_height) / 2, 0, 0);
 
-    abdomen_tire_right = new THREE.Object3D();
     abdomen_tire_right.copy(abdomen_tire_left);
     abdomen_tire_right.position.setX(-abdomen_tire_left.position.x);
 
@@ -176,36 +182,46 @@ function createRobot() {
     // Create LEGS and FEET
     // ---------------------------------------------------------
     legs = new THREE.Object3D();
-    var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D();
-    var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, left_foot, right_foot;
+    var left_leg = new THREE.Object3D(), right_leg = new THREE.Object3D(), left_foot = new THREE.Object3D(), right_foot = new THREE.Object3D();
+    var thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting, foot;
     var thigh_length = wheel_height / 2, thigh_height = 2 * wheel_radius, leg_width = 7 / 4 * wheel_height, leg_depth = 2 * wheel_radius, leg_height = 8 * wheel_radius + wheel_height, foot_length = 11 / 4 * wheel_height, foot_depth = 5 / 3 * wheel_radius, foot_height = wheel_height;
     var leg_fitting_radius = 0.25*wheel_height, leg_fitting_height = 0.25*wheel_height;
 
     thigh = createCube(thigh_length, thigh_height, thigh_length)
     thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
+    wireframe_objects.push(thigh);
+
     upper_leg = createCube(leg_width, leg_height, leg_depth)
     upper_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
+    wireframe_objects.push(upper_leg);
 
-    leg_wheel_1 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
+    leg_wheel_1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
     leg_wheel_1.rotateZ((Math.PI)/2);
-    leg_wheel_2 = new THREE.Object3D().add(createCylinder(wheel_radius, wheel_radius, wheel_height))
+    wireframe_objects.push(leg_wheel_1);
+
+    leg_wheel_2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
     leg_wheel_2.rotateZ((Math.PI)/2);
+    wireframe_objects.push(leg_wheel_2);
 
     leg_fitting = createCylinder(leg_fitting_radius, leg_fitting_radius, leg_fitting_height);
     leg_fitting.rotateX((Math.PI)/2);
     leg_fitting.position.set(abdomen_length / 4, -abdomen_height / 2 - thigh_height - 0.32*leg_height, -leg_width / 2);
     leg_fitting.material.color.set(0xffff88);
+    wireframe_objects.push(leg_fitting);
 
     left_leg.add(thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting);
     right_leg.copy(left_leg);
     right_leg.scale.multiply(mirror);
     right_leg.position.setX(-left_leg.position.x);
+    wireframe_objects.push(left_leg);
 
-    left_foot = new THREE.Object3D();
-    left_foot.add(createCube(foot_length, foot_height, foot_depth));
+    foot = createCube(foot_length, foot_height, foot_depth);
+    wireframe_objects.push(foot);
+    left_foot.add(foot);
     left_foot.position.set(-(abdomen_length / 4 - leg_width / 2 + foot_length / 2), foot_height / 2, foot_depth / 2);
+
     right_foot = new THREE.Object3D().copy(left_foot);
     right_foot.scale.multiply(mirror);
     right_foot.position.setX(-left_foot.position.x);
@@ -237,10 +253,15 @@ function createRobot() {
 
     forearm = createCube(forearm_width, forearm_height, forearm_depth);
     forearm.position.set(0, forearm_height / 2, 0)
+    wireframe_objects.push(forearm);
+
     arm = createCube(arm_width, arm_height, arm_depth);
     arm.position.set(0, (forearm_height + arm_height / 2), - arm_depth / 2)
+    wireframe_objects.push(arm);
+
     exhaust = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
     exhaust.position.set(-arm_width / 2 -exhaust_radius, forearm_height + exhaust_height / 2, -(arm_depth - exhaust_radius))
+    wireframe_objects.push(exhaust);
 
     left_arm.add(forearm, arm, exhaust);
     left_arm.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), abdomen_height / 2, -(abdomen_depth) / 2)
@@ -261,14 +282,23 @@ function createRobot() {
 
     skull = createCube(head_length, head_height, head_depth);
     skull.position.set(0,  head_height / 2, - head_depth / 2);
+    wireframe_objects.push(skull);
+
     eye_l = createCube(eyes_length, eyes_height, eyes_depth);
     eye_l.position.set(-0.25*head_length,  0.75*head_height, 0.5*head_depth - head_depth / 2);
+    wireframe_objects.push(eye_l);
+
     eye_r = createCube(eyes_length, eyes_height, eyes_depth);
     eye_r.position.set(0.25*head_length, 0.75*head_height, 0.5*head_depth - head_depth / 2);
+    wireframe_objects.push(eye_r);
+
     antler_l = createCube(antlers_depth, antlers_height, antlers_depth);
     antler_l.position.set(-0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
+    wireframe_objects.push(antler_l);
+
     antler_r = createCube(antlers_depth, 0.5 * antlers_height, antlers_depth);
     antler_r.position.set(0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
+    wireframe_objects.push(antler_r);
 
     eye_l.material.color.set("white")
     eye_r.material.color.set("white")
@@ -321,32 +351,39 @@ function createTrailer() {
     // CONTAINER
     container = createCube(container_length, container_height, container_depth);
     container.position.set(0, connection_piece_height + (container_height + abdomen_height) / 2, 0);
+    wireframe_objects.push(container);
 
     // SUPPORT
     support = createCube(support_length, support_height, support_depth);
     support.position.set(0, support_height / 2, -support_distance);
+    wireframe_objects.push(support);
 
     // WHEELS
     trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l1.rotateZ((Math.PI)/2);
     trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -front_wheel_distance)
+    wireframe_objects.push(trailer_wheel_l1);
 
     trailer_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l2.rotateZ((Math.PI)/2);
     trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -back_wheel_distance)
+    wireframe_objects.push(trailer_wheel_l2);
 
     trailer_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r1.rotateZ((Math.PI)/2);
     trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -front_wheel_distance)
+    wireframe_objects.push(trailer_wheel_r1);
 
     trailer_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_r2.rotateZ((Math.PI)/2);
     trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -back_wheel_distance)
+    wireframe_objects.push(trailer_wheel_r2);
 
     // CONNECTION PIECE
     connection_piece = createCylinder(connection_piece_radius, connection_piece_radius, connection_piece_height);
     connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, connection_piece_distance);
     connection_piece.material.color.set(0xffff88);
+    wireframe_objects.push(connection_piece);
 
     // Add robot difference distance offset to the meeting point
     
@@ -456,6 +493,11 @@ function handleCollisions(){
 ////////////
 function update() {
     'use strict';
+    if(toggle_wireframe) {
+        toggle_wireframe = false;
+        wireframe = !wireframe;
+        for(const obj of wireframe_objects) if (obj instanceof THREE.Mesh) obj.material.wireframe = wireframe;
+    }
 
     rotateRobot();
     rotateTrailer();
@@ -529,6 +571,7 @@ function rotateTrailer(){
 }
 
 function updateTrailerPosition() {
+    compute_trailer_movement();
     trailer.position.add(trailer.userData.velocity);
     trailer.userData.min_point.add(trailer.userData.velocity);
     trailer.userData.max_point.add(trailer.userData.velocity);
@@ -536,6 +579,7 @@ function updateTrailerPosition() {
 
 function updateHeadPosition() {
     let step = 0.02;
+    compute_head_rotation();
 
     if (head_axis.userData.rotating != 0 && head_axis.userData.rotationAngle >= 0 && head_axis.userData.rotationAngle <= Math.PI) {
        head_axis.rotateX(-head_axis.userData.rotating * step); // Minus sign for clockwise rotation
@@ -557,6 +601,7 @@ function updateHeadPosition() {
 
 function updateArmPosition() {
     let step = 0.01
+    compute_arm_velocity();
 
     if (left_arm.userData.velocity.x != 0 && left_arm.position.x >= -3.5 && left_arm.position.x <= -2.5) { // Only check for x component
         left_arm.position.x += left_arm.userData.velocity.x * step;
@@ -579,13 +624,14 @@ function updateArmPosition() {
 
 function updateLegPosition() {
     let step = 0.01;
+    compute_leg_rotation();
 
     if (legs.userData.rotating != 0 && legs.userData.rotationAngle >= 0 && legs.userData.rotationAngle <= Math.PI / 2) {
         legs.rotateX(legs.userData.rotating * step);
         legs.userData.rotationAngle += legs.userData.rotating * step;
         hitbox_init_set_map["legs"] = false; console.log('legs_not_ok');
     }
-    else if (legs.userData.rotating == 0) {
+    else if (legs.userData.rotationAngle < 0 || legs.userData.rotationAngle > Math.PI / 2) {
         if(legs.userData.rotationAngle < 0) {
             legs.userData.rotationAngle = 0;
             legs.rotation.x = legs.userData.rotationAngle;
@@ -601,6 +647,7 @@ function updateLegPosition() {
 
 function updateFeetPosition() {
     let step = 0.02;
+    compute_feet_rotation();
 
     if (feet_axis.userData.rotating != 0 && feet_axis.userData.rotationAngle >= 0 && feet_axis.userData.rotationAngle <= Math.PI) {
         feet_axis.rotateX(feet_axis.userData.rotating * step);
@@ -815,14 +862,9 @@ function onKeyDown(e) {
         if (!animation_mode)
             change_camera(4);
         break;
-
     case 54: // 6
-        wireframe = !wireframe
-        scene.traverse(function (node) {
-            if (node instanceof THREE.Mesh) node.material.wireframe = wireframe;
-        })
+        toggle_wireframe = !toggle_wireframe
         break;
-
     case 55: // 7
         robot.userData.rotating = !robot.userData.rotating;
         trailer.userData.rotating = !trailer.userData.rotating;
@@ -831,68 +873,53 @@ function onKeyDown(e) {
     // Trailer Movement
     case 37: // Left
         key_press_map[37] = 1;
-        compute_trailer_movement();
         break;
     case 38: // Up
         key_press_map[38] = 1;
-        compute_trailer_movement();
         break;
     case 39: // Right
         key_press_map[39] = 1;
-        compute_trailer_movement();
         break;
     case 40: // Down
         key_press_map[40] = 1;
-        compute_trailer_movement();
         break;
     // Head Movement
     case 82: // R
     case 114: // r
         key_press_map[82] = 1;
-        compute_head_rotation();
         break;
     case 70: // F
     case 102: // f
         key_press_map[70] = 1;
-        compute_head_rotation();
         break;
     // Arm movement
     case 69: // E
     case 101: // e
         key_press_map[69] = 1;
-        compute_arm_velocity();
         break;
     case 68: // D
     case 100: // d
         key_press_map[68] = 1;
-        compute_arm_velocity();
         break;
     // Legs movement
     case 87: // W
     case 119: // w
         key_press_map[87] = 1;
-        compute_leg_rotation();
         break;
     case 83: // S
     case 115: // s
         key_press_map[83] = 1;
-        compute_leg_rotation();
         break;
     // Feet movement
     case 81: // Q
     case 113: // q
         key_press_map[81] = 1;
-        compute_feet_rotation();
         break;
     case 65: // A
     case 97: // a
         key_press_map[65] = 1;
-        compute_feet_rotation();
         break;
     }
-
-    render();
-
 }
 
 ///////////////////////
@@ -905,63 +932,51 @@ function onKeyUp(e){
     // Trailer Movement
     case 37: // Left
         key_press_map[37] = 0;
-        compute_trailer_movement();
         break;
     case 38: // Up
         key_press_map[38] = 0;
-        compute_trailer_movement();
         break;
     case 39: // Right
         key_press_map[39] = 0;
-        compute_trailer_movement();
         break;
     case 40: // Down
         key_press_map[40] = 0;
-        compute_trailer_movement();
         break;
     // Head Movement
     case 82: // R
     case 114: // r
         key_press_map[82] = 0;
-        compute_head_rotation();
         break;
     case 70: // F
     case 102: // f
         key_press_map[70] = 0;
-        compute_head_rotation();
         break;
     // Arms movement
     case 69: // E
     case 101: // e
         key_press_map[69] = 0;
-        compute_arm_velocity();
         break;
     case 68: // D
     case 100: // d
         key_press_map[68] = 0;
-        compute_arm_velocity();
         break;
     // Legs movement
     case 83: // S 
     case 115: // s
         key_press_map[83] = 0;
-        compute_leg_rotation();
         break;
     case 87: // W
     case 119: // w
         key_press_map[87] = 0;
-        compute_leg_rotation();
         break;
     // Feet movement
     case 81: // Q
     case 113: // q
         key_press_map[81] = 0;
-        compute_feet_rotation();
         break;
     case 65: // A
     case 97: // a
         key_press_map[65] = 0;
-        compute_feet_rotation();
         break;
     }
 }
