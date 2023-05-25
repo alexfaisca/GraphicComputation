@@ -376,43 +376,43 @@ function createTrailer() {
     // CONTAINER
     container = createCube(container_length, container_height, container_depth);
     container.position.set(0, connection_piece_height + (container_height + abdomen_height) / 2, 0);
-    wireframe_objects.push(container);
-
     // SUPPORT
+
     support = createCube(support_length, support_height, support_depth);
     support.position.set(0, support_height / 2, -support_distance);
-    wireframe_objects.push(support);
-
     // WHEELS
+
     trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l1.rotateZ((Math.PI)/2);
     trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -front_wheel_distance)
-    wireframe_objects.push(trailer_wheel_l1);
-
     trailer_wheel_l2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+
     trailer_wheel_l2.rotateZ((Math.PI)/2);
     trailer_wheel_l2.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -back_wheel_distance)
-    wireframe_objects.push(trailer_wheel_l2);
-
     trailer_wheel_r1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+
     trailer_wheel_r1.rotateZ((Math.PI)/2);
     trailer_wheel_r1.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -front_wheel_distance)
-    wireframe_objects.push(trailer_wheel_r1);
-
     trailer_wheel_r2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+
     trailer_wheel_r2.rotateZ((Math.PI)/2);
     trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -back_wheel_distance)
-    wireframe_objects.push(trailer_wheel_r2);
-
     // CONNECTION PIECE
+
     connection_piece = createCylinder(connection_piece_radius, connection_piece_radius, connection_piece_height);
     connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, connection_piece_distance);
     connection_piece.material.color.set(0xffff88);
-    wireframe_objects.push(connection_piece);
-
     // Add robot difference distance offset to the meeting point
-    
+
     meeting_point.add(new THREE.Vector3(0, 0, -connection_piece_distance));
+
+    wireframe_objects.push(container);
+    wireframe_objects.push(support);
+    wireframe_objects.push(trailer_wheel_l1);
+    wireframe_objects.push(trailer_wheel_l2);
+    wireframe_objects.push(trailer_wheel_r1);
+    wireframe_objects.push(trailer_wheel_r2);
+    wireframe_objects.push(connection_piece);
 
     // ASSEMBLY
     trailer = new THREE.Object3D();
