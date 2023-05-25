@@ -42,6 +42,13 @@ function createScene(){
     lighting.position.set(5, 5, 5);
     scene.add(lighting);
 
+    // Set camera changing bools to false
+    key_press_map[49] = false;
+    key_press_map[50] = false;
+    key_press_map[51] = false;
+    key_press_map[52] = false;
+    key_press_map[53] = false;
+
     createRobot();
     createTrailer();
 }
@@ -49,8 +56,25 @@ function createScene(){
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
-function change_camera(number) {
+function change_camera() {
+    let number = active_camera;
     'use strict'
+    if(key_press_map[49]) {
+        number = 0;
+        key_press_map[49] = false;
+    } else if(key_press_map[50]) {
+        number = 1;
+        key_press_map[50] = false;
+    } else if(key_press_map[51]) {
+        number = 2;
+        key_press_map[51] = false;
+    } else if(key_press_map[52]) {
+        number = 3;
+        key_press_map[52] = false;
+    } else if(key_press_map[53]) {
+        number = 4;
+        key_press_map[53] = false;
+    }
     active_camera = number;
 }
 
@@ -156,18 +180,14 @@ function createRobot() {
 
     waist = createCube(waist_length, waist_height, waist_depth);
     waist.position.set(0, waist_height, 0);
-    wireframe_objects.push(waist);
 
     chest = createCube(chest_length, chest_height, chest_depth);
     chest.position.set(0, 1.5*waist_height + 0.5*chest_height, 0);
-    wireframe_objects.push(chest);
-    
+
     abdomen = createCube(abdomen_length, abdomen_height, abdomen_depth);
-    wireframe_objects.push(abdomen);
 
     abdomen_tire = createCylinder(wheel_radius, wheel_radius, wheel_height);
     abdomen_tire.rotateZ((Math.PI)/2);
-    wireframe_objects.push(abdomen_tire);
 
     abdomen_tire_left.add(abdomen_tire);
     abdomen_tire_left.position.set(-(abdomen_length + wheel_height) / 2, 0, 0);
@@ -175,6 +195,10 @@ function createRobot() {
     abdomen_tire_right.copy(abdomen_tire_left);
     abdomen_tire_right.position.setX(-abdomen_tire_left.position.x);
 
+    wireframe_objects.push(waist);
+    wireframe_objects.push(chest);
+    wireframe_objects.push(abdomen);
+    wireframe_objects.push(abdomen_tire);
 
     body.add(waist, chest, abdomen, abdomen_tire_left, abdomen_tire_right);
 
@@ -189,60 +213,60 @@ function createRobot() {
 
     thigh = createCube(thigh_length, thigh_height, thigh_length)
     thigh.position.set(-abdomen_length / 4, -(abdomen_height + thigh_height) / 2, 0)
-    wireframe_objects.push(thigh);
-
     upper_leg = createCube(leg_width, leg_height, leg_depth)
-    upper_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
-    wireframe_objects.push(upper_leg);
 
+    upper_leg.position.set(-abdomen_length / 4, -(abdomen_height / 2 + thigh_height + leg_height / 2), 0)
     leg_wheel_1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+
     leg_wheel_1.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - 11 / 3 * wheel_radius),0)
     leg_wheel_1.rotateZ((Math.PI)/2);
-    wireframe_objects.push(leg_wheel_1);
-
     leg_wheel_2 = createCylinder(wheel_radius, wheel_radius, wheel_height)
+
     leg_wheel_2.position.set(-(abdomen_length / 4 + leg_width / 2 + wheel_height / 2), -(abdomen_height / 2 + thigh_height + leg_height - wheel_radius),0)
     leg_wheel_2.rotateZ((Math.PI)/2);
-    wireframe_objects.push(leg_wheel_2);
-
     leg_fitting = createCylinder(leg_fitting_radius, leg_fitting_radius, leg_fitting_height);
+
     leg_fitting.rotateX((Math.PI)/2);
     leg_fitting.position.set(abdomen_length / 4, -abdomen_height / 2 - thigh_height - 0.32*leg_height, -leg_width / 2);
     leg_fitting.material.color.set(0xffff88);
-    wireframe_objects.push(leg_fitting);
-
     left_leg.add(thigh, upper_leg, leg_wheel_1, leg_wheel_2, leg_fitting);
+
     right_leg.copy(left_leg);
     right_leg.scale.multiply(mirror);
     right_leg.position.setX(-left_leg.position.x);
-    wireframe_objects.push(left_leg);
-
     foot = createCube(foot_length, foot_height, foot_depth);
-    wireframe_objects.push(foot);
+
     left_foot.add(foot);
     left_foot.position.set(-(abdomen_length / 4 - leg_width / 2 + foot_length / 2), foot_height / 2, foot_depth / 2);
+    right_foot.copy(left_foot);
 
-    right_foot = new THREE.Object3D().copy(left_foot);
     right_foot.scale.multiply(mirror);
     right_foot.position.setX(-left_foot.position.x);
-
     const feet_axis_points = [];
+
     feet_axis_points.push( new THREE.Vector3( -1, 0, 0) );
     feet_axis_points.push( new THREE.Vector3( 1, 0, 0,) );
     const feet_axis_geometry = new THREE.BufferGeometry().setFromPoints(feet_axis_points);
-
     feet_axis = new THREE.Line(feet_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
-    feet_axis.position.set(0, -(abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
-    scene.add( feet_axis );
 
+    feet_axis.position.set(0, -(abdomen_height / 2 + thigh_height + leg_height), leg_depth / 2);
     feet_axis.add(left_foot, right_foot)
     feet_axis.userData = {rotating: 0, rotationAngle: 0};
     feet_axis.name = "feet";
 
-
     legs.add(left_leg, right_leg, feet_axis);
+
+
     legs.userData = {rotating: 0, rotationAngle: 0};
     legs.name = "legs";
+
+    wireframe_objects.push(thigh);
+    wireframe_objects.push(upper_leg);
+    wireframe_objects.push(leg_wheel_1);
+    wireframe_objects.push(leg_wheel_2);
+    wireframe_objects.push(leg_fitting);
+    wireframe_objects.push(left_leg);
+    wireframe_objects.push(foot);
 
     // ---------------------------------------------------------
     // Create ARMS
@@ -253,26 +277,27 @@ function createRobot() {
 
     forearm = createCube(forearm_width, forearm_height, forearm_depth);
     forearm.position.set(0, forearm_height / 2, 0)
-    wireframe_objects.push(forearm);
-
     arm = createCube(arm_width, arm_height, arm_depth);
+
     arm.position.set(0, (forearm_height + arm_height / 2), - arm_depth / 2)
-    wireframe_objects.push(arm);
-
     exhaust = createCylinder(exhaust_radius, exhaust_radius, exhaust_height);
-    exhaust.position.set(-arm_width / 2 -exhaust_radius, forearm_height + exhaust_height / 2, -(arm_depth - exhaust_radius))
-    wireframe_objects.push(exhaust);
 
+    exhaust.position.set(-arm_width / 2 -exhaust_radius, forearm_height + exhaust_height / 2, -(arm_depth - exhaust_radius))
     left_arm.add(forearm, arm, exhaust);
+
     left_arm.position.set(-(abdomen_length / 2 + wheel_height + arm_width / 2), abdomen_height / 2, -(abdomen_depth) / 2)
     right_arm.copy(left_arm, true);
     right_arm.scale.multiply(mirror);
     right_arm.position.setX(-left_arm.position.x);
-
     left_arm.name = "left_arm";
+
     right_arm.name = "right_arm";
     left_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)};
     right_arm.userData = {velocity : new THREE.Vector3(0, 0, 0)};
+
+    wireframe_objects.push(forearm);
+    wireframe_objects.push(arm);
+    wireframe_objects.push(exhaust);
 
     // ---------------------------------------------------------
     // Create HEAD
@@ -282,46 +307,46 @@ function createRobot() {
 
     skull = createCube(head_length, head_height, head_depth);
     skull.position.set(0,  head_height / 2, - head_depth / 2);
-    wireframe_objects.push(skull);
-
     eye_l = createCube(eyes_length, eyes_height, eyes_depth);
+
     eye_l.position.set(-0.25*head_length,  0.75*head_height, 0.5*head_depth - head_depth / 2);
-    wireframe_objects.push(eye_l);
-
     eye_r = createCube(eyes_length, eyes_height, eyes_depth);
+
     eye_r.position.set(0.25*head_length, 0.75*head_height, 0.5*head_depth - head_depth / 2);
-    wireframe_objects.push(eye_r);
-
     antler_l = createCube(antlers_depth, antlers_height, antlers_depth);
+
     antler_l.position.set(-0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
-    wireframe_objects.push(antler_l);
-
     antler_r = createCube(antlers_depth, 0.5 * antlers_height, antlers_depth);
-    antler_r.position.set(0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
-    wireframe_objects.push(antler_r);
 
+    antler_r.position.set(0.25*head_length, head_height + antlers_height / 2, - head_depth / 2);
     eye_l.material.color.set("white")
+
     eye_r.material.color.set("white")
     antler_l.material.color.set("white")
     antler_r.material.color.set("white")
-
     const head_axis_points = [];
+
     head_axis_points.push( new THREE.Vector3( -1, 0, 0) );
     head_axis_points.push( new THREE.Vector3( 1, 0, 0,) );
     const head_axis_geometry = new THREE.BufferGeometry().setFromPoints(head_axis_points);
-
     head_axis = new THREE.Line( head_axis_geometry, new THREE.LineBasicMaterial({transparent: 1, opacity: 0}));
+
     head_axis.position.set(0, 1.5*waist_height + chest_height, head_depth / 2);
     scene.add( head_axis );
-
     head_axis.add(skull, eye_l, eye_r, antler_l, antler_r);
+
     head_axis.userData = {rotating: 0, rotationAngle: 0};
     head_axis.name = "head";
+
+    wireframe_objects.push(skull);
+    wireframe_objects.push(eye_l);
+    wireframe_objects.push(eye_r);
+    wireframe_objects.push(antler_l);
+    wireframe_objects.push(antler_r);
 
     // ---------------------------------------------------------
     // 3D Objects ASSEMBLY
     // ---------------------------------------------------------
-
 
     robot = new THREE.Object3D();
     robot.userData = {rotating : 0, rotate_head : 0,
@@ -498,6 +523,8 @@ function update() {
         wireframe = !wireframe;
         for(const obj of wireframe_objects) if (obj instanceof THREE.Mesh) obj.material.wireframe = wireframe;
     }
+
+    if(!animation_mode) change_camera();
 
     rotateRobot();
     rotateTrailer();
@@ -843,27 +870,22 @@ function onKeyDown(e) {
     switch(e.keyCode) {
     // Camera changes
     case 49: // 1
-        if (!animation_mode)
-            change_camera(0);
+        key_press_map[49] = true;
         break;
     case 50: // 2
-        if (!animation_mode)
-            change_camera(1);
+        key_press_map[50] = true;
         break;
     case 51: // 3
-        if (!animation_mode)
-            change_camera(2);
+        key_press_map[51] = true;
         break;
     case 52: // 4
-        if (!animation_mode)
-            change_camera(3);
+        key_press_map[52] = true;
         break;
     case 53: // 5
-        if (!animation_mode)
-            change_camera(4);
+        key_press_map[53] = true;
         break;
     case 54: // 6
-        toggle_wireframe = !toggle_wireframe
+        toggle_wireframe = !toggle_wireframe;
         break;
     case 55: // 7
         robot.userData.rotating = !robot.userData.rotating;
