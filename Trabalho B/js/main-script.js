@@ -575,8 +575,6 @@ function init() {
     createScene();
     createCameras();
 
-    render();
-
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -896,8 +894,6 @@ function onResize() {
             cameras[idx].updateProjectionMatrix();
         }
     }
-    
-    render();
 }
 
 ///////////////////////
@@ -909,19 +905,19 @@ function onKeyDown(e) {
     switch(e.keyCode) {
     // Camera changes
     case 49: // 1
-        key_press_map[49] = 1;
+        if(!animation_mode) key_press_map[49] = 1;
         break;
     case 50: // 2
-        key_press_map[50] = 1;
+        if(!animation_mode) key_press_map[50] = 1;
         break;
     case 51: // 3
-        key_press_map[51] = 1;
+        if(!animation_mode) key_press_map[51] = 1;
         break;
     case 52: // 4
-        key_press_map[52] = 1;
+        if(!animation_mode) key_press_map[52] = 1;
         break;
     case 53: // 5
-        key_press_map[53] = 1;
+        if(!animation_mode) key_press_map[53] = 1;
         break;
     case 54: // 6
         wireframe_toggle = !wireframe_toggle;
