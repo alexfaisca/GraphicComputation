@@ -449,8 +449,11 @@ function checkCollisions(){
     // Enable cameras again after possible collision check
     if (animation_mode) animation_mode = false;
 
-    if (!hitboxSetupCheck()) return;
-    
+    if (!hitboxSetupCheck()){
+        clocks[5].start();
+        return;
+    } 
+
     if (
     robot.userData.min_point.x <= trailer.userData.max_point.x &&
     robot.userData.max_point.x >= trailer.userData.min_point.x &&
@@ -496,8 +499,6 @@ function hitboxSetupCheck() {
 function handleCollisions(){
     'use strict';
 
-    var delta = clocks[5].getDelta();
-
     // Camera keys won't work after this
     animation_mode = true;
     
@@ -506,7 +507,8 @@ function handleCollisions(){
     trailer_drag.set(0,0,0);
 
     if (Math.abs(trailer.position.x - meeting_point.x) > 0.01 || Math.abs(trailer.position.z - meeting_point.z) > 0.01) {
-
+        var delta = clocks[5].getDelta();
+    
         v.add(meeting_point);
         t.add(trailer.position);
 
@@ -519,8 +521,10 @@ function handleCollisions(){
         trailer.userData.min_point.add(trailer_drag);
         trailer.userData.max_point.add(trailer_drag);
 
+    } else {
+        clocks[5].start();
+        animation_mode = false; // After the trailer is in position, camera changes are allowed
     }
-    else animation_mode = false; // After the trailer is in position, camera changes are allowed
 
 }
 
@@ -915,9 +919,10 @@ function onKeyDown(e) {
     case 54: // 6
         wireframe_toggle = !wireframe_toggle;
         break;
+    // Enable for a visual analysis of the robot and trailer    
     case 55: // 7
-        robot.userData.rotating = !robot.userData.rotating;
-        trailer.userData.rotating = !trailer.userData.rotating;
+        // robot.userData.rotating = !robot.userData.rotating;
+        // trailer.userData.rotating = !trailer.userData.rotating;
         break;
     // Trailer Movement
     case 37: // Left
