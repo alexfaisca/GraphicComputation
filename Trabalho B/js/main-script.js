@@ -464,11 +464,9 @@ function checkCollisions(){
     ) 
     {   
         handleCollisions();
-        console.log("Touchy!");
         return;
     }
-
-    console.log("Not touchy!");
+    clocks[5].start();
 
 }
 
@@ -545,6 +543,7 @@ function update() {
     updateLegPosition();
     updateFeetPosition();
 
+    updateHitbox();
     checkCollisions();
 }
 
@@ -639,7 +638,6 @@ function updateHeadPosition() {
     if (head_axis.userData.rotating != 0 && head_axis.userData.rotationAngle >= 0 && head_axis.userData.rotationAngle <= Math.PI) {
        head_axis.rotateX(-head_axis.userData.rotating * delta); // Minus sign for clockwise rotation
        head_axis.userData.rotationAngle += head_axis.userData.rotating * delta;
-       hitbox_init_set_map["head"] = false; console.log('head_not_ok');
     }
     if (head_axis.userData.rotating == 0) {
         if (head_axis.userData.rotationAngle < 0) {
@@ -649,8 +647,30 @@ function updateHeadPosition() {
         if (head_axis.userData.rotationAngle > Math.PI) {
             head_axis.userData.rotationAngle = Math.PI;
             head_axis.rotation.x = head_axis.userData.rotationAngle;
-            hitbox_init_set_map["head"] = true; console.log('head_ok');
         }
+    }
+}
+
+function updateHitbox(){
+    if(head_axis.userData.rotationAngle == Math.PI){
+        hitbox_init_set_map["head"] = true;
+    } else {
+        hitbox_init_set_map["head"] = false;
+    }
+    if(left_arm.position.x == -2.5 && right_arm.position.x == 2.5){
+        hitbox_init_set_map["arms"] = true; 
+    } else {
+        hitbox_init_set_map["arms"] = false;
+    }
+    if(legs.userData.rotationAngle == Math.PI / 2){
+        hitbox_init_set_map["legs"] = true;
+    } else {
+        hitbox_init_set_map["legs"] = false;
+    }
+    if(feet_axis.userData.rotationAngle == Math.PI){
+        hitbox_init_set_map["feet"] = true;
+    } else {
+        hitbox_init_set_map["feet"] = true;
     }
 }
 
@@ -663,7 +683,6 @@ function updateArmPosition() {
     if (left_arm.userData.velocity.x != 0 && left_arm.position.x >= -3.5 && left_arm.position.x <= -2.5) { // Only check for x component
         left_arm.position.x += left_arm.userData.velocity.x * delta;
         right_arm.position.x += right_arm.userData.velocity.x * delta;
-        hitbox_init_set_map["arms"] = false; console.log('arms_not_ok');
     }
     else {
         if (left_arm.position.x < -3.5 && right_arm.position.x > 3.5) {
@@ -673,7 +692,6 @@ function updateArmPosition() {
         if (left_arm.position.x > -2.5 && right_arm.position.x < 2.5) {
             left_arm.position.x = -2.5;
             right_arm.position.x = 2.5;
-            hitbox_init_set_map["arms"] = true; console.log('arms_ok');
         }
     }
 
@@ -688,7 +706,6 @@ function updateLegPosition() {
     if (legs.userData.rotating != 0 && legs.userData.rotationAngle >= 0 && legs.userData.rotationAngle <= Math.PI / 2) {
         legs.rotateX(legs.userData.rotating * delta);
         legs.userData.rotationAngle += legs.userData.rotating * delta;
-        hitbox_init_set_map["legs"] = false; console.log('legs_not_ok');
     }
     else if (legs.userData.rotationAngle < 0 || legs.userData.rotationAngle > Math.PI / 2) {
         if(legs.userData.rotationAngle < 0) {
@@ -698,7 +715,6 @@ function updateLegPosition() {
         if(legs.userData.rotationAngle > Math.PI / 2) {
             legs.userData.rotationAngle = Math.PI / 2;
             legs.rotation.x = legs.userData.rotationAngle;
-            hitbox_init_set_map["legs"] = true; console.log('legs_ok');
         }
 
     }
@@ -712,7 +728,6 @@ function updateFeetPosition() {
     if (feet_axis.userData.rotating != 0 && feet_axis.userData.rotationAngle >= 0 && feet_axis.userData.rotationAngle <= Math.PI) {
         feet_axis.rotateX(feet_axis.userData.rotating * delta);
         feet_axis.userData.rotationAngle += feet_axis.userData.rotating * delta;
-        hitbox_init_set_map["feet"] = false; console.log('feet_not_ok');
     }
     if (feet_axis.userData.rotating == 0) {
         if(feet_axis.userData.rotationAngle < 0) {
@@ -722,7 +737,6 @@ function updateFeetPosition() {
         if(feet_axis.userData.rotationAngle > Math.PI) {
             feet_axis.userData.rotationAngle = Math.PI;
             feet_axis.rotation.x = feet_axis.userData.rotationAngle;
-            hitbox_init_set_map["feet"] = true; console.log('feet_ok');
         }
 
     }
