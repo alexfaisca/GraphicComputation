@@ -2,10 +2,11 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var scene, renderer;
-var robot, trailer, wireframe = false, toggle_wireframe = false, legs, left_arm, right_arm, head_axis, feet_axis;
+var robot, trailer, legs, left_arm, right_arm, head_axis, feet_axis;
 var active_camera;
 var cameras = new Array(5);
 var wireframe_objects = new Array(25);
+var wireframe = false, wireframe_toggle = false;
 
 var aspect_ratio = 16/9; var container;
 
@@ -22,12 +23,13 @@ var meeting_point = new THREE.Vector3(0, 0, 0);
 // Trailer constant velocity but arbitrary direction
 var trailer_drag = new THREE.Vector3(0, 0, 0);
 
+// A clock for each type of movement
+var clocks = new Array(new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(),
+                       new THREE.Clock(), new THREE.Clock());
+
 // Auxiliary vectors
 let v = new THREE.Vector3(0, 0, 0);
 let t = new THREE.Vector3(0, 0, 0);
-
-// A clock for each type of movements
-var clocks = new Array(new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock());
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -61,6 +63,9 @@ function createScene(){
 //////////////////////
 function change_camera() {
     'use strict'
+
+    if(animation_mode) return;
+
     if(key_press_map[49]) {
         active_camera = 0;
         key_press_map[49] = false;
@@ -524,13 +529,9 @@ function handleCollisions(){
 ////////////
 function update() {
     'use strict';
-    if(toggle_wireframe) {
-        toggle_wireframe = false;
-        wireframe = !wireframe;
-        for(const obj of wireframe_objects) if (obj instanceof THREE.Mesh) obj.material.wireframe = wireframe;
-    }
 
-    if(!animation_mode) change_camera();
+    toggle_wireframe();
+    change_camera();
 
     rotateRobot();
     rotateTrailer();
@@ -551,6 +552,15 @@ function render() {
     renderer.clear();
     
     renderer.render(scene, cameras[active_camera]);
+}
+
+function toggle_wireframe() {
+    'use strict';
+    if(wireframe_toggle) {
+        wireframe_toggle = false;
+        wireframe = !wireframe;
+        for(const obj of wireframe_objects) if (obj instanceof THREE.Mesh) obj.material.wireframe = wireframe;
+    }
 }
 
 ////////////////////////////////
@@ -589,20 +599,25 @@ function animate() {
 }
 
 function rotateRobot(){
-    let step = 0.01;
+    'use strict';
+    var delta = clocks[6].getDelta();
+
     if (robot.userData.rotating) {
-        robot.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
+        robot.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), delta);
     }
 }
 
 function rotateTrailer(){
-    let step = 0.01;
+    'use strict';
+    var delta = clocks[7].getDelta();
+
     if (trailer.userData.rotating) {
-        trailer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), step);
+        trailer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), delta);
     }
 }
 
 function updateTrailerPosition() {
+    'use strict';
     compute_trailer_movement();
     var delta = clocks[0].getDelta();
 
@@ -613,6 +628,7 @@ function updateTrailerPosition() {
 }
 
 function updateHeadPosition() {
+    'use strict';
     compute_head_rotation();
     var delta = clocks[1].getDelta();
 
@@ -635,6 +651,7 @@ function updateHeadPosition() {
 }
 
 function updateArmPosition() {
+    'use strict';
     compute_arm_velocity();
     var delta = clocks[2].getDelta();
 
@@ -659,6 +676,7 @@ function updateArmPosition() {
 }
 
 function updateLegPosition() {
+    'use strict';
     compute_leg_rotation();
     var delta = clocks[3].getDelta();
 
@@ -683,6 +701,7 @@ function updateLegPosition() {
 }
 
 function updateFeetPosition() {
+    'use strict';
     compute_feet_rotation();
     var delta = clocks[4].getDelta();
 
@@ -706,16 +725,14 @@ function updateFeetPosition() {
 }
 
 function updateTrailerVelocity(x, z){
+    'use strict';
     trailer.userData.velocity.setX(x);
     trailer.userData.velocity.setZ(z);
-
-    // Velocity vector length remains unchanged
-    if(trailer.userData.velocity.x !== 0 && trailer.userData.velocity.z !== 0){
-        trailer.userData.velocity.setLength(4);
-    }
+    trailer.userData.velocity.setLength(4);
 }
 
 function compute_trailer_movement() {
+    'use strict';
     if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
         updateTrailerVelocity(0, 0);
         return;
@@ -781,6 +798,7 @@ function compute_trailer_movement() {
 
 
 function compute_arm_velocity() {
+    'use strict';
     if (key_press_map[68] && key_press_map[69]) {
         left_arm.userData.velocity.setX(0);
         right_arm.userData.velocity.setX(0);
@@ -799,8 +817,8 @@ function compute_arm_velocity() {
     }
 }
 
-function compute_leg_rotation()
-{
+function compute_leg_rotation() {
+    'use strict';   
     if (key_press_map[83] && key_press_map[87]) {
         legs.userData.rotating = 0;
     }
@@ -814,6 +832,7 @@ function compute_leg_rotation()
 }
 
 function compute_feet_rotation() {
+    'use strict';
     if (key_press_map[65] && key_press_map[81]) {
         feet_axis.userData.rotating = 0;
     }
@@ -827,6 +846,7 @@ function compute_feet_rotation() {
 }
 
 function compute_head_rotation() {
+    'use strict';
     if (key_press_map[82] && key_press_map[70]){
         head_axis.userData.rotating = 0
     }
@@ -850,7 +870,6 @@ function onResize() {
     if (cameras[active_camera] instanceof THREE.OrthographicCamera &&
     window.innerWidth / window.innerHeight > aspect_ratio) {
 
-        // It kinf of works but leaves parts of the scene out
         cameras[3].left = -window.innerWidth / 32;
         cameras[3].right = window.innerWidth / 32;
         cameras[3].top = window.innerHeight / 32;
@@ -879,28 +898,27 @@ function onKeyDown(e) {
     switch(e.keyCode) {
     // Camera changes
     case 49: // 1
-        key_press_map[49] = true;
+        key_press_map[49] = 1;
         break;
     case 50: // 2
-        key_press_map[50] = true;
+        key_press_map[50] = 1;
         break;
     case 51: // 3
-        key_press_map[51] = true;
+        key_press_map[51] = 1;
         break;
     case 52: // 4
-        key_press_map[52] = true;
+        key_press_map[52] = 1;
         break;
     case 53: // 5
-        key_press_map[53] = true;
+        key_press_map[53] = 1;
         break;
     case 54: // 6
-        toggle_wireframe = !toggle_wireframe;
+        wireframe_toggle = !wireframe_toggle;
         break;
     case 55: // 7
         robot.userData.rotating = !robot.userData.rotating;
         trailer.userData.rotating = !trailer.userData.rotating;
         break;
-
     // Trailer Movement
     case 37: // Left
         key_press_map[37] = 1;
