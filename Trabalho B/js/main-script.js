@@ -36,16 +36,10 @@ let t = new THREE.Vector3(0, 0, 0);
 /////////////////////
 function createScene(){
     'use strict';
-    var lighting;
 
     scene = new THREE.Scene();
 
-    scene.add(new THREE.AxesHelper(10));
     scene.background = new THREE.Color(0xeeeeff);
-
-    lighting = new THREE.DirectionalLight(0xffffff, 1)
-    lighting.position.set(5, 5, 5);
-    scene.add(lighting);
 
     // Set camera changing bools to false
     key_press_map[49] = false;
@@ -147,7 +141,7 @@ function createCube(x, y, z) {
 
     var mycube = new THREE.BoxGeometry(x, y, z);
     
-    var material = new THREE.MeshPhongMaterial({color: 0xff5555, wireframe: 1});
+    var material = new THREE.MeshBasicMaterial({color: 0xff5555, wireframe: 1});
     
     var mesh = new THREE.Mesh(mycube, material);
 
@@ -164,7 +158,7 @@ function createCylinder(x, y, z) {
 
     mycylinder.userData = {rotating: 0};
 
-    var material = new THREE.MeshPhongMaterial({color: 0x444444, wireframe: 1})
+    var material = new THREE.MeshBasicMaterial({color: 0x444444, wireframe: 1})
 
     var mesh = new THREE.Mesh(mycylinder, material);
 
@@ -900,7 +894,6 @@ function onResize() {
             if (cameras[idx] instanceof THREE.OrthographicCamera) continue;
             cameras[idx].aspect = window.innerWidth / window.innerHeight;
             cameras[idx].updateProjectionMatrix();
-            console.log(idx);
         }
     }
     
