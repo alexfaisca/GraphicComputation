@@ -26,12 +26,8 @@ var trailer_drag = new THREE.Vector3(0, 0, 0);
 let v = new THREE.Vector3(0, 0, 0);
 let t = new THREE.Vector3(0, 0, 0);
 
-//Clock
-var trailer_clock = new THREE.Clock();
-var head_clock = new THREE.Clock();
-var arms_clock = new THREE.Clock();
-var legs_clock = new THREE.Clock();
-var feet_clock = new THREE.Clock();
+// A clock for each type of movements
+var clocks = new Array(new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock());
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -64,25 +60,23 @@ function createScene(){
 /* CREATE CAMERA(S) */
 //////////////////////
 function change_camera() {
-    let number = active_camera;
     'use strict'
     if(key_press_map[49]) {
-        number = 0;
+        active_camera = 0;
         key_press_map[49] = false;
     } else if(key_press_map[50]) {
-        number = 1;
+        active_camera = 1;
         key_press_map[50] = false;
     } else if(key_press_map[51]) {
-        number = 2;
+        active_camera = 2;
         key_press_map[51] = false;
     } else if(key_press_map[52]) {
-        number = 3;
+        active_camera = 3;
         key_press_map[52] = false;
     } else if(key_press_map[53]) {
-        number = 4;
+        active_camera = 4;
         key_press_map[53] = false;
     }
-    active_camera = number;
 }
 
 function createCameras() {
@@ -175,10 +169,12 @@ function createCylinder(x, y, z) {
 }
 
 function createRobot() {
+    'use strict';
 
     var wheel_radius = 0.75, wheel_height = 1;
     var mirror = new THREE.Vector3(-1, 1 ,1); // Mirror on y axis
 
+    // ---------------------------------------------------------
     // Create BODY
     // ---------------------------------------------------------
     var body = new THREE.Object3D(), abdomen_tire_left = new THREE.Object3D(), abdomen_tire_right = new THREE.Object3D();;
@@ -372,6 +368,7 @@ function createRobot() {
 }
 
 function createTrailer() {
+    'use strict';
 
     var support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2;
     var trailer_origin_distance = 25, abdomen_height = 1.5, front_wheel_distance = 5.75, back_wheel_distance = 7.75, support_distance = 6.75;
@@ -383,12 +380,12 @@ function createTrailer() {
     // CONTAINER
     container = createCube(container_length, container_height, container_depth);
     container.position.set(0, connection_piece_height + (container_height + abdomen_height) / 2, 0);
-    // SUPPORT
 
+    // SUPPORT
     support = createCube(support_length, support_height, support_depth);
     support.position.set(0, support_height / 2, -support_distance);
-    // WHEELS
 
+    // WHEELS
     trailer_wheel_l1 = createCylinder(wheel_radius, wheel_radius, wheel_height)
     trailer_wheel_l1.rotateZ((Math.PI)/2);
     trailer_wheel_l1.position.set((-(abdomen_length + wheel_height) / 2) + (wheel_height), 0, -front_wheel_distance)
@@ -404,13 +401,13 @@ function createTrailer() {
 
     trailer_wheel_r2.rotateZ((Math.PI)/2);
     trailer_wheel_r2.position.set(((abdomen_length + wheel_height) / 2) - (wheel_height), 0, -back_wheel_distance)
-    // CONNECTION PIECE
 
+    // CONNECTION PIECE
     connection_piece = createCylinder(connection_piece_radius, connection_piece_radius, connection_piece_height);
     connection_piece.position.set(0, (connection_piece_height + abdomen_height) / 2, connection_piece_distance);
     connection_piece.material.color.set(0xffff88);
-    // Add robot difference distance offset to the meeting point
 
+    // Add robot difference distance offset to the meeting point
     meeting_point.add(new THREE.Vector3(0, 0, -connection_piece_distance));
 
     wireframe_objects.push(container);
@@ -423,7 +420,7 @@ function createTrailer() {
 
     // ASSEMBLY
     trailer = new THREE.Object3D();
-    trailer.userData = {rotating : 0, velocity : new THREE.Vector3(0,0,0),
+    trailer.userData = {rotating : 0, velocity : new THREE.Vector3(0,0,0), drag_velocity : 2,
                         min_point : new THREE.Vector3(-container_length / 2,
                                                       connection_piece_height + abdomen_height / 2 - support_height,
                                                       -trailer_origin_distance - container_depth / 2),
@@ -431,6 +428,7 @@ function createTrailer() {
                                                       connection_piece_height + abdomen_height / 2 + container_height,
                                                       -trailer_origin_distance + container_depth / 2)
                        };
+
     trailer.add(container, support, connection_piece, trailer_wheel_l1, trailer_wheel_l2, trailer_wheel_r1, trailer_wheel_r2);
     trailer.position.set(0, 0, -trailer_origin_distance);
 
@@ -468,6 +466,7 @@ function checkCollisions(){
 
 // DEBUGGING PURPOSES
 function sayCollision() {
+    'use strict';
     
     console.log(robot.userData.min_point.x <= trailer.userData.max_point.x);
     console.log(robot.userData.max_point.x >= trailer.userData.min_point.x);
@@ -479,7 +478,7 @@ function sayCollision() {
 }
 
 function hitboxSetupCheck() {
-        
+    'use strict';
     // Checks for the robot ready-to-assemble-with-trailer state
     for (let [, group_state] of Object.entries(hitbox_init_set_map))
         if (!group_state) return false;
@@ -492,7 +491,7 @@ function hitboxSetupCheck() {
 function handleCollisions(){
     'use strict';
 
-    let step = 0.025;
+    var delta = clocks[5].getDelta();
 
     // Camera keys won't work after this
     animation_mode = true;
@@ -508,8 +507,8 @@ function handleCollisions(){
 
         trailer_drag.add(v.add(t.multiplyScalar(-1)));
 
-        trailer_drag.setLength(step);
-        
+        trailer_drag.setLength(delta * trailer.userData.drag_velocity);
+
         // Check for hitbox corner points too
         trailer.position.add(trailer_drag);
         trailer.userData.min_point.add(trailer_drag);
@@ -541,7 +540,6 @@ function update() {
     updateLegPosition();
     updateFeetPosition();
 
-    // For now checks and handles thereafter
     checkCollisions();
 }
 
@@ -606,7 +604,7 @@ function rotateTrailer(){
 
 function updateTrailerPosition() {
     compute_trailer_movement();
-    var delta = trailer_clock.getDelta();
+    var delta = clocks[0].getDelta();
 
     trailer.userData.velocity = trailer.userData.velocity.multiplyScalar(delta);
     trailer.position.add(trailer.userData.velocity);
@@ -616,7 +614,7 @@ function updateTrailerPosition() {
 
 function updateHeadPosition() {
     compute_head_rotation();
-    var delta = head_clock.getDelta();
+    var delta = clocks[1].getDelta();
 
     if (head_axis.userData.rotating != 0 && head_axis.userData.rotationAngle >= 0 && head_axis.userData.rotationAngle <= Math.PI) {
        head_axis.rotateX(-head_axis.userData.rotating * delta); // Minus sign for clockwise rotation
@@ -638,7 +636,7 @@ function updateHeadPosition() {
 
 function updateArmPosition() {
     compute_arm_velocity();
-    var delta = arms_clock.getDelta();
+    var delta = clocks[2].getDelta();
 
 
     if (left_arm.userData.velocity.x != 0 && left_arm.position.x >= -3.5 && left_arm.position.x <= -2.5) { // Only check for x component
@@ -662,7 +660,7 @@ function updateArmPosition() {
 
 function updateLegPosition() {
     compute_leg_rotation();
-    var delta = legs_clock.getDelta();
+    var delta = clocks[3].getDelta();
 
 
     if (legs.userData.rotating != 0 && legs.userData.rotationAngle >= 0 && legs.userData.rotationAngle <= Math.PI / 2) {
@@ -686,7 +684,7 @@ function updateLegPosition() {
 
 function updateFeetPosition() {
     compute_feet_rotation();
-    var delta = feet_clock.getDelta();
+    var delta = clocks[4].getDelta();
 
     if (feet_axis.userData.rotating != 0 && feet_axis.userData.rotationAngle >= 0 && feet_axis.userData.rotationAngle <= Math.PI) {
         feet_axis.rotateX(feet_axis.userData.rotating * delta);
