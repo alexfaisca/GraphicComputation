@@ -2,11 +2,14 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var active_camera;
-var cameras = new Array(5);
+var scene, renderer;
+
 var key_press_map = {};
-var dirLight;
+var cameras = new Array(2);
 var VRCamera;
+var active_camera;
+var dirLight;
+var ambientLight;
 
 var materials = [];
 var meshes = [];
@@ -32,7 +35,7 @@ function createScene(){
 //////////////////////
 
 
-function change_camera() {
+function changeCamera() {
     'use strict'
 
     if(key_press_map[49]) {
@@ -77,12 +80,12 @@ function createVRCamera(){
 /* CREATE LIGHT(S) */
 /////////////////////
 
-function change_directional_light(){
+function changeDirectionalLight(){
     'use strict'
 
     if(key_press_map[68]) {
         directionalLight.visible = !directionalLight.visible;
-        key_press_map[68] = false;
+        key_press_map[68] = 0;
     }
 }
 
@@ -90,20 +93,24 @@ function createDirectionalLight() {
 	dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 	dirLight.position.set(30, 30, 60);
 	dirLight.target.position.set(0, 0, 0); //Width and height?
-    directionalLight.castShadow = true;
+    dirLight.castShadow = true;
 
-    /*directionalLight.shadow.mapSize.width = 10;
-    directionalLight.shadow.mapSize.height = 10;
-    directionalLight.shadow.camera.near = 10;
-    directionalLight.shadow.camera.far = 10;*/
+    /*dirLight.shadow.mapSize.width = 10;
+    dirLight.shadow.mapSize.height = 10;
+    dirLight.shadow.camera.near = 10;
+    dirLight.shadow.camera.far = 10;*/
 
 	dirLight.target.updateMatrixWorld();
 	scene.add(dirLight);
 }
 
-
+function createAmbientLight(){
+    ambientLight = new THREE.AmbientLight(0x404040); 
+    scene.add(light);
+}
 
 function createLights(){
+    createAmbientLight();
     createDirectionalLight();
 }
 
@@ -148,13 +155,12 @@ function handleCollisions(){
 function update(){
     'use strict';
 
-    change_camera();
-    change_directional_light();
-    change_materials();
-
+    changeCamera();
+    changeDirectionalLight();
+    changeMaterials();
 }
 
-function change_materials(){
+function changeMaterials(){
     'use strict'
     for (var i = 0; i < meshes.length; i++) {
         if(key_press_map[81]){ // Cartoon
