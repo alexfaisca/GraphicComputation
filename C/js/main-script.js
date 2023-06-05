@@ -65,12 +65,12 @@ function createVRCamera(){
 /////////////////////
 
 function createDirectionalLight() {
-	dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+	dirLight = new THREE.DirectionalLight(0xffffff, 1);
 	dirLight.position.set(30, 30, 60);
 	dirLight.target.position.set(0, 0, 0); //Width and height?
     dirLight.castShadow = true;
 
-    /*dirLight.shadow.mapSize.width = 10;
+    /*dirL1ight.shadow.mapSize.width = 10;
     dirLight.shadow.mapSize.height = 10;
     dirLight.shadow.camera.near = 10;
     dirLight.shadow.camera.far = 10;*/
@@ -151,7 +151,7 @@ function changeDirectionalLight(){
     'use strict'
 
     if(key_press_map[68]) {
-        directionalLight.visible = !directionalLight.visible;
+        dirLight.visible = !dirLight.visible;
         key_press_map[68] = 0;
     }
 }
@@ -253,7 +253,7 @@ function onKeyDown(e) {
     case 49: // 1
         key_press_map[49] = 1;
         break;
-    // Toggle directional cameras
+    // Toggle directional light
     case 68: // D
     case 100: // d
         key_press_map[68] = 1;
