@@ -34,16 +34,6 @@ function createScene(){
 /* CREATE CAMERA(S) */
 //////////////////////
 
-
-function changeCamera() {
-    'use strict'
-
-    if(key_press_map[49]) {
-        active_camera = (active_camera + 1) % 2;
-        key_press_map[49] = false;
-    }
-}
-
 function createCameras() {
     'use strict'
     active_camera = 0;
@@ -80,15 +70,6 @@ function createVRCamera(){
 /* CREATE LIGHT(S) */
 /////////////////////
 
-function changeDirectionalLight(){
-    'use strict'
-
-    if(key_press_map[68]) {
-        directionalLight.visible = !directionalLight.visible;
-        key_press_map[68] = 0;
-    }
-}
-
 function createDirectionalLight() {
 	dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 	dirLight.position.set(30, 30, 60);
@@ -123,6 +104,7 @@ function createMoon(){
     var lambertMaterial = new THREE.MeshLambertMaterial({color: 0xffffbf,});
     var phongMaterial = new THREE.MeshPhongMaterial({color: 0xffffbf,});
     var toonMaterial = new THREE.MeshToonMaterial({color: 0xffffbf,});
+    var basicMaterial = new THREE.MeshBasicMaterial({color: 0xffffbf});
     
     var sphere = new THREE.SphereGeometry(5, 32, 16);
     moon = new THREE.Mesh(sphere, lambertMaterial); 
@@ -130,7 +112,7 @@ function createMoon(){
     moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
-    materials.push([lambertMaterial, phongMaterial, toonMaterial]);    
+    materials.push([lambertMaterial, phongMaterial, toonMaterial, basicMaterial]);    
 }
 
 //////////////////////
@@ -160,6 +142,24 @@ function update(){
     changeMaterials();
 }
 
+function changeCamera() {
+    'use strict'
+
+    if(key_press_map[49]) {
+        active_camera = (active_camera + 1) % 2;
+        key_press_map[49] = false;
+    }
+}
+
+function changeDirectionalLight(){
+    'use strict'
+
+    if(key_press_map[68]) {
+        directionalLight.visible = !directionalLight.visible;
+        key_press_map[68] = 0;
+    }
+}
+
 function changeMaterials(){
     'use strict'
     for (var i = 0; i < meshes.length; i++) {
@@ -168,12 +168,16 @@ function changeMaterials(){
             key_press_map[81] = 2;	
         }
         if(key_press_map[87]){ // Phong
-            meshes[i].material = materials[i][0];		
+            meshes[i].material = materials[i][1];		
             key_press_map[87] = 1;
         }
         if(key_press_map[69]){ // Gouraud
-            meshes[i].material = materials[i][0];	
+            meshes[i].material = materials[i][2];	
             key_press_map[69] = 0;
+        }
+        if(key_press_map[82]){ // Basic material - no light calculation
+            meshes[i].material = materials[i][3];	
+            key_press_map[82] = 0;
         }
     }
 }
@@ -226,6 +230,8 @@ function animate() {
 function onResize() { 
     'use strict';
 
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
 }
 
 ///////////////////////
@@ -244,7 +250,6 @@ function onKeyDown(e) {
     case 100: // d
         key_press_map[68] = 1;
         break;
-    }
     // Change materials
     case 81: // Q
     case 113: // q
@@ -258,6 +263,12 @@ function onKeyDown(e) {
     case 101: // e
         key_press_map[69] = 1;
         break;
+    // Change to basic material - no light calculation
+    case 82: // R
+    case 114: // r
+        key_press_map[82] = 1;
+        break;  
+    }
 }
 
 ///////////////////////
