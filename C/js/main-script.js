@@ -15,6 +15,7 @@ var materials = [];
 var meshes = [];
 
 var moon;
+var house1, house2, house3, body, door, window1, window2, roof;
 
 
 /////////////////////
@@ -28,6 +29,7 @@ function createScene(){
     scene.background = new THREE.Color(0xeeeeff);
 
     createMoon();
+    createHouse();
 }
 
 //////////////////////
@@ -44,7 +46,7 @@ function createCameras() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[0].position.set(25, 25, 25);
+    cameras[0].position.set(20, 20, 20);
     cameras[0].lookAt(scene.position);
 }
 
@@ -65,9 +67,9 @@ function createVRCamera(){
 /////////////////////
 
 function createDirectionalLight() {
-	dirLight = new THREE.DirectionalLight(0xffffff, 1);
-	dirLight.position.set(30, 30, 60);
-	dirLight.target.position.set(0, 0, 0); //Width and height?
+	dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+	dirLight.position.set(100, 100, 200);
+	dirLight.target.position.set(0, 0, 0); //Should width and height be used here?
     dirLight.castShadow = true;
 
     /*dirL1ight.shadow.mapSize.width = 10;
@@ -80,7 +82,7 @@ function createDirectionalLight() {
 }
 
 function createAmbientLight(){
-    ambientLight = new THREE.AmbientLight(0x404040); 
+    ambientLight = new THREE.AmbientLight(0x404040, 2); 
     scene.add(ambientLight);
 }
 
@@ -95,20 +97,88 @@ function createLights(){
 
 function createMoon(){
     'use strict';
-    var lambertMaterial = new THREE.MeshLambertMaterial({color: 0xffffbf,});
-    var phongMaterial = new THREE.MeshPhongMaterial({color: 0xffffbf,});
-    var toonMaterial = new THREE.MeshToonMaterial({color: 0xffffbf,});
-    var basicMaterial = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xffffbf});
+    var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xffffbf});
     
     var sphere = new THREE.SphereGeometry(5, 32, 16);
-    moon = new THREE.Mesh(sphere, lambertMaterial); 
+    moon = new THREE.Mesh(sphere, lambertMaterialMoon); 
     
     moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
-    materials.push([lambertMaterial, phongMaterial, toonMaterial, basicMaterial]);    
+    materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);    
 
     scene.add(moon);
+}
+
+function createHouse(){
+    'use strict';
+    var lambertMaterialBody = new THREE.MeshLambertMaterial({color: 0xffffff});
+    var phongMaterialBody = new THREE.MeshPhongMaterial({color: 0xffffff});
+    var toonMaterialBody = new THREE.MeshToonMaterial({color: 0xffffff});
+    var basicMaterialBody = new THREE.MeshBasicMaterial({color: 0xffffff});
+
+    var lambertMaterialDoor = new THREE.MeshLambertMaterial({color: 0xC4A484});
+    var phongMaterialDoor = new THREE.MeshPhongMaterial({color: 0xC4A484});
+    var toonMaterialDoor = new THREE.MeshToonMaterial({color: 0xC4A484});
+    var basicMaterialDoor = new THREE.MeshBasicMaterial({color: 0xC4A484});
+
+    var lambertMaterialWindow = new THREE.MeshLambertMaterial({color: 0x89cff0});
+    var phongMaterialWindow = new THREE.MeshPhongMaterial({color: 0x89cff0});
+    var toonMaterialWindow = new THREE.MeshToonMaterial({color: 0x89cff0});
+    var basicMaterialWindow = new THREE.MeshBasicMaterial({color: 0x89cff0});
+
+    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0x880808});
+    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0x880808});
+    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0x880808});
+    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0x880808});
+
+    var cube = new THREE.BoxGeometry(10, 5, 5);
+    body = new THREE.Mesh(cube, lambertMaterialBody);
+    body.position.set(0, 0, 0);
+
+    var cube = new THREE.BoxGeometry(2, 4, 0.5);
+    door = new THREE.Mesh(cube, lambertMaterialDoor);
+    door.position.set(-3, -0.5, 2.75);
+
+    var cube = new THREE.BoxGeometry(2, 2, 0.5);
+    window1 = new THREE.Mesh(cube, lambertMaterialWindow);
+    window1.position.set(0, 0.5, 2.75);
+
+    var cube = new THREE.BoxGeometry(2, 2, 0.5);
+    window2 = new THREE.Mesh(cube, lambertMaterialWindow);
+    window2.position.set(3, 0.5, 2.75);
+
+    var cube = new THREE.BoxGeometry(9.99, 3.2016, 3.2016);
+    roof = new THREE.Mesh(cube, lambertMaterialRoof);
+    roof.position.set(0, 2.5, 0);
+    roof.rotateX((Math.PI)/4);
+
+    house1 = new THREE.Object3D();
+    house1.add(body, door, window1, window2, roof);
+
+    house2 = new THREE.Object3D();
+    house2.copy(house1);
+    house2.position.set(-20, 0, 0);
+
+    house3 = new THREE.Object3D();
+    house3.copy(house1);
+    house3.position.set(-40, 0, 20);
+    house3.rotateY((Math.PI)/4);
+
+    //FIXME: all houses' materials should change
+    
+    meshes.push(body, door, window1, window2, roof);
+    materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
+    materials.push([lambertMaterialDoor, phongMaterialDoor, toonMaterialDoor, basicMaterialDoor]);
+    materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
+    materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
+    materials.push([lambertMaterialRoof, phongMaterialRoof, toonMaterialRoof, basicMaterialRoof]);
+    
+    
+    scene.add(house1, house2, house3);
 }
 
 //////////////////////
@@ -159,23 +229,19 @@ function changeDirectionalLight(){
 function changeMaterials(){
     'use strict'
     for (var i = 0; i < meshes.length; i++) {
-        if(key_press_map[81]){ // Cartoon
-            meshes[i].material = materials[i][0];	
-            key_press_map[81] = 2;	
-        }
-        if(key_press_map[87]){ // Phong
+        if(key_press_map[81]) // Cartoon
+            meshes[i].material = materials[i][0];
+        if(key_press_map[87]) // Phong
             meshes[i].material = materials[i][1];		
-            key_press_map[87] = 1;
-        }
-        if(key_press_map[69]){ // Gouraud
+        if(key_press_map[69]) // Gouraud
             meshes[i].material = materials[i][2];	
-            key_press_map[69] = 0;
-        }
-        if(key_press_map[82]){ // Basic material - no light calculation
+        if(key_press_map[82]) // Basic material - no light calculation
             meshes[i].material = materials[i][3];	
-            key_press_map[82] = 0;
-        }
     }
+    key_press_map[81] = 0;	
+    key_press_map[87] = 0;
+    key_press_map[69] = 0;
+    key_press_map[82] = 0;
 }
 
 
@@ -233,13 +299,6 @@ function onResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     
-    if (window.innerWidth > 0 && window.innerHeight > 0) {
-        for (let idx = 0; idx < cameras.length; idx++) {
-            if (cameras[idx] instanceof THREE.OrthographicCamera) continue;
-            cameras[idx].aspect = window.innerWidth / window.innerHeight;
-            cameras[idx].updateProjectionMatrix();
-        }
-    }
 }
 
 ///////////////////////
