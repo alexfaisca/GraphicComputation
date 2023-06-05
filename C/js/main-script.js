@@ -113,18 +113,17 @@ function createLights(){
 
 function createMoon(){
     'use strict';
-    var toonMaterial = new THREE.MeshToonMaterial({color: 0xffffbf,});
-    var phongMaterial = new THREE.MeshPhongMaterial({color: 0xffffbf,});
     var lambertMaterial = new THREE.MeshLambertMaterial({color: 0xffffbf,});
-
-
+    var phongMaterial = new THREE.MeshPhongMaterial({color: 0xffffbf,});
+    var toonMaterial = new THREE.MeshToonMaterial({color: 0xffffbf,});
+    
     var sphere = new THREE.SphereGeometry(5, 32, 16);
     moon = new THREE.Mesh(sphere, lambertMaterial); 
     
     moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
-    materials.push([toonMaterial, phongMaterial, lambertMaterial]);    
+    materials.push([lambertMaterial, phongMaterial, toonMaterial]);    
 }
 
 //////////////////////
@@ -157,28 +156,20 @@ function update(){
 
 function change_materials(){
     'use strict'
-    if(key_press_map[81]){
-
-
-
-
-        key_press_map[81] = 0;
+    for (var i = 0; i < meshes.length; i++) {
+        if(key_press_map[81]){ // Cartoon
+            meshes[i].material = materials[i][0];	
+            key_press_map[81] = 2;	
+        }
+        if(key_press_map[87]){ // Phong
+            meshes[i].material = materials[i][0];		
+            key_press_map[87] = 1;
+        }
+        if(key_press_map[69]){ // Gouraud
+            meshes[i].material = materials[i][0];	
+            key_press_map[69] = 0;
+        }
     }
-    if(key_press_map[87]){
-
-
-
-
-        key_press_map[87] = 0;
-    }
-    if(key_press_map[69]){
-
-
-
-
-        key_press_map[69] = 0;
-    }
-
 }
 
 
