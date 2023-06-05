@@ -77,7 +77,7 @@ function createVRCamera(){
 /* CREATE LIGHT(S) */
 /////////////////////
 
-function update_directional_light(){
+function change_directional_light(){
     'use strict'
 
     if(key_press_map[68]) {
@@ -111,24 +111,20 @@ function createLights(){
 /* CREATE OBJECT3D(S) */
 ////////////////////////
 
-// Cube primitive mesh
-function createSphere(radius, widthSegments, heightSegments) {
-    'use strict';   
-
-    const mySphere = new THREE.SphereGeometry(radius, widthSegments, heightSegments); 
-    const material = new THREE.MeshBasicMaterial({color: 0xffff00}); 
-    const mesh = new THREE.Mesh( geometry, material ); 
-    
-    mesh.position.set(0, 0, 0);
-    
-    return mesh;
-}
-
 function createMoon(){
     'use strict';
-    moon = createSphere(5, 32, 16);
+    var toonMaterial = new THREE.MeshToonMaterial({color: 0xffffbf,});
+    var phongMaterial = new THREE.MeshPhongMaterial({color: 0xffffbf,});
+    var lambertMaterial = new THREE.MeshLambertMaterial({color: 0xffffbf,});
+
+
+    var sphere = new THREE.SphereGeometry(5, 32, 16);
+    moon = new THREE.Mesh(sphere, lambertMaterial); 
+    
     moon.position.set(-30, 30, -30);
 
+    meshes.push(moon);
+    materials.push([toonMaterial, phongMaterial, lambertMaterial]);    
 }
 
 //////////////////////
@@ -154,9 +150,37 @@ function update(){
     'use strict';
 
     change_camera();
-    update_directional_light();
+    change_directional_light();
+    change_materials();
 
 }
+
+function change_materials(){
+    'use strict'
+    if(key_press_map[81]){
+
+
+
+
+        key_press_map[81] = 0;
+    }
+    if(key_press_map[87]){
+
+
+
+
+        key_press_map[87] = 0;
+    }
+    if(key_press_map[69]){
+
+
+
+
+        key_press_map[69] = 0;
+    }
+
+}
+
 
 /////////////
 /* DISPLAY */
@@ -214,7 +238,7 @@ function onKeyDown(e) {
     'use strict';
 
     switch(e.keyCode) {
-    // Camera changes
+    // Change camera
     case 49: // 1
         key_press_map[49] = 1;
         break;
@@ -224,6 +248,19 @@ function onKeyDown(e) {
         key_press_map[68] = 1;
         break;
     }
+    // Change materials
+    case 81: // Q
+    case 113: // q
+        key_press_map[81] = 1;
+        break;
+    case 87: // W
+    case 119: // w
+        key_press_map[87] = 1;
+        break;
+    case 69: // E
+    case 101: // e
+        key_press_map[69] = 1;
+        break;
 }
 
 ///////////////////////
