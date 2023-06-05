@@ -37,20 +37,14 @@ function createScene(){
 function createCameras() {
     'use strict'
     active_camera = 0;
-    createIsometricOrtogonalCamera();
+    createIsometricPerspectiveCamera();
     createVRCamera();
 }
 
-function createIsometricOrtogonalCamera() {
+function createIsometricPerspectiveCamera() {
     'use strict'
-    cameras[0] = new THREE.OrthographicCamera( -window.innerWidth / 32,
-                                         window.innerWidth / 32,
-                                          window.innerHeight / 32,
-                                           -window.innerHeight / 32,
-                                            1,
-                                             100);
-    cameras[0].position.set(0, 20, 20);
-    cameras[0].rotation.z = 0;
+    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[0].position.set(25, 25, 25);
     cameras[0].lookAt(scene.position);
 }
 
@@ -87,7 +81,7 @@ function createDirectionalLight() {
 
 function createAmbientLight(){
     ambientLight = new THREE.AmbientLight(0x404040); 
-    scene.add(light);
+    scene.add(ambientLight);
 }
 
 function createLights(){
@@ -113,6 +107,8 @@ function createMoon(){
 
     meshes.push(moon);
     materials.push([lambertMaterial, phongMaterial, toonMaterial, basicMaterial]);    
+
+    scene.add(moon);
 }
 
 //////////////////////
@@ -222,6 +218,11 @@ function init() {
 function animate() {
     'use strict';
 
+    update();
+
+    render();
+
+    requestAnimationFrame(animate);
 }
 
 ////////////////////////////
@@ -231,7 +232,14 @@ function onResize() {
     'use strict';
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-
+    
+    if (window.innerWidth > 0 && window.innerHeight > 0) {
+        for (let idx = 0; idx < cameras.length; idx++) {
+            if (cameras[idx] instanceof THREE.OrthographicCamera) continue;
+            cameras[idx].aspect = window.innerWidth / window.innerHeight;
+            cameras[idx].updateProjectionMatrix();
+        }
+    }
 }
 
 ///////////////////////
