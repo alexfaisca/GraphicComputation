@@ -19,7 +19,7 @@ var moon;
 var house, body, door, window1, window2, roof;
 var ufo;
 var clock = new THREE.Clock();
-var corkOak, trunk1, trunk2, treeTop;
+var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
 
 /////////////////////
@@ -53,7 +53,7 @@ function createCameras() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[0].position.set(-20, -5, 20);
+    cameras[0].position.set(20, 20, 20);
     cameras[0].lookAt(scene.position);
 }
 
@@ -145,8 +145,8 @@ function createMoon(){
     var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xffffbf});
     var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xffffbf});
     
-    var sphere = new THREE.SphereGeometry(5, 32, 16);
-    moon = new THREE.Mesh(sphere, lambertMaterialMoon); 
+    var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon); 
 
     moon.receiveShadow = true;
     moon.castShadow = true;
@@ -158,6 +158,7 @@ function createMoon(){
     scene.add(moon);
 }
 
+//TODO: Set proper corkoak top
 function createCorkOaks(){
     'use strict';
     var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
@@ -165,12 +166,43 @@ function createCorkOaks(){
     var toonMaterialTrunk = new THREE.MeshToonMaterial({color: 0xa45729});
     var basicMaterialTrunk = new THREE.MeshBasicMaterial({color: 0xa45729});
 
-    var lambertMaterialTop = new THREE.MeshLambertMaterial({color: 0x013220});
-    var phongMaterialTop = new THREE.MeshPhongMaterial({color: 0x013220});
-    var toonMaterialToop = new THREE.MeshToonMaterial({color: 0x013220});
-    var basicMaterialToop = new THREE.MeshBasicMaterial({color: 0x013220});
+    var lambertMaterialTreeTop = new THREE.MeshLambertMaterial({color: 0x013220});
+    var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
+    var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
+    var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
 
-    
+    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
+    trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+    trunk1.receiveShadow = true;
+    trunk1.castShadow = true;
+
+    trunk1.rotateZ((Math.PI)/(4));
+
+    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 10);
+    trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+    trunk2.receiveShadow = true;
+    trunk2.castShadow = true;
+
+    trunk2.rotateZ((Math.PI)/(-4));
+    trunk2.position.set(0.9, 0.9, 0);
+
+    var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+    treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop); 
+    treeTop1.scale.set(2, 1, 1);
+    treeTop1.position.set(0, 2.5, 0);
+
+    corkOak = new THREE.Group();
+
+    corkOak.add(trunk1, trunk2, treeTop1);
+    corkOak.position.set(9, 2.5, 0);
+    corkOak.rotateY((Math.PI)/(6)); // Better side visibility
+
+    meshes.push(moon);
+    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+    materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);   
+
+    scene.add(corkOak);
 }
 
 function createHouse(){
@@ -358,7 +390,7 @@ function createHouse(){
     house = new THREE.Group();
 
     house.add(body, door, window1, window2, roof);    
-    house.position.set(-5, 2.5, 0); // Center house
+    house.position.set(-5, 0, 2.5); // Center house
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
     house.receiveShadow = true;
     house.castShadow = true;
@@ -375,7 +407,7 @@ function createHouse(){
 
 function createUfo() {
     ufo = new THREE.Object3D();
-    const cockpit_geometry = new THREE.SphereGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
+    const cockpit_geometry = new THREE.SphereBufferGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
     var cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0x23395d});
     var cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0x23395d});
     var cockpit_toon_material = new THREE.MeshToonMaterial({color: 0x23395d});
@@ -387,7 +419,7 @@ function createUfo() {
     materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
     meshes.push(cockpit_sphere);
 
-    const body_geometry = new THREE.SphereGeometry(5, 32, 16);
+    const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
     var body_lambert_material = new THREE.MeshLambertMaterial({color: 0x152238});
     var body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
     var body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
@@ -416,7 +448,7 @@ function createUfo() {
 
 
     var pointlight_ring = [];
-    const pointlight_geometry = new THREE.SphereGeometry( 0.25, 32, 16 );
+    const pointlight_geometry = new THREE.SphereBufferGeometry( 0.25, 32, 16 );
     var pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     var pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     var pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
@@ -445,11 +477,11 @@ function createUfo() {
 
 
     /*
-    const geometry = new THREE.SphereGeometry( 15, 32, 16 );
+    const geometry = new THREE.SphereBufferGeometry( 15, 32, 16 );
     const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
     const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere ); */
 
-    ufo.position.set(-10, 0,10);
+    ufo.position.set(-10, 0, 10);
     scene.add(ufo);
 }
 
