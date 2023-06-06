@@ -284,7 +284,20 @@ function createPlane() {
 function createFlowers(){
     var flower_color;
     for(var i = 0; i < 500; i++){
-        flower_color = Math.random() * 0xffffff;
+        switch(i % 4){
+            case 0:
+                flower_color = 0xffffff;
+            break;
+            case 1:
+                flower_color = 0xFFFF00;
+            break;
+            case 2:
+                flower_color = 0x8f00ff;
+            break;
+            case 3:
+                flower_color = 0x89cff0;
+            break;
+        }
         var geometry = new THREE.CircleGeometry(0.1, 32);
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
