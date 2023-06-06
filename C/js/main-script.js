@@ -98,8 +98,17 @@ function createLights(){
 ////////////////////////
 
 function createSky() {
+    skyTexture = new THREE.SphereGeometry(100, 180, 180);
+
+    var material = new THREE.MeshPhongMaterial({
+        vertexColors: THREE.vertexColors,
+        side: THREE.DoubleSide,
+        color: 'purple'
+    });
+
+
+    /*
     const indices = [0, 1, 2, 2, 3, 0];
-    sky = new THREE.Object3D();
     skyTexture = new THREE.BufferGeometry();
     skyTexture.setAttribute('position', new THREE.BufferAttribute(
         new Float32Array([
@@ -120,15 +129,10 @@ function createSky() {
         .concat(color1.toArray()));
 
     skyTexture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray, 3), true))
+    */
 
-    var material = new THREE.MeshBasicMaterial({
-        vertexColors: THREE.vertexColors,
-        side: THREE.DoubleSide,
-        });
-
-
-    var mesh = new THREE.Mesh(skyTexture, material);
-    scene.add(mesh);
+    sky = new THREE.Mesh(skyTexture, material);
+    scene.add(sky);
 
 }
 
