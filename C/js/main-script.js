@@ -60,7 +60,7 @@ function createCameras() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
-    cameras[0].position.set(40, 40, 40);
+    cameras[0].position.set(20, 10, 20);
     cameras[0].lookAt(scene.position);
 }
 
@@ -194,7 +194,7 @@ function createPlane() {
     const leveling = new THREE.TextureLoader().load('textures/terrain_heightmap.png');
 
     const material = new THREE.MeshBasicMaterial({  // Tried with other materials
-        color: 0x00ff00,
+        color: 0x448844,
         //displacementMap: leveling,  <<  Problem here
         //displacementScale: 10,
     });
@@ -516,7 +516,7 @@ function createUfo() {
     ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
 
     ufo.userData = {
-        angular_velocity : new THREE.Vector3(0, Math.PI / 64, 0),
+        angular_velocity : 200 * Math.PI,
         linear_velocity : new THREE.Vector3(0,0,0)
     };
 
@@ -526,7 +526,7 @@ function createUfo() {
     const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
     const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere ); */
 
-    ufo.position.set(-10, 0, 10);
+    ufo.position.set(-10, 10, 10);
     scene.add(ufo);
 }
 
@@ -557,6 +557,7 @@ function update(){
     changeMaterials();
 
     updateUfoPosition();
+    updateUfoRotation();
 }
 
 function changeCamera() {
@@ -602,6 +603,12 @@ function updateUfoPosition() {
 
     ufo.userData.linear_velocity = ufo.userData.linear_velocity.multiplyScalar(delta);
     ufo.position.add(ufo.userData.linear_velocity);
+}
+
+function updateUfoRotation() {
+    'use strict';
+    let delta =  clock.getDelta();
+    ufo.rotateY(ufo.userData.angular_velocity * delta);
 }
 
 
