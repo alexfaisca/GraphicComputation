@@ -18,6 +18,7 @@ var sky, skyTexture;
 var moon;
 var house, body, door, window1, window2, roof;
 var ufo;
+var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop;
 
 
@@ -377,7 +378,7 @@ function createHouse(){
 }
 
 function createUfo() {
-    ufo = new THREE.Group();
+    ufo = new THREE.Object3D();
     const cockpit_geometry = new THREE.SphereGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
     var cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0x23395d});
     var cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0x23395d});
@@ -441,6 +442,11 @@ function createUfo() {
 
     ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
 
+    ufo.userData = {
+        angular_velocity : new THREE.Vector3(0, Math.PI / 64, 0),
+        linear_velocity : new THREE.Vector3(0,0,0)
+    };
+
 
     /*
     const geometry = new THREE.SphereGeometry( 15, 32, 16 );
@@ -476,6 +482,8 @@ function update(){
     changeCamera();
     changeDirectionalLight();
     changeMaterials();
+
+    updateUfoPosition();
 }
 
 function changeCamera() {
@@ -512,6 +520,15 @@ function changeMaterials(){
     key_press_map[87] = 0;
     key_press_map[69] = 0;
     key_press_map[82] = 0;
+}
+
+function updateUfoPosition() {
+    'use strict';
+    compute_ufo_movement();
+    let delta = clock.getDelta();
+
+    ufo.userData.linear_velocity = ufo.userData.linear_velocity.multiplyScalar(delta);
+    ufo.position.add(ufo.userData.linear_velocity);
 }
 
 
@@ -561,6 +578,79 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
+function update_ufo_velocity(x, z){
+    'use strict';
+    ufo.userData.linear_velocity.setX(x);
+    ufo.userData.linear_velocity.setZ(z);
+    ufo.userData.linear_velocity.setLength(4);
+}
+
+function compute_ufo_movement() {
+    'use strict';
+    if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
+        update_ufo_velocity(0, 0);
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39] && key_press_map[38]){ // Left + Right + Up
+        update_ufo_velocity(0, -4);
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39] && key_press_map[40]){ // Left + Right + Down
+        update_ufo_velocity(0, 4);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40] && key_press_map[37]){ // Up + Down + Left
+        update_ufo_velocity(-4, 0);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40] && key_press_map[39]){ // Up + Down + Right
+        update_ufo_velocity(4, 0);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40]){ // Up + Down
+        update_ufo_velocity(0, 0);
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39]){ // Left + Right
+        update_ufo_velocity(0, 0);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[39]){ // Up + Right
+        update_ufo_velocity(4, -4);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[37]){ // Up + Left
+        update_ufo_velocity(-4, -4);
+        return;
+    }
+    if(key_press_map[40] && key_press_map[39]){ // Down + Right
+        update_ufo_velocity(4, 4);
+        return;
+    }
+    if(key_press_map[40] && key_press_map[37]){ // Down + Left
+        update_ufo_velocity(-4, 4);
+        return;
+    }
+    if(key_press_map[37]){
+        update_ufo_velocity(-4, 0);
+        return;
+    }
+    if(key_press_map[38]){
+        update_ufo_velocity(0, -4);
+        return;
+    }
+    if(key_press_map[39]){
+        update_ufo_velocity(4, 0);
+        return;
+    }
+    if(key_press_map[40]){
+        update_ufo_velocity(0, 4);
+        return;
+    }
+    update_ufo_velocity(0,0);
+}
+
+
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
 ////////////////////////////
@@ -583,42 +673,115 @@ function onKeyDown(e) {
     'use strict';
 
     switch(e.keyCode) {
-    // Change camera
-    case 49: // 1
-        key_press_map[49] = 1;
-        break;
-    // Toggle directional light
-    case 68: // D
-    case 100: // d
-        key_press_map[68] = 1;
-        break;
-    // Change materials
-    case 81: // Q
-    case 113: // q
-        key_press_map[81] = 1;
-        break;
-    case 87: // W
-    case 119: // w
-        key_press_map[87] = 1;
-        break;
-    case 69: // E
-    case 101: // e
-        key_press_map[69] = 1;
-        break;
-    // Change to basic material - no light calculation
-    case 82: // R
-    case 114: // r
-        key_press_map[82] = 1;
-        break;  
+        // Change camera
+        case 49: // 1
+            key_press_map[49] = 1;
+            break;
+        // Toggle directional light
+        case 68: // D
+        case 100: // d
+            key_press_map[68] = 1;
+            break;
+        // Change materials
+        case 81: // Q
+        case 113: // q
+            key_press_map[81] = 1;
+            break;
+        case 87: // W
+        case 119: // w
+            key_press_map[87] = 1;
+            break;
+        case 69: // E
+        case 101: // e
+            key_press_map[69] = 1;
+            break;
+        // Change to basic material - no light calculation
+        case 82: // R
+        case 114: // r
+            key_press_map[82] = 1;
+            break;
+        // UFO point lights
+        case 80: // P
+        case 112: // p
+            key_press_map[80] = 1;
+            break;
+        // UFO spotlight
+        case 83: // S
+        case 115: // s
+            key_press_map[83] = 1;
+            break;
+        // UFO Movement
+        case 37: // Left
+            key_press_map[37] = 1;
+            break;
+        case 38: // Up
+            key_press_map[38] = 1;
+            break;
+        case 39: // Right
+            key_press_map[39] = 1;
+            break;
+        case 40: // Down
+            key_press_map[40] = 1;
+            break;
     }
 }
 
 ///////////////////////
 /* KEY UP CALLBACK */
 ///////////////////////
-function onKeyUp(e){
+function onKeyUp(e) {
     'use strict';
-    switch (e.keyCode) {
 
+    switch(e.keyCode) {
+        // Change camera
+        case 49: // 1
+            key_press_map[49] = 0;
+            break;
+        // Toggle directional light
+        case 68: // D
+        case 100: // d
+            key_press_map[68] = 0;
+            break;
+        // Change materials
+        case 81: // Q
+        case 113: // q
+            key_press_map[81] = 0;
+            break;
+        case 87: // W
+        case 119: // w
+            key_press_map[87] = 0;
+            break;
+        case 69: // E
+        case 101: // e
+            key_press_map[69] = 0;
+            break;
+        // Change to basic material - no light calculation
+        case 82: // R
+        case 114: // r
+            key_press_map[82] = 0;
+            break;
+        // UFO point lights
+        case 80: // P
+        case 112: // p
+            key_press_map[80] = 0;
+            break;
+        // UFO spotlight
+        case 83: // S
+        case 115: // s
+            key_press_map[83] = 0;
+            break;
+        // UFO Movement
+        case 37: // Left
+            key_press_map[37] = 0;
+            break;
+        case 38: // Up
+            key_press_map[38] = 0;
+            break;
+        case 39: // Right
+            key_press_map[39] = 0;
+            break;
+        case 40: // Down
+            key_press_map[40] = 0;
+            break;
     }
 }
