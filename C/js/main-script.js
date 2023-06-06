@@ -17,6 +17,7 @@ var meshes = [];
 var sky, skyTexture;
 var moon;
 var house, body, door, window1, window2, roof;
+var corkOak, trunk1, trunk2, treeTop;
 
 
 /////////////////////
@@ -29,9 +30,10 @@ function createScene(){
 
     scene.background = new THREE.Color(0xeeeeff);
 
-    createSky();
+    //createSky();
     createMoon();
     createHouse();
+    createCorkOaks();
 }
 
 //////////////////////
@@ -146,12 +148,30 @@ function createMoon(){
     var sphere = new THREE.SphereGeometry(5, 32, 16);
     moon = new THREE.Mesh(sphere, lambertMaterialMoon); 
     
+    moon.receiveShadow = true;
+    moon.castShadow = true;
     moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
     materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);    
 
     scene.add(moon);
+}
+
+function createCorkOaks(){
+    'use strict';
+    var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
+    var phongMaterialTrunk = new THREE.MeshPhongMaterial({color: 0xa45729});
+    var toonMaterialTrunk = new THREE.MeshToonMaterial({color: 0xa45729});
+    var basicMaterialTrunk = new THREE.MeshBasicMaterial({color: 0xa45729});
+
+    var lambertMaterialTop = new THREE.MeshLambertMaterial({color: 0x013220});
+    var phongMaterialTop = new THREE.MeshPhongMaterial({color: 0x013220});
+    var toonMaterialToop = new THREE.MeshToonMaterial({color: 0x013220});
+    var basicMaterialToop = new THREE.MeshBasicMaterial({color: 0x013220});
+
+    
+
 }
 
 function createHouse(){
@@ -173,10 +193,10 @@ function createHouse(){
     var toonMaterialWindow = new THREE.MeshToonMaterial({color: 0x89cff0});
     var basicMaterialWindow = new THREE.MeshBasicMaterial({color: 0x89cff0});
 
-    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0x880808});
-    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0x880808});
-    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0x880808});
-    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0x880808});
+    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0xDC582A});
+    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0xDC582A});
+    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0xDC582A});
+    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0xDC582A});
 
     var bodyShapeGeometry = new THREE.BufferGeometry();
 
@@ -235,6 +255,8 @@ function createHouse(){
     bodyShapeGeometry.computeVertexNormals();
 
     body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
+    body.receiveShadow = true;
+    body.castShadow = true;
     
     var doorShapeGeometry = new THREE.BufferGeometry();
 
@@ -256,6 +278,8 @@ function createHouse(){
     doorShapeGeometry.computeVertexNormals();
 
     door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
+    door.receiveShadow = true;
+    door.castShadow = true;
 
     var window1ShapeGeometry = new THREE.BufferGeometry();
 
@@ -277,6 +301,8 @@ function createHouse(){
     window1ShapeGeometry.computeVertexNormals();
 
     window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
+    window1.receiveShadow = true;
+    window1.castShadow = true;
 
     var window2ShapeGeometry = new THREE.BufferGeometry();
 
@@ -298,6 +324,8 @@ function createHouse(){
     window2ShapeGeometry.computeVertexNormals();
 
     window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
+    window2.receiveShadow = true;
+    window2.castShadow = true;
 
     var roofShapeGeometry = new THREE.BufferGeometry();
 
@@ -325,8 +353,10 @@ function createHouse(){
     roofShapeGeometry.computeVertexNormals();
 
     roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
+    roof.receiveShadow = true;
+    roof.castShadow = true;
 
-    house = new THREE.Object3D();
+    house = new THREE.Group();
 
     house.add(body, door, window1, window2, roof);    
     house.position.set(-5, 2.5, 0); // Center house
@@ -461,6 +491,11 @@ function onResize() {
     'use strict';
 
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (window.innerWidth > 0 && window.innerHeight > 0) {
+        cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
+        cameras[active_camera].updateProjectionMatrix();
+    }
     
 }
 
