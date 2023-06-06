@@ -18,6 +18,8 @@ var sky, skyTexture;
 var moon;
 var house1, house2, house3, body, door, window1, window2, roof;
 
+// -7.896139007327889 37.52503500684735
+
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -27,10 +29,13 @@ function createScene(){
 
     scene = new THREE.Scene();
 
+    scene.add(new THREE.AxesHelper(100));
+
     scene.background = new THREE.Color(0xeeeeff);
 
     createSky();
     createMoon();
+    createPlane();
     createHouse();
 }
 
@@ -47,7 +52,7 @@ function createCameras() {
 
 function createIsometricPerspectiveCamera() {
     'use strict'
-    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
+    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
     cameras[0].position.set(40, 40, 40);
     cameras[0].lookAt(scene.position);
 }
@@ -148,6 +153,45 @@ function createMoon(){
     materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);    
 
     scene.add(moon);
+}
+
+function createPlane() {
+
+    var geometry = new THREE.BufferGeometry();
+    
+    const vertices = new Float32Array( [
+        50.0,  -20.0,  50.0, // v2
+        50.0, -20.0,  -50.0, // v1
+        -50.0, -20.0,  -50.0, // v0
+        -50.0,  -20.0,  50.0 // v3
+    ] );
+    
+    const indices = [
+        0, 1, 2,
+        2, 3, 0
+    ];
+
+    var plane_uvs = new Float32Array([
+        50.0, 50.0, // v2
+        50.0, -50.0, // v1
+        -50.0, -50.0, // v0
+    ]);
+
+    geometry.setIndex( indices );
+    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute( 'uv', new THREE.BufferAttribute( plane_uvs, 2 ) );
+
+    const leveling = new THREE.TextureLoader().load('textures/terrain_heightmap.png');
+
+    const material = new THREE.MeshPhongMaterial({
+        color: 0x00ff00,
+        displacementMap: leveling,
+        displacementScale: 10,
+        side: THREE.DoubleSide
+    });
+    var plane = new THREE.Mesh( geometry, material );
+
+    scene.add(plane);
 }
 
 function createHouse(){
