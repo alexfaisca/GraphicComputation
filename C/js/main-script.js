@@ -6,7 +6,7 @@ var scene, renderer;
 
 var key_press_map = {};
 var cameras = new Array(2);
-var VRCamera;
+var auxCamera;
 var active_camera;
 var dirLight;
 var ambientLight;
@@ -47,7 +47,7 @@ function createCameras() {
     'use strict'
     active_camera = 0;
     createIsometricPerspectiveCamera();
-    createVRCamera();
+    createVRCamera(0, 20, 20);
 }
 
 function createIsometricPerspectiveCamera() {
@@ -57,14 +57,11 @@ function createIsometricPerspectiveCamera() {
     cameras[0].lookAt(scene.position);
 }
 
-function createVRCamera(){
-    VRCamera = new THREE.PerspectiveCamera(60,
-                                    window.innerWidth / window.innerHeight,
-                                    1,
-                                    1000);
+function createVRCamera(x, y, z){
+    auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
     
-    VRCamera.position.set(0, 20, 20);
-    VRCamera.lookAt(scene.position);
+    auxCamera.position.set(x, y, z);
+    auxCamera.lookAt(scene.position);
     cameras[1] = new THREE.StereoCamera();
 }
 
@@ -174,7 +171,6 @@ function createCorkOaks(){
     var basicMaterialToop = new THREE.MeshBasicMaterial({color: 0x013220});
 
     
-
 }
 
 function createHouse(){
@@ -537,11 +533,18 @@ function updateUfoPosition() {
 /////////////
 function render() {
     'use strict';
-    renderer.clear();
-
-    //TODO: VR
-    
-    renderer.render(scene, cameras[active_camera]);
+    if(renderer.xr.isPresenting){
+        if(!presented){
+            presented = true;
+            scene.translateZ(-5);
+            scene.translateY(-5);
+        }
+        cameras[1].update(auxCamera);
+        renderer.render(scene, cameras[1].cameraL);
+        renderer.render(scene, cameras[1].cameraR);
+    }
+    else
+        renderer.render(scene, cameras[active_camera]);        
 }
 
 ////////////////////////////////
@@ -550,11 +553,15 @@ function render() {
 function init() {
     'use strict';
 
-    renderer = new THREE.WebGLRenderer({antialias: true})
-
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     document.body.appendChild(renderer.domElement);
+    document.body.appendChild(VRButton.createButton(renderer));
+    
+    renderer.xr.enabled = true;
 
     createScene();
     createCameras();
@@ -570,13 +577,11 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
-
-    update();
-
-    render();
-
-    requestAnimationFrame(animate);
-}
+    renderer.setAnimationLoop(function(){
+        render();
+        update();
+    })  
+}    
 
 function update_ufo_velocity(x, z){
     'use strict';
