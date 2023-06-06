@@ -29,6 +29,7 @@ function createScene(){
 
     scene.background = new THREE.Color(0xeeeeff);
 
+    createSky();
     createMoon();
     createHouse();
 }
@@ -47,7 +48,7 @@ function createCameras() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[0].position.set(20, 20, 20);
+    cameras[0].position.set(40, 40, 40);
     cameras[0].lookAt(scene.position);
 }
 
@@ -99,35 +100,34 @@ function createLights(){
 function createSky() {
     const indices = [0, 1, 2, 2, 3, 0];
     sky = new THREE.Object3D();
-    var colorArray = [];
-    skyTexture =  new THREE.BufferGeometry();
-
+    skyTexture = new THREE.BufferGeometry();
     skyTexture.setAttribute('position', new THREE.BufferAttribute(
         new Float32Array([
-            -40, -40, 0,
-            40, -40, 0,
-            40, 40, 0,
-            -40, 40, 0
+            -300, 50, -300,
+            300, 50, -300,
+            300, 50, 300,
+            -300, 50, 300
         ]), 3));
+
     skyTexture.setIndex(indices);
 
-    var color1 = new THREE.Color().setHex(0xFAD6A5);
-    var color2 = new THREE.Color().setHex(0x6F456E);
+    var colorArray = [];
+    var color1 = new THREE.Color().setHex("red");
+    var color2 = new THREE.Color().setHex("violet");
     colorArray = (color1.toArray()
         .concat(color2.toArray())
         .concat(color2.toArray())
         .concat(color1.toArray()));
 
-    skyTexture.setAttribute('color', new Float32Array(colorArray, 3))
+    skyTexture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray, 3), true))
 
-    var material = new THREE.MeshPhongMaterial({
-        vertexColors: true,
+    var material = new THREE.MeshBasicMaterial({
+        vertexColors: THREE.vertexColors,
+        side: THREE.DoubleSide,
         });
 
-    material.setAttribute('uv', new Float32Array(colorArray, 3)); //?
 
     var mesh = new THREE.Mesh(skyTexture, material);
-
     scene.add(mesh);
 
 }
