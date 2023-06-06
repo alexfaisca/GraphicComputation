@@ -8,6 +8,7 @@ var key_press_map = {};
 var cameras = new Array(2);
 var auxCamera;
 var active_camera;
+var presented = false;
 var dirLight;
 var ambientLight;
 
@@ -242,30 +243,35 @@ function createPlane() {
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
-    const displacement = loader.load('textures/terrain_heightmap.png');
+    const displacement_map = loader.load('textures/terrain_heightmap.png');
+    const normal_map = loader.load('textures/terrain_shadowmap.png');
 
     const everglades_phong_material = new THREE.MeshPhongMaterial({
         color: "green",
         side : THREE.DoubleSide,
-        displacementMap: displacement,
+        displacementMap: displacement_map,
+        normalMap: normal_map,
         displacementScale: 10
     });
     const everglades_lambert_material = new THREE.MeshLambertMaterial({
         color: "green",
         side : THREE.DoubleSide,
-        displacementMap: displacement,
+        displacementMap: displacement_map,
+        normalMap: normal_map,
         displacementScale: 10
     });
     const everglades_toon_material = new THREE.MeshToonMaterial({
         color: "green",
         side : THREE.DoubleSide,
-        displacementMap: displacement,
+        displacementMap: displacement_map,
+        normalMap: normal_map,
         displacementScale: 10
     });
     const everglades_basic_material = new THREE.MeshBasicMaterial({
         color: "green",
         side : THREE.DoubleSide,
-        displacementMap: displacement,
+        displacementMap: displacement_map,
+        normalMap: normal_map,
         displacementScale: 10
     });
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
