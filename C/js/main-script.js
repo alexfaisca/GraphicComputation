@@ -17,7 +17,7 @@ var meshes = [];
 var sky, skyTexture;
 var moon;
 var house, body, door, window1, window2, roof;
-var ufo;
+var ufo, spotlight, pointlights = [], spotlight_target;
 var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
@@ -455,6 +455,12 @@ function createHouse(){
 }
 
 function createUfo() {
+    var ufo_x = 0, ufo_y = 10, ufo_z = 0;
+    var target_geometry = new THREE.BufferGeometry();
+    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
+    var target_material = new THREE.PointsMaterial( {visible: false} );
+    spotlight_target = new THREE.Points(target_geometry, target_material);
+
     ufo = new THREE.Object3D();
     const cockpit_geometry = new THREE.SphereBufferGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
     var cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0x23395d});
@@ -482,13 +488,14 @@ function createUfo() {
     meshes.push(body_sphere);
 
 
-    const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 1, 32);
+    const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
     var spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     var spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     var spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
     var spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
-    const spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
-    spotlight_cilinder.position.setY(2);
+    var spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
+    spotlight_cilinder.add(createSpotLight(0,-0.1,0, ));
+    spotlight_cilinder.position.setY(1.6);
     spotlight_cilinder.receiveShadow = true;
     spotlight_cilinder.castShadow = true;
     materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
@@ -496,7 +503,7 @@ function createUfo() {
 
 
 
-    const pointlight_geometry = new THREE.SphereBufferGeometry( 0.25, 32, 16 );
+    const pointlight_radius = 0.25, pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
     var pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     var pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     var pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
@@ -504,9 +511,9 @@ function createUfo() {
     const pointlight_count = 16;
     var pointlight;
 
-
     for(let i = 0; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
+        pointlight.add(createPointLight(0, -pointlight_radius, 0));
         pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
         pointlight.receiveShadow = true;
         pointlight.castShadow = true;
@@ -528,8 +535,33 @@ function createUfo() {
     const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
     const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere ); */
 
-    ufo.position.set(-10, 10, 10);
+    ufo.position.set(ufo_x, ufo_y, ufo_z);
     scene.add(ufo);
+}
+
+function createSpotLight(target, x, y, z){
+    spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
+    spotlight.castShadow = true;
+
+    // Place Spotlight at Spaceship
+    spotlight.position.set(x,y,z);
+
+    // Update Target of SpotLight
+    spotlight.target = spotlight_target;
+    scene.add(spotlight.target);
+    return spotlight;
+}
+
+
+function createPointLight(x, y, z, color) {
+    //we can change individual color of light
+    var point = new THREE.PointLight(color, 0.3, 15);
+
+    point.position.set(x, y, z);
+    point.castShadow = true;
+    pointlights.push(point);
+
+    return point;
 }
 
 //////////////////////
@@ -553,11 +585,13 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-    let delta =  clock.getDelta();
     changeCamera();
     changeDirectionalLight();
-    changeMaterials();
+    changeSpotLight();
+    changePointLight();
 
+    let delta =  clock.getDelta();
+    changeMaterials();
     updateUfoPosition(delta);
     updateUfoRotation(delta);
 }
@@ -573,10 +607,25 @@ function changeCamera() {
 
 function changeDirectionalLight(){
     'use strict'
-
     if(key_press_map[68]) {
         dirLight.visible = !dirLight.visible;
         key_press_map[68] = 0;
+    }
+}
+
+function changeSpotLight(){
+    'use strict'
+    if(key_press_map[83]) {
+        spotlight.visible = !spotlight.visible;
+        key_press_map[83] = 0;
+    }
+}
+
+function changePointLight(){
+    'use strict'
+    if(key_press_map[80]) {
+        for (const light of pointlights) light.visible = !light.visible;
+        key_press_map[80] = 0;
     }
 }
 
@@ -603,13 +652,13 @@ function updateUfoPosition(delta) {
     compute_ufo_movement();
     ufo.userData.linear_velocity = ufo.userData.linear_velocity.multiplyScalar(delta);
     ufo.position.add(ufo.userData.linear_velocity);
+    spotlight_target.position.add(ufo.userData.linear_velocity);
 }
 
 function updateUfoRotation(delta) {
     'use strict';
     ufo.rotateY(ufo.userData.angular_velocity * delta);
 }
-
 
 /////////////
 /* DISPLAY */
