@@ -21,6 +21,8 @@ var ufo, spotlight, pointlights = [], spotlight_target;
 var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
+var plane, bufferTexture;
+
 // -7.896139007327889 37.52503500684735
 
 // -7.896139007327889 37.52503500684735
@@ -44,7 +46,76 @@ function createScene(){
     createHouse();
     createUfo();
     createCorkOaks();
+    createFlowers();
 }
+/*
+function createScene(){
+    'use strict';
+
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0xffffff);
+    scene.add(new THREE.AxesHelper(20));
+
+    plane = new THREE.Object3D();
+    var colorArray = [];
+    bufferTexture = new THREE.BufferGeometry();
+    bufferTexture.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
+        -40, -40, 0,
+        40, -40, 0,
+        40, 40, 0,
+        -40, 40, 0
+    ]) 3)); 
+
+    const indices =[
+        0, 1, 2,
+        2, 3, 0
+    ] 
+
+    var color1 = new THREE.Color().setHex(0xff0000);
+    var color2 = new THREE.Color().setHex(0x0000ff);
+    colorArray = color1.toArray()
+                .concat(color2.toArray())
+                .concat(color2.toArray())
+                .concat(color1.toArray());
+}   
+
+
+var flower_color;
+for(var i = 0; i < n_flowers; i++){
+    flower_color = Math.random() * 0xffffff;
+    geometry = new THREE.CircleGeometry(5, 32);
+    material = new THREE.MeshBasicMaterial({color: flower_color});
+    mesh = new THREE.Mesh(geometry, material);
+
+    var position_x = Math.random() * 400 - 200;
+    var position_y = Math.random() * 400 - 200;
+    mesh.position.x = position_x;
+    mesh.position.y = position_y;
+
+    grass_scene.add(mesh);
+}
+
+
+
+function generateGrass(){
+    grass_scene = new THREE.Scene();
+
+    bufferTexture = new THREE.WebGLRenderTarget(400, 400, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps 
+
+    createFlowers();
+
+    renderer.setSize(400, 400);
+    renderer.setRenderTarget(bufferTexture);
+    renderer.render(grass_scene, lateralOrthoCamera);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setRenderTarget(null);
+
+    bufferTexture.texture.repeat.set(repeatX, repeatY);
+    scene.children[0].material.map = bufferTexture.texture;
+}
+*/
+
 
 //////////////////////
 /* CREATE CAMERA(S) */
@@ -539,7 +610,7 @@ function createUfo() {
     scene.add(ufo);
 }
 
-function createSpotLight(target, x, y, z){
+function createSpotLight(x, y, z){
     spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
     spotlight.castShadow = true;
 
@@ -562,6 +633,25 @@ function createPointLight(x, y, z, color) {
     pointlights.push(point);
 
     return point;
+}
+
+//FIXME
+function createFlowers(){
+    var flower_color;
+    for(var i = 0; i < 5000; i++){
+        flower_color = Math.random() * 0xffffff;
+        var geometry = new THREE.CircleGeometry(1, 32);
+        var material = new THREE.MeshBasicMaterial({color: flower_color});
+        var mesh = new THREE.Mesh(geometry, material);
+
+        var position_x = (Math.random() - 0.5) * 800;
+        var position_z = (Math.random() - 0.5) * 800;
+        mesh.position.x = position_x;
+        mesh.position.z = position_z;
+        mesh.position.y = -10;
+
+        scene.add(mesh);
+    }
 }
 
 //////////////////////
@@ -688,7 +778,10 @@ function init() {
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+
+    renderer.setSize(400, 400);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setRenderTarget(null);
 
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(VRButton.createButton(renderer));
