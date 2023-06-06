@@ -16,7 +16,7 @@ var meshes = [];
 
 var sky, skyTexture;
 var moon;
-var house1, house2, house3, body, door, window1, window2, roof;
+var house, body, door, window1, window2, roof;
 
 
 /////////////////////
@@ -156,6 +156,8 @@ function createMoon(){
 
 function createHouse(){
     'use strict';
+
+    // Create house's materials
     var lambertMaterialBody = new THREE.MeshLambertMaterial({color: 0xffffff});
     var phongMaterialBody = new THREE.MeshPhongMaterial({color: 0xffffff});
     var toonMaterialBody = new THREE.MeshToonMaterial({color: 0xffffff});
@@ -176,40 +178,161 @@ function createHouse(){
     var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0x880808});
     var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0x880808});
 
-    var cube = new THREE.BoxGeometry(10, 5, 5);
-    body = new THREE.Mesh(cube, lambertMaterialBody);
-    body.position.set(0, 0, 0);
+    var bodyShapeGeometry = new THREE.BufferGeometry();
 
-    var cube = new THREE.BoxGeometry(2, 4, 0.5);
-    door = new THREE.Mesh(cube, lambertMaterialDoor);
-    door.position.set(-3, -0.5, 2.75);
+    const bodyVertices = new Float32Array( [
+        0, 0, 0, // v0
+        1, 0, 0, // v1
+        0, 5, 0, // v2
+        1, 5, 0, // v3
+        10, 4, 0, // v4
+        10, 5, 0, // v5
+        1, 4, 0, // v6
+        3, 4, 0, // v7
+        3, 1.5, 0, // v8
+        4, 1.5, 0, // v9
+        4, 4, 0, // v10
+        6, 4, 0, // v11
+        6, 1.5, 0, // 12
+        7, 1.5, 0, // v13
+        7, 4, 0, // v14
+        9, 4, 0, // v15
+        9, 1.5, 0, // v16
+        10, 1.5, 0, // v17
+        10, 4, 0, // v18
+        3, 0, 0, // v19
+        10, 0, 0, // v20
+        0, 0, -5, // v21
+        0, 5, -5, // v22
+        10, 0, -5, // v23
+        10, 5, -5 // v24
+    ] );
 
-    var cube = new THREE.BoxGeometry(2, 2, 0.5);
-    window1 = new THREE.Mesh(cube, lambertMaterialWindow);
-    window1.position.set(0, 0.5, 2.75);
+    const bodyIndexes = [
+        0, 1, 2, // Front side
+        3, 2, 1,
+        4, 5, 6,
+        6, 5, 3,
+        7, 8, 9,
+        9, 10, 7,
+        11, 12, 13,
+        13, 14, 11,
+        15, 16, 17,
+        17, 18, 15,
+        19, 20, 17,
+        17, 8, 19,
+        0, 2, 22, // Left side
+        22, 21, 0,
+        20, 23, 5, // Right Side
+        5, 23, 24,
+        21, 22, 24, // Back side
+        24, 23, 21
+    ];
+    
+    bodyShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bodyVertices, 3));
+    //bodyShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(bodyVertices, 3));
+    bodyShapeGeometry.setIndex(bodyIndexes);
+    bodyShapeGeometry.computeVertexNormals();
 
-    var cube = new THREE.BoxGeometry(2, 2, 0.5);
-    window2 = new THREE.Mesh(cube, lambertMaterialWindow);
-    window2.position.set(3, 0.5, 2.75);
+    body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
+    
+    var doorShapeGeometry = new THREE.BufferGeometry();
 
-    var cube = new THREE.BoxGeometry(9.99, 3.2016, 3.2016);
-    roof = new THREE.Mesh(cube, lambertMaterialRoof);
-    roof.position.set(0, 2.5, 0);
-    roof.rotateX((Math.PI)/4);
+    const doorVertices = new Float32Array( [
+       1, 0, 0, // v0
+       3, 0, 0, // v1
+       3, 4, 0, // v2
+       1, 4, 0 // v3
+    ] );
 
-    house1 = new THREE.Object3D();
-    house1.add(body, door, window1, window2, roof);
+    const doorIndexes = [
+        0, 1, 3,
+        1, 2, 3
+    ];
+    
+    doorShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(doorVertices, 3));
+    //doorShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(doorVertices, 3));
+    doorShapeGeometry.setIndex(doorIndexes);
+    doorShapeGeometry.computeVertexNormals();
 
-    house2 = new THREE.Object3D();
-    house2.copy(house1);
-    house2.position.set(-20, 0, 0);
+    door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
 
-    house3 = new THREE.Object3D();
-    house3.copy(house1);
-    house3.position.set(-40, 0, 20);
-    house3.rotateY((Math.PI)/4);
+    var window1ShapeGeometry = new THREE.BufferGeometry();
 
-    //FIXME: all houses' materials should change
+    const window1Vertices = new Float32Array( [
+       4, 1.5, 0, // v0
+       6, 1.5, 0, // v1
+       6, 4, 0, // v2
+       4, 4, 0 // v3
+    ] );
+
+    const window1Indexes = [
+        0, 1, 3,
+        1, 2, 3
+    ];
+    
+    window1ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window1Vertices, 3));
+    //window1ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window1Vertices, 3));
+    window1ShapeGeometry.setIndex(window1Indexes);
+    window1ShapeGeometry.computeVertexNormals();
+
+    window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
+
+    var window2ShapeGeometry = new THREE.BufferGeometry();
+
+    const window2Vertices = new Float32Array( [
+        7, 1.5, 0, // v0
+        9, 1.5, 0, // v1
+        9, 4, 0, // v2
+        7, 4, 0 // v3
+     ] );
+
+    const window2Indexes = [
+        0, 1, 3,
+        1, 2, 3
+    ];
+    
+    window2ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window2Vertices, 3));
+    //window2ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window2Vertices, 3));
+    window2ShapeGeometry.setIndex(window2Indexes);
+    window2ShapeGeometry.computeVertexNormals();
+
+    window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
+
+    var roofShapeGeometry = new THREE.BufferGeometry();
+
+    const roofVertices = new Float32Array( [
+        0, 5, 0, // v0
+        10, 5, 0, // v1
+        0, 7, -2.5, // v2
+        10, 7, -2.5, // v3
+        0, 5, -5, // v4
+        10, 5, -5 // v5
+     ] );
+
+    const roofIndexes = [
+        0, 1, 2, // Front side
+        1, 3, 2,
+        2, 3, 5, // Back side
+        5, 4, 2,
+        0, 2, 4, // Left side
+        1, 5, 3 // Right side
+    ];
+    
+      roofShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(roofVertices, 3));
+    //roofShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(roofVertices, 3));
+    roofShapeGeometry.setIndex(roofIndexes);
+    roofShapeGeometry.computeVertexNormals();
+
+    roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
+
+    house = new THREE.Object3D();
+
+    house.add(body, door, window1, window2, roof);    
+    house.position.set(-5, 2.5, 0); // Center house
+    house.rotateY((Math.PI)/(1/8)); // Better side visibility
+    house.receiveShadow = true;
+    house.castShadow = true;
     
     meshes.push(body, door, window1, window2, roof);
     materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
@@ -217,9 +340,8 @@ function createHouse(){
     materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
     materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
     materials.push([lambertMaterialRoof, phongMaterialRoof, toonMaterialRoof, basicMaterialRoof]);
-    
-    
-    scene.add(house1, house2, house3);
+
+    scene.add(house);
 }
 
 //////////////////////
