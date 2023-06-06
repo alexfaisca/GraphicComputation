@@ -16,7 +16,7 @@ var meshes = [];
 
 var sky, skyTexture;
 var moon;
-var house1, house2, house3, body, door, window1, window2, roof;
+var house, body, door, window1, window2, roof;
 
 
 /////////////////////
@@ -172,7 +172,7 @@ function createHouse(){
     var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0x880808});
     var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0x880808});
 
-    var cube = new THREE.BoxGeometry(10, 5, 5);
+    /*var cube = new THREE.BoxGeometry(10, 5, 5);
     body = new THREE.Mesh(cube, lambertMaterialBody);
     body.position.set(0, 0, 0);
 
@@ -191,31 +191,85 @@ function createHouse(){
     var cube = new THREE.BoxGeometry(9.99, 3.2016, 3.2016);
     roof = new THREE.Mesh(cube, lambertMaterialRoof);
     roof.position.set(0, 2.5, 0);
-    roof.rotateX((Math.PI)/4);
-
-    house1 = new THREE.Object3D();
-    house1.add(body, door, window1, window2, roof);
-
-    house2 = new THREE.Object3D();
-    house2.copy(house1);
-    house2.position.set(-20, 0, 0);
-
-    house3 = new THREE.Object3D();
-    house3.copy(house1);
-    house3.position.set(-40, 0, 20);
-    house3.rotateY((Math.PI)/4);
+    roof.rotateX((Math.PI)/4);*/
 
     //FIXME: all houses' materials should change
+
+
+    var bodyShapeGeometry = new THREE.BufferGeometry();
+
+    const bodyVertices = new Float32Array( [
+        0, 0, 0, // v0
+        1, 0, 0, // v1
+        0, 5, 0, // v2
+        1, 5, 0, // v3
+        10, 4, 0, // v4
+        10, 5, 0, // v5
+        1, 4, 0, // v6
+        3, 4, 0, // v7
+        3, 1.5, 0, // v8
+        4, 1.5, 0, // v9
+        4, 4, 0, // v10
+        6, 4, 0, // v11
+        6, 1.5, 0, // 12
+        7, 1.5, 0, // v13
+        7, 4, 0, // v14
+        9, 4, 0, // v15
+        9, 1.5, 0, // v16
+        10, 1.5, 0, // v17
+        10, 4, 0, // v18
+        3, 0, 0, // v19
+        10, 0, 0, // v20
+        0, 0, -5, // v21
+        0, 5, -5, // v22
+        10, 0, -5, // v23
+        10, 5, -5 // v24
+    ] );
+
+    const bodyIndexes = [
+        0, 1, 2, // Front side
+        3, 2, 1,
+        4, 5, 6,
+        6, 5, 3,
+        7, 8, 9,
+        9, 10, 7,
+        11, 12, 13,
+        13, 14, 11,
+        15, 16, 17,
+        17, 18, 15,
+        19, 20, 17,
+        17, 8, 19,
+        22, 2, 0, // Left side
+        0, 21, 22,
+        20, 23, 5, // Right Side
+        5, 23, 24,
+        21, 23, 24, // Front Side
+        24, 22, 21
+      ];
     
-    meshes.push(body, door, window1, window2, roof);
+    bodyShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bodyVertices, 3));
+    //bodyShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(bodyVertices, 3));
+    bodyShapeGeometry.setIndex(bodyIndexes);
+    bodyShapeGeometry.computeVertexNormals();
+
+    body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
+
+    house = new THREE.Object3D();
+    house.add(body);    
+    house.receiveShadow = true;
+    house.castShadow = true;
+    house.scale.set(2,2,2);
+    house.position.set(0, 0, 0);
+    //house.rotateY((Math.PI)/(1/6));
+    
+    scene.add(house);
+    
+    //meshes.push(body, door, window1, window2, roof);
     materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
     materials.push([lambertMaterialDoor, phongMaterialDoor, toonMaterialDoor, basicMaterialDoor]);
     materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
     materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
     materials.push([lambertMaterialRoof, phongMaterialRoof, toonMaterialRoof, basicMaterialRoof]);
-    
-    
-    scene.add(house1, house2, house3);
 }
 
 //////////////////////
