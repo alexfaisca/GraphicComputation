@@ -18,6 +18,7 @@ var sky, skyTexture;
 var moon;
 var house, body, door, window1, window2, roof;
 var ufo;
+var corkOak, trunk1, trunk2, treeTop;
 
 
 /////////////////////
@@ -30,10 +31,11 @@ function createScene(){
 
     scene.background = new THREE.Color(0xeeeeff);
 
-    createSky();
+    //createSky();
     createMoon();
     createHouse();
     createUfo();
+    createCorkOaks();
 }
 
 //////////////////////
@@ -147,13 +149,31 @@ function createMoon(){
     
     var sphere = new THREE.SphereGeometry(5, 32, 16);
     moon = new THREE.Mesh(sphere, lambertMaterialMoon); 
-    
-    moon.position.set(-30, 70, -30);
+
+    moon.receiveShadow = true;
+    moon.castShadow = true;
+    moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
     materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);    
 
     scene.add(moon);
+}
+
+function createCorkOaks(){
+    'use strict';
+    var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
+    var phongMaterialTrunk = new THREE.MeshPhongMaterial({color: 0xa45729});
+    var toonMaterialTrunk = new THREE.MeshToonMaterial({color: 0xa45729});
+    var basicMaterialTrunk = new THREE.MeshBasicMaterial({color: 0xa45729});
+
+    var lambertMaterialTop = new THREE.MeshLambertMaterial({color: 0x013220});
+    var phongMaterialTop = new THREE.MeshPhongMaterial({color: 0x013220});
+    var toonMaterialToop = new THREE.MeshToonMaterial({color: 0x013220});
+    var basicMaterialToop = new THREE.MeshBasicMaterial({color: 0x013220});
+
+    
+
 }
 
 function createHouse(){
@@ -175,10 +195,10 @@ function createHouse(){
     var toonMaterialWindow = new THREE.MeshToonMaterial({color: 0x89cff0});
     var basicMaterialWindow = new THREE.MeshBasicMaterial({color: 0x89cff0});
 
-    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0x880808});
-    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0x880808});
-    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0x880808});
-    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0x880808});
+    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0xDC582A});
+    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0xDC582A});
+    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0xDC582A});
+    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0xDC582A});
 
     var bodyShapeGeometry = new THREE.BufferGeometry();
 
@@ -237,6 +257,8 @@ function createHouse(){
     bodyShapeGeometry.computeVertexNormals();
 
     body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
+    body.receiveShadow = true;
+    body.castShadow = true;
     
     var doorShapeGeometry = new THREE.BufferGeometry();
 
@@ -258,6 +280,8 @@ function createHouse(){
     doorShapeGeometry.computeVertexNormals();
 
     door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
+    door.receiveShadow = true;
+    door.castShadow = true;
 
     var window1ShapeGeometry = new THREE.BufferGeometry();
 
@@ -279,6 +303,8 @@ function createHouse(){
     window1ShapeGeometry.computeVertexNormals();
 
     window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
+    window1.receiveShadow = true;
+    window1.castShadow = true;
 
     var window2ShapeGeometry = new THREE.BufferGeometry();
 
@@ -300,6 +326,8 @@ function createHouse(){
     window2ShapeGeometry.computeVertexNormals();
 
     window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
+    window2.receiveShadow = true;
+    window2.castShadow = true;
 
     var roofShapeGeometry = new THREE.BufferGeometry();
 
@@ -327,8 +355,10 @@ function createHouse(){
     roofShapeGeometry.computeVertexNormals();
 
     roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
+    roof.receiveShadow = true;
+    roof.castShadow = true;
 
-    house = new THREE.Object3D();
+    house = new THREE.Group();
 
     house.add(body, door, window1, window2, roof);    
     house.position.set(-5, 2.5, 0); // Center house
@@ -355,6 +385,8 @@ function createUfo() {
     var cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0x23395d});
     const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_basic_material);
     cockpit_sphere.position.setY(3.6);
+    cockpit_sphere.receiveShadow = true;
+    cockpit_sphere.castShadow = true;
     materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
     meshes.push(cockpit_sphere);
 
@@ -366,8 +398,11 @@ function createUfo() {
     const body_sphere = new THREE.Mesh(body_geometry, body_basic_material);
     body_sphere.scale.set(1, 3 / 10, 1)
     body_sphere.position.setY(3);
+    body_sphere.receiveShadow = true;
+    body_sphere.castShadow = true;
     materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
     meshes.push(body_sphere);
+
 
     const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 1, 32);
     var spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
@@ -376,8 +411,11 @@ function createUfo() {
     var spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
     const spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_basic_material);
     spotlight_cilinder.position.setY(2);
+    spotlight_cilinder.receiveShadow = true;
+    spotlight_cilinder.castShadow = true;
     materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
     meshes.push(spotlight_cilinder);
+
 
 
     var pointlight_ring = [];
@@ -393,6 +431,8 @@ function createUfo() {
     for(let i = 0; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_basic_material);
         pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
+        pointlight.receiveShadow = true;
+        pointlight.castShadow = true;
         pointlight_ring.push(pointlight);
         ufo.add(pointlight);
     }
@@ -528,6 +568,11 @@ function onResize() {
     'use strict';
 
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (window.innerWidth > 0 && window.innerHeight > 0) {
+        cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
+        cameras[active_camera].updateProjectionMatrix();
+    }
     
 }
 
