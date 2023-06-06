@@ -167,40 +167,42 @@ function createMoon(){
 
 function createPlane() {
 
-    var geometry = new THREE.BufferGeometry();
-    
-    const vertices = new Float32Array( [
-        50.0,  -20.0,  50.0, // v2
-        50.0, -20.0,  -50.0, // v1
-        -50.0, -20.0,  -50.0, // v0
-        -50.0,  -20.0,  50.0 // v3
-    ] );
-    
-    const indices = [
-        0, 1, 2,
-        2, 3, 0
-    ];
+    var everglades_geometry = new THREE.PlaneGeometry(60, 60, 1000, 1000);
+    everglades_geometry.rotateX(Math.PI / 2);
 
-    var plane_uvs = new Float32Array([
-        50.0, 50.0, // v2
-        50.0, -50.0, // v1
-        -50.0, -50.0, // v0
-    ]);
+    const loader = new THREE.TextureLoader();
+    const displacement = loader.load('textures/terrain_heightmap.png');
 
-    geometry.setIndex( indices );
-    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-    geometry.setAttribute( 'uv', new THREE.BufferAttribute( plane_uvs, 2 ) );
-
-    const leveling = new THREE.TextureLoader().load('textures/terrain_heightmap.png');
-
-    const material = new THREE.MeshBasicMaterial({  // Tried with other materials
-        color: 0x448844,
-        //displacementMap: leveling,  <<  Problem here
-        //displacementScale: 10,
+    const everglades_phong_material = new THREE.MeshPhongMaterial({
+        color: "green",
+        side : THREE.DoubleSide,
+        displacementMap: displacement,
+        displacementScale: 10
     });
-    var plane = new THREE.Mesh( geometry, material );
+    const everglades_lambert_material = new THREE.MeshLambertMaterial({
+        color: "green",
+        side : THREE.DoubleSide,
+        displacementMap: displacement,
+        displacementScale: 10
+    });
+    const everglades_toon_material = new THREE.MeshToonMaterial({
+        color: "green",
+        side : THREE.DoubleSide,
+        displacementMap: displacement,
+        displacementScale: 10
+    });
+    const everglades_basic_material = new THREE.MeshBasicMaterial({
+        color: "green",
+        side : THREE.DoubleSide,
+        displacementMap: displacement,
+        displacementScale: 10
+    });
+    var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
+    meshes.push(everglades)
+    materials.push([everglades_lambert_material, everglades_phong_material, everglades_toon_material, everglades_basic_material]);
 
-    scene.add(plane);
+
+    scene.add(everglades);
 }
 
 //TODO: Set proper corkOak top
