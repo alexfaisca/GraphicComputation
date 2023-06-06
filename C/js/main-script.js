@@ -17,6 +17,7 @@ var meshes = [];
 var sky, skyTexture;
 var moon;
 var house, body, door, window1, window2, roof;
+var ufo;
 
 
 /////////////////////
@@ -32,6 +33,7 @@ function createScene(){
     createSky();
     createMoon();
     createHouse();
+    createUfo();
 }
 
 //////////////////////
@@ -48,7 +50,7 @@ function createCameras() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 100);
-    cameras[0].position.set(40, 40, 40);
+    cameras[0].position.set(-20, -5, 20);
     cameras[0].lookAt(scene.position);
 }
 
@@ -146,7 +148,7 @@ function createMoon(){
     var sphere = new THREE.SphereGeometry(5, 32, 16);
     moon = new THREE.Mesh(sphere, lambertMaterialMoon); 
     
-    moon.position.set(-30, 30, -30);
+    moon.position.set(-30, 70, -30);
 
     meshes.push(moon);
     materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);    
@@ -342,6 +344,71 @@ function createHouse(){
     materials.push([lambertMaterialRoof, phongMaterialRoof, toonMaterialRoof, basicMaterialRoof]);
 
     scene.add(house);
+}
+
+function createUfo() {
+    ufo = new THREE.Group();
+    const cockpit_geometry = new THREE.SphereGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
+    var cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0x23395d});
+    var cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0x23395d});
+    var cockpit_toon_material = new THREE.MeshToonMaterial({color: 0x23395d});
+    var cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0x23395d});
+    const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_basic_material);
+    cockpit_sphere.position.setY(3.6);
+    materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
+    meshes.push(cockpit_sphere);
+
+    const body_geometry = new THREE.SphereGeometry(5, 32, 16);
+    var body_lambert_material = new THREE.MeshLambertMaterial({color: 0x152238});
+    var body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
+    var body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
+    var body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
+    const body_sphere = new THREE.Mesh(body_geometry, body_basic_material);
+    body_sphere.scale.set(1, 3 / 10, 1)
+    body_sphere.position.setY(3);
+    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
+    meshes.push(body_sphere);
+
+    const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 1, 32);
+    var spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    var spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    var spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    var spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    const spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_basic_material);
+    spotlight_cilinder.position.setY(2);
+    materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
+    meshes.push(spotlight_cilinder);
+
+
+    var pointlight_ring = [];
+    const pointlight_geometry = new THREE.SphereGeometry( 0.25, 32, 16 );
+    var pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    var pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    var pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    var pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    const pointlight_count = 16;
+    var pointlight;
+
+
+    for(let i = 0; i < pointlight_count; i++) {
+        pointlight = new THREE.Mesh(pointlight_geometry, pointlight_basic_material);
+        pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
+        pointlight_ring.push(pointlight);
+        ufo.add(pointlight);
+    }
+    materials.push([pointlight_lambert_material, pointlight_phong_material, pointlight_toon_material, pointlight_basic_material]);
+    meshes.push(pointlight_ring);
+
+    ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
+
+
+    /*
+    const geometry = new THREE.SphereGeometry( 15, 32, 16 );
+    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+    const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere ); */
+
+    ufo.position.set(-10, 0,10);
+    scene.add(ufo);
 }
 
 //////////////////////
