@@ -14,6 +14,7 @@ var ambientLight;
 var materials = [];
 var meshes = [];
 
+var sky, skyTexture;
 var moon;
 var house1, house2, house3, body, door, window1, window2, roof;
 
@@ -94,6 +95,36 @@ function createLights(){
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
+
+function createSky() {
+    const indices = [0, 1, 2, 2, 3, 0];
+    sky = new THREE.Object3D();
+    var colorArray = [];
+    skyTexture =  new THREE.BufferGeometry();
+
+    skyTexture.setAttribute('position', new THREE.BufferAttribute(
+        new Float32Array([
+            -40, -40, 0,
+            40, -40, 0,
+            40, 40, 0,
+            -40, 40, 0
+        ]), 3));
+
+    var color1 = new THREE.Color().setHex(0xFAD6A5);
+    var color2 = new THREE.Color().setHex(0x6F456E);
+    colorArray = (color1.toArray()
+                .concat(color2.toArray())
+                .concat(color2.toArray())
+                .concat(color1.toArray()));
+
+    var material = new THREE.MeshPhongMaterial();
+    material.setAttribute('uv', new Float32Array(colorArray, 3)); //?
+
+    var mesh = new THREE.Mesh(skyTexture, material);
+
+    scene.add(mesh);
+
+}
 
 function createMoon(){
     'use strict';
