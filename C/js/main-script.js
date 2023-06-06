@@ -518,7 +518,7 @@ function createUfo() {
     ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
 
     ufo.userData = {
-        angular_velocity : 200 * Math.PI,
+        angular_velocity :  Math.PI / 4,
         linear_velocity : new THREE.Vector3(0,0,0)
     };
 
@@ -553,13 +553,13 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-
+    let delta =  clock.getDelta();
     changeCamera();
     changeDirectionalLight();
     changeMaterials();
 
-    updateUfoPosition();
-    updateUfoRotation();
+    updateUfoPosition(delta);
+    updateUfoRotation(delta);
 }
 
 function changeCamera() {
@@ -598,18 +598,15 @@ function changeMaterials(){
     key_press_map[82] = 0;
 }
 
-function updateUfoPosition() {
+function updateUfoPosition(delta) {
     'use strict';
     compute_ufo_movement();
-    let delta = clock.getDelta();
-
     ufo.userData.linear_velocity = ufo.userData.linear_velocity.multiplyScalar(delta);
     ufo.position.add(ufo.userData.linear_velocity);
 }
 
-function updateUfoRotation() {
+function updateUfoRotation(delta) {
     'use strict';
-    let delta =  clock.getDelta();
     ufo.rotateY(ufo.userData.angular_velocity * delta);
 }
 
