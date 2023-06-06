@@ -6,7 +6,7 @@ var scene, renderer;
 
 var key_press_map = {};
 var cameras = new Array(2);
-var VRCamera;
+var auxCamera;
 var active_camera;
 var dirLight;
 var ambientLight;
@@ -16,7 +16,12 @@ var meshes = [];
 
 var sky, skyTexture;
 var moon;
-var house1, house2, house3, body, door, window1, window2, roof;
+var house, body, door, window1, window2, roof;
+var ufo;
+var clock = new THREE.Clock();
+var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
+
+// -7.896139007327889 37.52503500684735
 
 // -7.896139007327889 37.52503500684735
 
@@ -33,10 +38,12 @@ function createScene(){
 
     scene.background = new THREE.Color(0xeeeeff);
 
-    createSky();
+    //createSky();
     createMoon();
     createPlane();
     createHouse();
+    createUfo();
+    createCorkOaks();
 }
 
 //////////////////////
@@ -47,7 +54,7 @@ function createCameras() {
     'use strict'
     active_camera = 0;
     createIsometricPerspectiveCamera();
-    createVRCamera();
+    createVRCamera(0, 20, 20);
 }
 
 function createIsometricPerspectiveCamera() {
@@ -57,14 +64,11 @@ function createIsometricPerspectiveCamera() {
     cameras[0].lookAt(scene.position);
 }
 
-function createVRCamera(){
-    VRCamera = new THREE.PerspectiveCamera(60,
-                                    window.innerWidth / window.innerHeight,
-                                    1,
-                                    1000);
+function createVRCamera(x, y, z){
+    auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
     
-    VRCamera.position.set(0, 20, 20);
-    VRCamera.lookAt(scene.position);
+    auxCamera.position.set(x, y, z);
+    auxCamera.lookAt(scene.position);
     cameras[1] = new THREE.StereoCamera();
 }
 
@@ -103,8 +107,17 @@ function createLights(){
 ////////////////////////
 
 function createSky() {
+    skyTexture = new THREE.SphereGeometry(100, 180, 180);
+
+    var material = new THREE.MeshPhongMaterial({
+        vertexColors: THREE.vertexColors,
+        side: THREE.DoubleSide,
+        color: 'purple'
+    });
+
+
+    /*
     const indices = [0, 1, 2, 2, 3, 0];
-    sky = new THREE.Object3D();
     skyTexture = new THREE.BufferGeometry();
     skyTexture.setAttribute('position', new THREE.BufferAttribute(
         new Float32Array([
@@ -125,15 +138,10 @@ function createSky() {
         .concat(color1.toArray()));
 
     skyTexture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray, 3), true))
+    */
 
-    var material = new THREE.MeshBasicMaterial({
-        vertexColors: THREE.vertexColors,
-        side: THREE.DoubleSide,
-        });
-
-
-    var mesh = new THREE.Mesh(skyTexture, material);
-    scene.add(mesh);
+    sky = new THREE.Mesh(skyTexture, material);
+    scene.add(sky);
 
 }
 
@@ -144,9 +152,11 @@ function createMoon(){
     var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xffffbf});
     var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xffffbf});
     
-    var sphere = new THREE.SphereGeometry(5, 32, 16);
-    moon = new THREE.Mesh(sphere, lambertMaterialMoon); 
-    
+    var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon); 
+
+    moon.receiveShadow = true;
+    moon.castShadow = true;
     moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
@@ -183,19 +193,69 @@ function createPlane() {
 
     const leveling = new THREE.TextureLoader().load('textures/terrain_heightmap.png');
 
-    const material = new THREE.MeshPhongMaterial({
+    const material = new THREE.MeshBasicMaterial({  // Tried with other materials
         color: 0x00ff00,
-        displacementMap: leveling,
-        displacementScale: 10,
-        side: THREE.DoubleSide
+        //displacementMap: leveling,  <<  Problem here
+        //displacementScale: 10,
     });
     var plane = new THREE.Mesh( geometry, material );
 
     scene.add(plane);
 }
 
+//TODO: Set proper corkOak top
+function createCorkOaks(){
+    'use strict';
+    var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
+    var phongMaterialTrunk = new THREE.MeshPhongMaterial({color: 0xa45729});
+    var toonMaterialTrunk = new THREE.MeshToonMaterial({color: 0xa45729});
+    var basicMaterialTrunk = new THREE.MeshBasicMaterial({color: 0xa45729});
+
+    var lambertMaterialTreeTop = new THREE.MeshLambertMaterial({color: 0x013220});
+    var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
+    var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
+    var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
+
+    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
+    trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+    trunk1.receiveShadow = true;
+    trunk1.castShadow = true;
+
+    trunk1.rotateZ((Math.PI)/(4));
+
+    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 10);
+    trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+    trunk2.receiveShadow = true;
+    trunk2.castShadow = true;
+
+    trunk2.rotateZ((Math.PI)/(-4));
+    trunk2.position.set(0.9, 0.9, 0);
+
+    var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+    treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
+    treeTop1.receiveShadow = true;
+    treeTop1.castShadow = true; 
+    treeTop1.scale.set(2, 1, 1);
+    treeTop1.position.set(0, 2.5, 0);
+
+    corkOak = new THREE.Group();
+
+    corkOak.add(trunk1, trunk2, treeTop1);
+    corkOak.position.set(9, 2.5, 0);
+    corkOak.rotateY((Math.PI)/(6)); // Better side visibility
+
+    meshes.push(trunk1, trunk2, treeTop1);
+    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+    materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);   
+
+    scene.add(corkOak);
+}
+
 function createHouse(){
     'use strict';
+
+    // Create house's materials
     var lambertMaterialBody = new THREE.MeshLambertMaterial({color: 0xffffff});
     var phongMaterialBody = new THREE.MeshPhongMaterial({color: 0xffffff});
     var toonMaterialBody = new THREE.MeshToonMaterial({color: 0xffffff});
@@ -211,45 +271,176 @@ function createHouse(){
     var toonMaterialWindow = new THREE.MeshToonMaterial({color: 0x89cff0});
     var basicMaterialWindow = new THREE.MeshBasicMaterial({color: 0x89cff0});
 
-    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0x880808});
-    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0x880808});
-    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0x880808});
-    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0x880808});
+    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0xDC582A});
+    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0xDC582A});
+    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0xDC582A});
+    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0xDC582A});
 
-    var cube = new THREE.BoxGeometry(10, 5, 5);
-    body = new THREE.Mesh(cube, lambertMaterialBody);
-    body.position.set(0, 0, 0);
+    var bodyShapeGeometry = new THREE.BufferGeometry();
 
-    var cube = new THREE.BoxGeometry(2, 4, 0.5);
-    door = new THREE.Mesh(cube, lambertMaterialDoor);
-    door.position.set(-3, -0.5, 2.75);
+    const bodyVertices = new Float32Array( [
+        0, 0, 0, // v0
+        1, 0, 0, // v1
+        0, 5, 0, // v2
+        1, 5, 0, // v3
+        10, 4, 0, // v4
+        10, 5, 0, // v5
+        1, 4, 0, // v6
+        3, 4, 0, // v7
+        3, 1.5, 0, // v8
+        4, 1.5, 0, // v9
+        4, 4, 0, // v10
+        6, 4, 0, // v11
+        6, 1.5, 0, // 12
+        7, 1.5, 0, // v13
+        7, 4, 0, // v14
+        9, 4, 0, // v15
+        9, 1.5, 0, // v16
+        10, 1.5, 0, // v17
+        10, 4, 0, // v18
+        3, 0, 0, // v19
+        10, 0, 0, // v20
+        0, 0, -5, // v21
+        0, 5, -5, // v22
+        10, 0, -5, // v23
+        10, 5, -5 // v24
+    ] );
 
-    var cube = new THREE.BoxGeometry(2, 2, 0.5);
-    window1 = new THREE.Mesh(cube, lambertMaterialWindow);
-    window1.position.set(0, 0.5, 2.75);
+    const bodyIndexes = [
+        0, 1, 2, // Front side
+        3, 2, 1,
+        4, 5, 6,
+        6, 5, 3,
+        7, 8, 9,
+        9, 10, 7,
+        11, 12, 13,
+        13, 14, 11,
+        15, 16, 17,
+        17, 18, 15,
+        19, 20, 17,
+        17, 8, 19,
+        0, 2, 22, // Left side
+        22, 21, 0,
+        20, 23, 5, // Right Side
+        5, 23, 24,
+        21, 22, 24, // Back side
+        24, 23, 21
+    ];
+    
+    bodyShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bodyVertices, 3));
+    //bodyShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(bodyVertices, 3));
+    bodyShapeGeometry.setIndex(bodyIndexes);
+    bodyShapeGeometry.computeVertexNormals();
 
-    var cube = new THREE.BoxGeometry(2, 2, 0.5);
-    window2 = new THREE.Mesh(cube, lambertMaterialWindow);
-    window2.position.set(3, 0.5, 2.75);
+    body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
+    body.receiveShadow = true;
+    body.castShadow = true;
+    
+    var doorShapeGeometry = new THREE.BufferGeometry();
 
-    var cube = new THREE.BoxGeometry(9.99, 3.2016, 3.2016);
-    roof = new THREE.Mesh(cube, lambertMaterialRoof);
-    roof.position.set(0, 2.5, 0);
-    roof.rotateX((Math.PI)/4);
+    const doorVertices = new Float32Array( [
+       1, 0, 0, // v0
+       3, 0, 0, // v1
+       3, 4, 0, // v2
+       1, 4, 0 // v3
+    ] );
 
-    house1 = new THREE.Object3D();
-    house1.add(body, door, window1, window2, roof);
+    const doorIndexes = [
+        0, 1, 3,
+        1, 2, 3
+    ];
+    
+    doorShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(doorVertices, 3));
+    //doorShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(doorVertices, 3));
+    doorShapeGeometry.setIndex(doorIndexes);
+    doorShapeGeometry.computeVertexNormals();
 
-    house2 = new THREE.Object3D();
-    house2.copy(house1);
-    house2.position.set(-20, 0, 0);
+    door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
+    door.receiveShadow = true;
+    door.castShadow = true;
 
-    house3 = new THREE.Object3D();
-    house3.copy(house1);
-    house3.position.set(-40, 0, 20);
-    house3.rotateY((Math.PI)/4);
+    var window1ShapeGeometry = new THREE.BufferGeometry();
 
-    //FIXME: all houses' materials should change
+    const window1Vertices = new Float32Array( [
+       4, 1.5, 0, // v0
+       6, 1.5, 0, // v1
+       6, 4, 0, // v2
+       4, 4, 0 // v3
+    ] );
+
+    const window1Indexes = [
+        0, 1, 3,
+        1, 2, 3
+    ];
+    
+    window1ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window1Vertices, 3));
+    //window1ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window1Vertices, 3));
+    window1ShapeGeometry.setIndex(window1Indexes);
+    window1ShapeGeometry.computeVertexNormals();
+
+    window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
+    window1.receiveShadow = true;
+    window1.castShadow = true;
+
+    var window2ShapeGeometry = new THREE.BufferGeometry();
+
+    const window2Vertices = new Float32Array( [
+        7, 1.5, 0, // v0
+        9, 1.5, 0, // v1
+        9, 4, 0, // v2
+        7, 4, 0 // v3
+     ] );
+
+    const window2Indexes = [
+        0, 1, 3,
+        1, 2, 3
+    ];
+    
+    window2ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window2Vertices, 3));
+    //window2ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window2Vertices, 3));
+    window2ShapeGeometry.setIndex(window2Indexes);
+    window2ShapeGeometry.computeVertexNormals();
+
+    window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
+    window2.receiveShadow = true;
+    window2.castShadow = true;
+
+    var roofShapeGeometry = new THREE.BufferGeometry();
+
+    const roofVertices = new Float32Array( [
+        0, 5, 0, // v0
+        10, 5, 0, // v1
+        0, 7, -2.5, // v2
+        10, 7, -2.5, // v3
+        0, 5, -5, // v4
+        10, 5, -5 // v5
+     ] );
+
+    const roofIndexes = [
+        0, 1, 2, // Front side
+        1, 3, 2,
+        2, 3, 5, // Back side
+        5, 4, 2,
+        0, 2, 4, // Left side
+        1, 5, 3 // Right side
+    ];
+    
+      roofShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(roofVertices, 3));
+    //roofShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(roofVertices, 3));
+    roofShapeGeometry.setIndex(roofIndexes);
+    roofShapeGeometry.computeVertexNormals();
+
+    roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
+    roof.receiveShadow = true;
+    roof.castShadow = true;
+
+    house = new THREE.Group();
+
+    house.add(body, door, window1, window2, roof);    
+    house.position.set(-5, 0, 2.5); // Center house
+    house.rotateY((Math.PI)/(1/8)); // Better side visibility
+    house.receiveShadow = true;
+    house.castShadow = true;
     
     meshes.push(body, door, window1, window2, roof);
     materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
@@ -257,9 +448,86 @@ function createHouse(){
     materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
     materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
     materials.push([lambertMaterialRoof, phongMaterialRoof, toonMaterialRoof, basicMaterialRoof]);
-    
-    
-    scene.add(house1, house2, house3);
+
+    scene.add(house);
+}
+
+function createUfo() {
+    ufo = new THREE.Object3D();
+    const cockpit_geometry = new THREE.SphereBufferGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
+    var cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0x23395d});
+    var cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0x23395d});
+    var cockpit_toon_material = new THREE.MeshToonMaterial({color: 0x23395d});
+    var cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0x23395d});
+    const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_lambert_material);
+    cockpit_sphere.position.setY(3.6);
+    cockpit_sphere.receiveShadow = true;
+    cockpit_sphere.castShadow = true;
+    materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
+    meshes.push(cockpit_sphere);
+
+    const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    var body_lambert_material = new THREE.MeshLambertMaterial({color: 0x152238});
+    var body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
+    var body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
+    var body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
+    const body_sphere = new THREE.Mesh(body_geometry, body_lambert_material);
+    body_sphere.scale.set(1, 3 / 10, 1)
+    body_sphere.position.setY(3);
+    body_sphere.receiveShadow = true;
+    body_sphere.castShadow = true;
+    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
+    meshes.push(body_sphere);
+
+
+    const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 1, 32);
+    var spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    var spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    var spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    var spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    const spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
+    spotlight_cilinder.position.setY(2);
+    spotlight_cilinder.receiveShadow = true;
+    spotlight_cilinder.castShadow = true;
+    materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
+    meshes.push(spotlight_cilinder);
+
+
+
+    const pointlight_geometry = new THREE.SphereBufferGeometry( 0.25, 32, 16 );
+    var pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    var pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    var pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    var pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    const pointlight_count = 16;
+    var pointlight;
+
+
+    for(let i = 0; i < pointlight_count; i++) {
+        pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
+        pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
+        pointlight.receiveShadow = true;
+        pointlight.castShadow = true;
+        ufo.add(pointlight);
+        materials.push([pointlight_lambert_material, pointlight_phong_material, pointlight_toon_material, pointlight_basic_material]);
+        meshes.push(pointlight);
+    }
+
+    ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
+
+    ufo.userData = {
+        angular_velocity : new THREE.Vector3(0, Math.PI / 64, 0),
+        linear_velocity : new THREE.Vector3(0,0,0)
+    };
+
+
+    /*
+    const geometry = new THREE.SphereBufferGeometry( 15, 32, 16 );
+    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+    const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere ); */
+
+    ufo.position.set(-10, 0, 10);
+    scene.add(ufo);
 }
 
 //////////////////////
@@ -287,6 +555,8 @@ function update(){
     changeCamera();
     changeDirectionalLight();
     changeMaterials();
+
+    updateUfoPosition();
 }
 
 function changeCamera() {
@@ -325,17 +595,33 @@ function changeMaterials(){
     key_press_map[82] = 0;
 }
 
+function updateUfoPosition() {
+    'use strict';
+    compute_ufo_movement();
+    let delta = clock.getDelta();
+
+    ufo.userData.linear_velocity = ufo.userData.linear_velocity.multiplyScalar(delta);
+    ufo.position.add(ufo.userData.linear_velocity);
+}
+
 
 /////////////
 /* DISPLAY */
 /////////////
 function render() {
     'use strict';
-    renderer.clear();
-
-    //TODO: VR
-    
-    renderer.render(scene, cameras[active_camera]);
+    if(renderer.xr.isPresenting){
+        if(!presented){
+            presented = true;
+            scene.translateZ(-5);
+            scene.translateY(-5);
+        }
+        cameras[1].update(auxCamera);
+        renderer.render(scene, cameras[1].cameraL);
+        renderer.render(scene, cameras[1].cameraR);
+    }
+    else
+        renderer.render(scene, cameras[active_camera]);        
 }
 
 ////////////////////////////////
@@ -344,11 +630,15 @@ function render() {
 function init() {
     'use strict';
 
-    renderer = new THREE.WebGLRenderer({antialias: true})
-
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     document.body.appendChild(renderer.domElement);
+    document.body.appendChild(VRButton.createButton(renderer));
+    
+    renderer.xr.enabled = true;
 
     createScene();
     createCameras();
@@ -364,13 +654,84 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
+    renderer.setAnimationLoop(function(){
+        render();
+        update();
+    })  
+}    
 
-    update();
-
-    render();
-
-    requestAnimationFrame(animate);
+function update_ufo_velocity(x, z){
+    'use strict';
+    ufo.userData.linear_velocity.setX(x);
+    ufo.userData.linear_velocity.setZ(z);
+    ufo.userData.linear_velocity.setLength(4);
 }
+
+function compute_ufo_movement() {
+    'use strict';
+    if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
+        update_ufo_velocity(0, 0);
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39] && key_press_map[38]){ // Left + Right + Up
+        update_ufo_velocity(0, -4);
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39] && key_press_map[40]){ // Left + Right + Down
+        update_ufo_velocity(0, 4);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40] && key_press_map[37]){ // Up + Down + Left
+        update_ufo_velocity(-4, 0);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40] && key_press_map[39]){ // Up + Down + Right
+        update_ufo_velocity(4, 0);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[40]){ // Up + Down
+        update_ufo_velocity(0, 0);
+        return;
+    }
+    if(key_press_map[37] && key_press_map[39]){ // Left + Right
+        update_ufo_velocity(0, 0);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[39]){ // Up + Right
+        update_ufo_velocity(4, -4);
+        return;
+    }
+    if(key_press_map[38] && key_press_map[37]){ // Up + Left
+        update_ufo_velocity(-4, -4);
+        return;
+    }
+    if(key_press_map[40] && key_press_map[39]){ // Down + Right
+        update_ufo_velocity(4, 4);
+        return;
+    }
+    if(key_press_map[40] && key_press_map[37]){ // Down + Left
+        update_ufo_velocity(-4, 4);
+        return;
+    }
+    if(key_press_map[37]){
+        update_ufo_velocity(-4, 0);
+        return;
+    }
+    if(key_press_map[38]){
+        update_ufo_velocity(0, -4);
+        return;
+    }
+    if(key_press_map[39]){
+        update_ufo_velocity(4, 0);
+        return;
+    }
+    if(key_press_map[40]){
+        update_ufo_velocity(0, 4);
+        return;
+    }
+    update_ufo_velocity(0,0);
+}
+
 
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
@@ -379,6 +740,11 @@ function onResize() {
     'use strict';
 
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (window.innerWidth > 0 && window.innerHeight > 0) {
+        cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
+        cameras[active_camera].updateProjectionMatrix();
+    }
     
 }
 
@@ -389,42 +755,115 @@ function onKeyDown(e) {
     'use strict';
 
     switch(e.keyCode) {
-    // Change camera
-    case 49: // 1
-        key_press_map[49] = 1;
-        break;
-    // Toggle directional light
-    case 68: // D
-    case 100: // d
-        key_press_map[68] = 1;
-        break;
-    // Change materials
-    case 81: // Q
-    case 113: // q
-        key_press_map[81] = 1;
-        break;
-    case 87: // W
-    case 119: // w
-        key_press_map[87] = 1;
-        break;
-    case 69: // E
-    case 101: // e
-        key_press_map[69] = 1;
-        break;
-    // Change to basic material - no light calculation
-    case 82: // R
-    case 114: // r
-        key_press_map[82] = 1;
-        break;  
+        // Change camera
+        case 49: // 1
+            key_press_map[49] = 1;
+            break;
+        // Toggle directional light
+        case 68: // D
+        case 100: // d
+            key_press_map[68] = 1;
+            break;
+        // Change materials
+        case 81: // Q
+        case 113: // q
+            key_press_map[81] = 1;
+            break;
+        case 87: // W
+        case 119: // w
+            key_press_map[87] = 1;
+            break;
+        case 69: // E
+        case 101: // e
+            key_press_map[69] = 1;
+            break;
+        // Change to basic material - no light calculation
+        case 82: // R
+        case 114: // r
+            key_press_map[82] = 1;
+            break;
+        // UFO point lights
+        case 80: // P
+        case 112: // p
+            key_press_map[80] = 1;
+            break;
+        // UFO spotlight
+        case 83: // S
+        case 115: // s
+            key_press_map[83] = 1;
+            break;
+        // UFO Movement
+        case 37: // Left
+            key_press_map[37] = 1;
+            break;
+        case 38: // Up
+            key_press_map[38] = 1;
+            break;
+        case 39: // Right
+            key_press_map[39] = 1;
+            break;
+        case 40: // Down
+            key_press_map[40] = 1;
+            break;
     }
 }
 
 ///////////////////////
 /* KEY UP CALLBACK */
 ///////////////////////
-function onKeyUp(e){
+function onKeyUp(e) {
     'use strict';
-    switch (e.keyCode) {
 
+    switch(e.keyCode) {
+        // Change camera
+        case 49: // 1
+            key_press_map[49] = 0;
+            break;
+        // Toggle directional light
+        case 68: // D
+        case 100: // d
+            key_press_map[68] = 0;
+            break;
+        // Change materials
+        case 81: // Q
+        case 113: // q
+            key_press_map[81] = 0;
+            break;
+        case 87: // W
+        case 119: // w
+            key_press_map[87] = 0;
+            break;
+        case 69: // E
+        case 101: // e
+            key_press_map[69] = 0;
+            break;
+        // Change to basic material - no light calculation
+        case 82: // R
+        case 114: // r
+            key_press_map[82] = 0;
+            break;
+        // UFO point lights
+        case 80: // P
+        case 112: // p
+            key_press_map[80] = 0;
+            break;
+        // UFO spotlight
+        case 83: // S
+        case 115: // s
+            key_press_map[83] = 0;
+            break;
+        // UFO Movement
+        case 37: // Left
+            key_press_map[37] = 0;
+            break;
+        case 38: // Up
+            key_press_map[38] = 0;
+            break;
+        case 39: // Right
+            key_press_map[39] = 0;
+            break;
+        case 40: // Down
+            key_press_map[40] = 0;
+            break;
     }
 }
