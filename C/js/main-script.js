@@ -21,7 +21,7 @@ var ufo, spotlight, pointlights = [], spotlight_target;
 var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
-var plane, bufferTexture;
+var plane, field_edge = 100;
 
 // -7.896139007327889 37.52503500684735
 
@@ -238,7 +238,7 @@ function createMoon(){
 
 function createPlane() {
 
-    var everglades_geometry = new THREE.PlaneGeometry(60, 60, 1000, 1000);
+    var everglades_geometry = new THREE.PlaneGeometry(field_edge / 2, field_edge / 2, 1000, 1000);
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
@@ -274,6 +274,24 @@ function createPlane() {
 
 
     scene.add(everglades);
+}
+function createFlowers(){
+    var flower_color;
+    for(var i = 0; i < 500; i++){
+        flower_color = Math.random() * 0xffffff;
+        var geometry = new THREE.CircleGeometry(0.1, 32);
+        var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
+        var mesh = new THREE.Mesh(geometry, material);
+
+        var position_x = (Math.random() - 0.5) * field_edge / 2;
+        var position_z = (Math.random() - 0.5) * field_edge / 2;
+        mesh.position.x = position_x;
+        mesh.position.y = 0;
+        mesh.position.z = position_z;
+        mesh.rotateX(Math.PI / 2);
+
+        scene.add(mesh);
+    }
 }
 
 //TODO: Set proper corkOak top
@@ -324,7 +342,6 @@ function createCorkOaks(){
 
     scene.add(corkOak);
 }
-
 function createHouse(){
     'use strict';
 
@@ -524,7 +541,6 @@ function createHouse(){
 
     scene.add(house);
 }
-
 function createUfo() {
     var ufo_x = 0, ufo_y = 10, ufo_z = 0;
     var target_geometry = new THREE.BufferGeometry();
@@ -609,7 +625,6 @@ function createUfo() {
     ufo.position.set(ufo_x, ufo_y, ufo_z);
     scene.add(ufo);
 }
-
 function createSpotLight(x, y, z){
     spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
     spotlight.castShadow = true;
@@ -622,8 +637,6 @@ function createSpotLight(x, y, z){
     scene.add(spotlight.target);
     return spotlight;
 }
-
-
 function createPointLight(x, y, z, color) {
     //we can change individual color of light
     var point = new THREE.PointLight(color, 0.3, 15);
@@ -634,26 +647,6 @@ function createPointLight(x, y, z, color) {
 
     return point;
 }
-
-//FIXME
-function createFlowers(){
-    var flower_color;
-    for(var i = 0; i < 5000; i++){
-        flower_color = Math.random() * 0xffffff;
-        var geometry = new THREE.CircleGeometry(1, 32);
-        var material = new THREE.MeshBasicMaterial({color: flower_color});
-        var mesh = new THREE.Mesh(geometry, material);
-
-        var position_x = (Math.random() - 0.5) * 800;
-        var position_z = (Math.random() - 0.5) * 800;
-        mesh.position.x = position_x;
-        mesh.position.z = position_z;
-        mesh.position.y = -10;
-
-        scene.add(mesh);
-    }
-}
-
 //////////////////////
 /* CHECK COLLISIONS */
 //////////////////////
