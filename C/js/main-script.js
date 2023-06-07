@@ -146,31 +146,34 @@ function createVRCamera(x, y, z){
 /* CREATE LIGHT(S) */
 /////////////////////
 
+function createLights(){
+    createAmbientLight();
+    createDirectionalLight();
+}
+
 function createDirectionalLight() {
-	dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-	dirLight.position.set(100, 100, 200);
-	dirLight.target.position.set(0, 0, 0); //Should width and height be used here?
+	dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.6);
+
+	dirLight.position.set(100, 100, 100);
+	dirLight.target.position.set(0, 0, 0); 
+
     dirLight.castShadow = true;
 
-    /*dirL1ight.shadow.mapSize.width = 10;
-    dirLight.shadow.mapSize.height = 10;
-    dirLight.shadow.camera.near = 10;
-    dirLight.shadow.camera.far = 10;*/
+    // Directional lights' default shadow properties
+    dirLight.shadow.mapSize.width = 512;
+    dirLight.shadow.mapSize.height = 512;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 500;
 
 	dirLight.target.updateMatrixWorld();
 	scene.add(dirLight);
 }
 
 function createAmbientLight(){
-    ambientLight = new THREE.AmbientLight(0x404040, 2); 
+    ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2); 
     scene.add(ambientLight);
-    ambientLight2 = new THREE.AmbientLight(0x404040, 2);
+    ambientLight2 = new THREE.AmbientLight(0xFFFFFF, 0.2);
     texture_scene.add(ambientLight2);
-}
-
-function createLights(){
-    createAmbientLight();
-    createDirectionalLight();
 }
 
 ////////////////////////
@@ -233,10 +236,11 @@ function createStars(){
 }
 function createMoon(){
     'use strict';
-    var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xffffbf});
-    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xffffbf});
-    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xffffbf});
-    var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    // Moon yellow colour
+    var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815});
+    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815});
+    var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
     
     var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
     moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon); 
@@ -261,7 +265,7 @@ function createPlane() {
     const normal_map = loader.load('textures/terrain_shadowmap.png');
 
     const everglades_phong_material = new THREE.MeshPhongMaterial({
-        color: "green",
+        color: 0x90EE90,
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
@@ -269,7 +273,7 @@ function createPlane() {
         map: bufferTexture.texture,
     });
     const everglades_lambert_material = new THREE.MeshLambertMaterial({
-        color: "green",
+        color: 0x90EE90,
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
@@ -277,7 +281,7 @@ function createPlane() {
         map: bufferTexture.texture,
     });
     const everglades_toon_material = new THREE.MeshToonMaterial({
-        color: "green",
+        color: 0x90EE90,
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
@@ -285,7 +289,7 @@ function createPlane() {
         map: bufferTexture.texture,
     });
     const everglades_basic_material = new THREE.MeshBasicMaterial({
-        color: "green",
+        color: 0x90EE90,
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
@@ -293,15 +297,15 @@ function createPlane() {
         map: bufferTexture.texture,
     });
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
+    everglades.receiveShadow = true;
     meshes.push(everglades)
     materials.push([everglades_lambert_material, everglades_phong_material, everglades_toon_material, everglades_basic_material]);
-
 
     scene.add(everglades);
 }
 function createFlowers(){
     var flower_color;
-    for(var i = 0; i < 500; i++){
+    for(var i = 0; i < 1000; i++){
         switch(i % 4){
             case 0:
                 flower_color = 0xffffff;
@@ -310,7 +314,7 @@ function createFlowers(){
                 flower_color = 0xFFFF00;
             break;
             case 2:
-                flower_color = 0x8f00ff;
+                flower_color = 0xCF9FFF;
             break;
             case 3:
                 flower_color = 0x89cff0;
@@ -319,6 +323,7 @@ function createFlowers(){
         var geometry = new THREE.CircleGeometry(0.1, 32);
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
+        mesh.receiveShadow = true;
 
         mesh.position.x = Math.random() * field_edge * Math.sin(2 * Math.random() * Math.PI);
         mesh.position.y = 0;
@@ -626,8 +631,6 @@ function createHouse(){
     house.add(body, door, window1, window2, roof);    
     house.position.set(-5, 0, 2.5); // Center house
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
-    house.receiveShadow = true;
-    house.castShadow = true;
     
     meshes.push(body, door, window1, window2, roof);
     materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
