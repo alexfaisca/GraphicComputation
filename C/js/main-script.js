@@ -104,7 +104,7 @@ for(var i = 0; i < n_flowers; i++){
 function generateNature(){
     texture_scene = new THREE.Scene();
 
-    bufferTexture = new THREE.WebGLRenderTarget(32*field_edge, 32*field_edge, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps
+    bufferTexture = new THREE.WebGLRenderTarget(150*field_edge, 150*field_edge, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps
     createFlowers();
 }
 
@@ -316,7 +316,7 @@ function createFlowers(){
                 flower_color = 0x89cff0;
             break;
         }
-        var geometry = new THREE.CircleGeometry(1, 32);
+        var geometry = new THREE.CircleGeometry(0.1, 32);
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
 
