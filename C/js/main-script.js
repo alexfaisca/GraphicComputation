@@ -2,10 +2,10 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var scene, texture_scene, renderer;
+var scene, texture_scene, renderer, bufferTexture;
 
 var key_press_map = {};
-var cameras = new Array(2);
+var cameras = new Array(2), secondary_camera;
 var auxCamera;
 var active_camera;
 var presented = false;
@@ -41,8 +41,8 @@ function createScenes(){
     scene.add(new THREE.AxesHelper(100));
 
     scene.background = new THREE.Color(0xeeeeff);
-
-    createFlowers();
+    generateNature();
+//    createFlowers();
     createSky();
     createStars();
     createMoon();
@@ -102,11 +102,10 @@ for(var i = 0; i < n_flowers; i++){
 */
 
 function generateNature(){
-    bufferTexture = new THREE.WebGLRenderTarget(field_edge / 2, field_edge / 2, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps
-    createFlowers();
+    texture_scene = new THREE.Scene();
 
-    bufferTexture.texture.repeat.set(4, 4);
-    scene.children[0].material.map = bufferTexture.texture;
+    bufferTexture = new THREE.WebGLRenderTarget(32*field_edge, 32*field_edge, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps
+    createFlowers();
 }
 
 
@@ -125,8 +124,13 @@ function createCameras() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
+    secondary_camera = new THREE.PerspectiveCamera(100, bufferTexture.width / bufferTexture.height, 1, 250)
+
     cameras[0].position.set(20, 10, 20);
+    secondary_camera.position.set(0, 60, 0);
+
     cameras[0].lookAt(scene.position);
+    secondary_camera.lookAt(texture_scene.position);
 }
 
 function createVRCamera(x, y, z){
@@ -160,6 +164,8 @@ function createDirectionalLight() {
 function createAmbientLight(){
     ambientLight = new THREE.AmbientLight(0x404040, 2); 
     scene.add(ambientLight);
+    ambientLight2 = new THREE.AmbientLight(0x404040, 2);
+    texture_scene.add(ambientLight2);
 }
 
 function createLights(){
@@ -259,14 +265,16 @@ function createPlane() {
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
-        displacementScale: 10
+        displacementScale: 10,
+        map: bufferTexture.texture,
     });
     const everglades_lambert_material = new THREE.MeshLambertMaterial({
         color: "green",
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
-        displacementScale: 10
+        displacementScale: 10,
+        map: bufferTexture.texture,
     });
     const everglades_toon_material = new THREE.MeshToonMaterial({
         color: "green",
@@ -274,14 +282,15 @@ function createPlane() {
         displacementMap: displacement_map,
         normalMap: normal_map,
         displacementScale: 10,
-        wireframe: true,
+        map: bufferTexture.texture,
     });
     const everglades_basic_material = new THREE.MeshBasicMaterial({
         color: "green",
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
-        displacementScale: 10
+        displacementScale: 10,
+        map: bufferTexture.texture,
     });
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
     meshes.push(everglades)
@@ -307,7 +316,7 @@ function createFlowers(){
                 flower_color = 0x89cff0;
             break;
         }
-        var geometry = new THREE.CircleGeometry(0.1, 32);
+        var geometry = new THREE.CircleGeometry(1, 32);
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
 
@@ -315,7 +324,6 @@ function createFlowers(){
         mesh.position.y = 0;
         mesh.position.z = Math.random() * field_edge * Math.cos(2 * Math.random() * Math.PI);
         mesh.rotateX(Math.PI / 2);
-        console.log(mesh.id)
         texture_scene.add(mesh);
     }
 }
@@ -780,20 +788,19 @@ function render() {
             scene.translateZ(-5);
             scene.translateY(-5);
         }
-        renderer.autoClear = true;
+        renderer.clear(); // manual clear
         cameras[1].update(auxCamera);
         renderer.render(texture_scene, cameras[1].cameraL);
-        renderer.autoClear = false;
         renderer.render(texture_scene, cameras[1].cameraR);
         renderer.render(scene, cameras[1].cameraL);
         renderer.render(scene, cameras[1].cameraR);
     }
     else {
-        renderer.autoClear = true;
+        renderer.setRenderTarget(bufferTexture);
+        renderer.clear(); // manual clear
+        renderer.render(texture_scene, secondary_camera);
+        renderer.setRenderTarget(null);
         renderer.render(scene, cameras[0]);
-        renderer.autoClear = false;
-        renderer.clearDepth();
-        renderer.render(texture_scene, cameras[0]);
     }
 }
 
@@ -804,6 +811,7 @@ function init() {
     'use strict';
 
     renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.autoClear = false;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
 
