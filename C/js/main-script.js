@@ -340,7 +340,40 @@ function createCorkOaks(){
     var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
     var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
     var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
+    
+    var trunk1_path_start = new THREE.Vector3(0, 0, 0)
+    var trunk1_path_end = new THREE.Vector3(1.5, 2, 0)
+    const trunk1_path = new THREE.LineCurve3(trunk1_path_start, trunk1_path_end);
 
+    const circle = new THREE.Shape(
+
+    );
+
+    circle.moveTo( 0,0 );
+    circle.lineTo( 0, 0.5 );
+    circle.lineTo( 0.5, 0.5 );
+    circle.lineTo( 0.5, 0 );
+    circle.lineTo( 0, 0 );
+        /*
+    const length = 12, width = 8;
+
+    const shape = new THREE.Shape();
+    shape.moveTo( 0,0 );
+    shape.lineTo( 0, width );
+    shape.lineTo( length, width );
+    shape.lineTo( 0, 0 );
+        */
+    const extrudeSettings = {
+        extrudePath: trunk1_path
+    };
+
+    const trunk1_geometry = new THREE.ExtrudeGeometry( circle, extrudeSettings );
+    const trunk1_material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+    const mesh = new THREE.Mesh( trunk1_geometry, trunk1_material ) ;
+
+    mesh.position.set(15, 5, 10);
+    scene.add( mesh );
+    //----
     var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
     trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
     trunk1.receiveShadow = true;
@@ -361,20 +394,50 @@ function createCorkOaks(){
     treeTop1.receiveShadow = true;
     treeTop1.castShadow = true; 
     treeTop1.scale.set(2, 1, 1);
-    treeTop1.position.set(0, 2.5, 0);
+    treeTop1.position.set(-1.5, 2.5, 0);
+
+    var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+    treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
+    treeTop2.receiveShadow = true;
+    treeTop2.castShadow = true; 
+    treeTop2.scale.set(1.5, 1, 1);
+    treeTop2.position.set(0, 4, 0);
+
+    var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+    treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
+    treeTop3.receiveShadow = true;
+    treeTop3.castShadow = true; 
+    treeTop3.scale.set(2, 1, 1);
+    treeTop3.position.set(1.5, 2.5, 0);
 
     corkOak = new THREE.Group();
 
-    corkOak.add(trunk1, trunk2, treeTop1);
-    corkOak.position.set(9, 2.5, 0);
+    corkOak.add(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
+    corkOak.position.set(12, 2.5, 0);
     corkOak.rotateY((Math.PI)/(6)); // Better side visibility
+    
+    for (var i = 0; i < 10; i++){
+        
+        let corkOak_num = new THREE.Object3D();
+        corkOak_num.copy(corkOak);
+
+        corkOak_num.rotateY(2*(Math.PI) * Math.random());
+        corkOak_num.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
+        corkOak_num.position.x = Math.random() * field_edge * Math.sin(((4/3) * Math.random() + 1) * 3*(Math.PI)/4);
+        corkOak_num.position.z = Math.random() * field_edge * Math.cos(((4/3) * Math.random() + 1) * 3*(Math.PI)/4);
+
+        scene.add(corkOak_num);
+
+    }
 
     meshes.push(trunk1, trunk2, treeTop1);
     materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
     materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
     materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);   
 
-    scene.add(corkOak);
+    corkOak.position.set(10, 0 ,15);
+
+    //scene.add(corkOak);
 }
 function createHouse(){
     'use strict';
