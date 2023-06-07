@@ -320,14 +320,14 @@ function createFlowers(){
                 flower_color = 0x89cff0;
             break;
         }
-        var geometry = new THREE.CircleGeometry(0.1, 32);
+        var geometry = new THREE.CircleGeometry(0.1*(Math.random() + 1), 32);
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
         mesh.receiveShadow = true;
 
-        mesh.position.x = Math.random() * field_edge * Math.sin(2 * Math.random() * Math.PI);
+        mesh.position.x = Math.random() * field_edge/2 * Math.sin(2 * Math.random() * Math.PI);
         mesh.position.y = 0;
-        mesh.position.z = Math.random() * field_edge * Math.cos(2 * Math.random() * Math.PI);
+        mesh.position.z = Math.random() * field_edge/2 * Math.cos(2 * Math.random() * Math.PI);
         mesh.rotateX(Math.PI / 2);
         texture_scene.add(mesh);
     }
@@ -345,7 +345,7 @@ function createCorkOaks(){
     var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
     var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
     var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
-    
+    /*
     var trunk1_path_start = new THREE.Vector3(0, 0, 0)
     var trunk1_path_end = new THREE.Vector3(1.5, 2, 0)
     const trunk1_path = new THREE.LineCurve3(trunk1_path_start, trunk1_path_end);
@@ -359,7 +359,7 @@ function createCorkOaks(){
     circle.lineTo( 0.5, 0.5 );
     circle.lineTo( 0.5, 0 );
     circle.lineTo( 0, 0 );
-        /*
+        
     const length = 12, width = 8;
 
     const shape = new THREE.Shape();
@@ -367,7 +367,7 @@ function createCorkOaks(){
     shape.lineTo( 0, width );
     shape.lineTo( length, width );
     shape.lineTo( 0, 0 );
-        */
+        
     const extrudeSettings = {
         extrudePath: trunk1_path
     };
@@ -377,73 +377,68 @@ function createCorkOaks(){
     const mesh = new THREE.Mesh( trunk1_geometry, trunk1_material ) ;
 
     mesh.position.set(15, 5, 10);
-    scene.add( mesh );
+    scene.add( mesh ); */
     //----
-    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
-    trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
-    trunk1.receiveShadow = true;
-    trunk1.castShadow = true;
 
-    trunk1.rotateZ((Math.PI)/(4));
+    for (let i = 0; i < 20; i++) {
+        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
+        trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+        trunk1.receiveShadow = true;
+        trunk1.castShadow = true;
 
-    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 10);
-    trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
-    trunk2.receiveShadow = true;
-    trunk2.castShadow = true;
+        trunk1.rotateZ((Math.PI)/(4));
 
-    trunk2.rotateZ((Math.PI)/(-4));
-    trunk2.position.set(0.9, 0.9, 0);
+        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 10);
+        trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+        trunk2.receiveShadow = true;
+        trunk2.castShadow = true;
 
-    var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-    treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
-    treeTop1.receiveShadow = true;
-    treeTop1.castShadow = true; 
-    treeTop1.scale.set(2, 1, 1);
-    treeTop1.position.set(-1.5, 2.5, 0);
+        trunk2.rotateZ((Math.PI)/(-4));
+        trunk2.position.set(0.9, 0.9, 0);
 
-    var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-    treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
-    treeTop2.receiveShadow = true;
-    treeTop2.castShadow = true; 
-    treeTop2.scale.set(1.5, 1, 1);
-    treeTop2.position.set(0, 4, 0);
+        var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
+        treeTop1.receiveShadow = true;
+        treeTop1.castShadow = true; 
+        treeTop1.scale.set(2, 1, 1);
+        treeTop1.position.set(-1.5, 2.5, 0);
 
-    var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-    treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
-    treeTop3.receiveShadow = true;
-    treeTop3.castShadow = true; 
-    treeTop3.scale.set(2, 1, 1);
-    treeTop3.position.set(1.5, 2.5, 0);
+        var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
+        treeTop2.receiveShadow = true;
+        treeTop2.castShadow = true; 
+        treeTop2.scale.set(1.5, 1, 1);
+        treeTop2.position.set(0, 4, 0);
 
-    corkOak = new THREE.Group();
+        var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
+        treeTop3.receiveShadow = true;
+        treeTop3.castShadow = true; 
+        treeTop3.scale.set(2, 1, 1);
+        treeTop3.position.set(1.5, 2.5, 0);
 
-    corkOak.add(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
-    corkOak.position.set(12, 2.5, 0);
-    corkOak.rotateY((Math.PI)/(6)); // Better side visibility
-    
-    for (var i = 0; i < 10; i++){
+        corkOak = new THREE.Group();
+
+        corkOak.add(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
         
-        let corkOak_num = new THREE.Object3D();
-        corkOak_num.copy(corkOak);
+        corkOak.rotateY(2*(Math.PI) * Math.random());
+        corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
-        corkOak_num.rotateY(2*(Math.PI) * Math.random());
-        corkOak_num.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
-        corkOak_num.position.x = Math.random() * field_edge * Math.sin(((4/3) * Math.random() + 1) * 3*(Math.PI)/4);
-        corkOak_num.position.z = Math.random() * field_edge * Math.cos(((4/3) * Math.random() + 1) * 3*(Math.PI)/4);
-
-        scene.add(corkOak_num);
-
+        let r = field_edge/4 * (Math.random() + 1);
+        let theta = (3 * Math.random() + 1) * (Math.PI)/2;
+        corkOak.position.x = r * Math.sin(theta);
+        corkOak.position.z = r * Math.cos(theta);
+        
+        meshes.push(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
+        materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+        materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);
+        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);   
+        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);    
+        scene.add(corkOak);
     }
-
-    meshes.push(trunk1, trunk2, treeTop1);
-    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
-    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
-    materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);   
-
-    corkOak.position.set(10, 0 ,15);
-
-    //scene.add(corkOak);
 }
+
 function createHouse(){
     'use strict';
 
