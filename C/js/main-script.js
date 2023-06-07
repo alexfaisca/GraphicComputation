@@ -22,7 +22,8 @@ var ufo, spotlight, pointlights = [], spotlight_target;
 var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
-var plane, field_edge = 100;
+var plane; 
+var field_edge = 100, skydome_radius = 200;
 
 // -7.896139007327889 37.52503500684735
 
@@ -181,7 +182,7 @@ function createAmbientLight(){
 ////////////////////////
 
 function createSky() {
-    var skydome_geometry = new THREE.SphereGeometry(200, 180, 180);
+    var skydome_geometry = new THREE.SphereGeometry(skydome_radius, 180, 180);
 
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
@@ -220,16 +221,18 @@ function createSky() {
 function createStars(){
     var star_color = new THREE.Color().setHex(0xffffff);
     for(var i = 0; i < 1500; i++){
-        var geometry = new THREE.CircleGeometry(20, 32);
-        var material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
+        var geometry = new THREE.CircleGeometry(0.2*(Math.random() + 1), 32);
+        var material = new THREE.MeshBasicMaterial({color: star_color});
         var mesh = new THREE.Mesh(geometry, material);
-
-        mesh.position.x = 200;
-        mesh.position.y = 200;
-        mesh.position.z = 200;
-        mesh.rotateX(Math.random() * Math.PI);
-        mesh.rotateY(Math.random() * Math.PI / 2);
-        mesh.rotateZ(Math.random() * Math.PI);
+        
+        /* Spherical coordinates */
+        let r = skydome_radius - 5;
+        let theta = (3 * Math.random() + 1) * (Math.PI)/2; 
+        let phi = Math.random() * (Math.PI)/2;
+        mesh.position.x = r * Math.sin(phi) * Math.sin(theta);
+        mesh.position.y = r * Math.cos(phi)
+        mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
+        mesh.lookAt(0, 0, 0);
 
         scene.add(mesh);
     }
@@ -424,6 +427,7 @@ function createCorkOaks(){
         corkOak.rotateY(2*(Math.PI) * Math.random());
         corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
+        /* Polar coordinates */
         let r = field_edge/4 * (Math.random() + 1);
         let theta = (3 * Math.random() + 1) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
