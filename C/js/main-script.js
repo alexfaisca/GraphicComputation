@@ -32,10 +32,11 @@ var plane, field_edge = 100;
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
-function createScene(){
+function createScenes(){
     'use strict';
 
     scene = new THREE.Scene();
+    texture_scene = new THREE.Scene();
 
     scene.add(new THREE.AxesHelper(100));
 
@@ -101,15 +102,8 @@ for(var i = 0; i < n_flowers; i++){
 */
 
 function generateNature(){
-    texture_scene = new THREE.Scene();
     bufferTexture = new THREE.WebGLRenderTarget(field_edge / 2, field_edge / 2, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps
     createFlowers();
-
-    renderer.setSize(field_edge / 2, field_edge / 2);
-    renderer.setRenderTarget(bufferTexture);
-    renderer.render(texture_scene, cameras[active_camera]);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setRenderTarget(null);
 
     bufferTexture.texture.repeat.set(4, 4);
     scene.children[0].material.map = bufferTexture.texture;
@@ -279,7 +273,8 @@ function createPlane() {
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
-        displacementScale: 10
+        displacementScale: 10,
+        wireframe: true,
     });
     const everglades_basic_material = new THREE.MeshBasicMaterial({
         color: "green",
@@ -320,8 +315,8 @@ function createFlowers(){
         mesh.position.y = 0;
         mesh.position.z = Math.random() * field_edge * Math.cos(2 * Math.random() * Math.PI);
         mesh.rotateX(Math.PI / 2);
-
-        scene.add(mesh);
+        console.log(mesh.id)
+        texture_scene.add(mesh);
     }
 }
 
@@ -785,12 +780,21 @@ function render() {
             scene.translateZ(-5);
             scene.translateY(-5);
         }
+        renderer.autoClear = true;
         cameras[1].update(auxCamera);
+        renderer.render(texture_scene, cameras[1].cameraL);
+        renderer.autoClear = false;
+        renderer.render(texture_scene, cameras[1].cameraR);
         renderer.render(scene, cameras[1].cameraL);
         renderer.render(scene, cameras[1].cameraR);
     }
-    else
-        renderer.render(scene, cameras[active_camera]);        
+    else {
+        renderer.autoClear = true;
+        renderer.render(scene, cameras[0]);
+        renderer.autoClear = false;
+        renderer.clearDepth();
+        renderer.render(texture_scene, cameras[0]);
+    }
 }
 
 ////////////////////////////////
@@ -812,7 +816,7 @@ function init() {
     
     renderer.xr.enabled = true;
 
-    createScene();
+    createScenes();
     createCameras();
     createLights();
 
@@ -826,11 +830,12 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
+    requestAnimationFrame(animate);
     renderer.setAnimationLoop(function(){
         render();
         update();
-    })  
-}    
+    })
+}
 
 function update_ufo_velocity(x, z){
     'use strict';
