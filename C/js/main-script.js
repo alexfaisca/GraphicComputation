@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var scene, renderer;
+var scene, texture_scene, renderer;
 
 var key_press_map = {};
 var cameras = new Array(2);
@@ -15,7 +15,7 @@ var ambientLight;
 var materials = [];
 var meshes = [];
 
-var sky, skyTexture;
+var sky, skyTexture, skydome;
 var moon;
 var house, body, door, window1, window2, roof;
 var ufo, spotlight, pointlights = [], spotlight_target;
@@ -41,13 +41,14 @@ function createScene(){
 
     scene.background = new THREE.Color(0xeeeeff);
 
-    //createSky();
+    createFlowers();
+    createSky();
+    createStars();
     createMoon();
     createPlane();
     createHouse();
     createUfo();
     createCorkOaks();
-    createFlowers();
 }
 /*
 function createScene(){
@@ -97,25 +98,23 @@ for(var i = 0; i < n_flowers; i++){
     grass_scene.add(mesh);
 }
 
+*/
 
-
-function generateGrass(){
-    grass_scene = new THREE.Scene();
-
-    bufferTexture = new THREE.WebGLRenderTarget(400, 400, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps 
-
+function generateNature(){
+    texture_scene = new THREE.Scene();
+    bufferTexture = new THREE.WebGLRenderTarget(field_edge / 2, field_edge / 2, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter}) //wraps
     createFlowers();
 
-    renderer.setSize(400, 400);
+    renderer.setSize(field_edge / 2, field_edge / 2);
     renderer.setRenderTarget(bufferTexture);
-    renderer.render(grass_scene, lateralOrthoCamera);
+    renderer.render(texture_scene, cameras[active_camera]);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setRenderTarget(null);
 
-    bufferTexture.texture.repeat.set(repeatX, repeatY);
+    bufferTexture.texture.repeat.set(4, 4);
     scene.children[0].material.map = bufferTexture.texture;
 }
-*/
+
 
 
 //////////////////////
@@ -179,14 +178,16 @@ function createLights(){
 ////////////////////////
 
 function createSky() {
-    skyTexture = new THREE.SphereGeometry(100, 180, 180);
+    var skydome_geometry = new THREE.SphereGeometry(200, 180, 180);
 
-    var material = new THREE.MeshPhongMaterial({
+    var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
         side: THREE.DoubleSide,
-        color: 'purple'
+        color: 'violet',
     });
 
+    skydome = new THREE.Mesh(skydome_geometry, skydome_material);
+    scene.add(skydome);
 
     /*
     const indices = [0, 1, 2, 2, 3, 0];
@@ -212,11 +213,24 @@ function createSky() {
     skyTexture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray, 3), true))
     */
 
-    sky = new THREE.Mesh(skyTexture, material);
-    scene.add(sky);
-
 }
+function createStars(){
+    var star_color = new THREE.Color().setHex(0xffffff);
+    for(var i = 0; i < 1500; i++){
+        var geometry = new THREE.CircleGeometry(20, 32);
+        var material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
+        var mesh = new THREE.Mesh(geometry, material);
 
+        mesh.position.x = 200;
+        mesh.position.y = 200;
+        mesh.position.z = 200;
+        mesh.rotateX(Math.random() * Math.PI);
+        mesh.rotateY(Math.random() * Math.PI / 2);
+        mesh.rotateZ(Math.random() * Math.PI);
+
+        scene.add(mesh);
+    }
+}
 function createMoon(){
     'use strict';
     var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xffffbf});
@@ -239,7 +253,7 @@ function createMoon(){
 
 function createPlane() {
 
-    var everglades_geometry = new THREE.PlaneGeometry(field_edge / 2, field_edge / 2, 1000, 1000);
+    var everglades_geometry = new THREE.CircleGeometry(field_edge, 2000);
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
@@ -289,11 +303,9 @@ function createFlowers(){
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
 
-        var position_x = (Math.random() - 0.5) * field_edge / 2;
-        var position_z = (Math.random() - 0.5) * field_edge / 2;
-        mesh.position.x = position_x;
+        mesh.position.x = Math.random() * field_edge * Math.sin(2 * Math.random() * Math.PI);
         mesh.position.y = 0;
-        mesh.position.z = position_z;
+        mesh.position.z = Math.random() * field_edge * Math.cos(2 * Math.random() * Math.PI);
         mesh.rotateX(Math.PI / 2);
 
         scene.add(mesh);
@@ -601,7 +613,7 @@ function createUfo() {
     var pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     var pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
     var pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
-    const pointlight_count = 16;
+    const pointlight_count = 6;
     var pointlight;
 
     for(let i = 0; i < pointlight_count; i++) {
