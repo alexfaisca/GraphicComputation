@@ -37,15 +37,11 @@ function createScenes(){
     'use strict';
 
     scene = new THREE.Scene();
-    texture_scene = new THREE.Scene();
 
     scene.add(new THREE.AxesHelper(100));
 
     scene.background = new THREE.Color(0xeeeeff);
-    generateNature();
-    generateFirmament();
     createSky();
-    createStars();
     createMoon();
     createPlane();
     createHouse();
@@ -53,10 +49,9 @@ function createScenes(){
     createCorkOaks();
 }
 function generateNature() {
-    everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
-    everglades_texture.repeat.set(10,10);
     createGrass();
     createFlowers();
+    createMarshGazerCamera();
 }
 
 function createGrass() {
@@ -100,10 +95,9 @@ function createFlowers(){
 }
 
 function generateFirmament() {
-    firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
-    firmament_texture.repeat.set(10,10);
     createSunset();
     createStars();
+    createStarGazerCamera();
 }
 function createSunset() {
     var sunset_geometry = new THREE.BufferGeometry();
@@ -154,6 +148,29 @@ function createStars(){
 
         texture_scene.add(star_mesh);
     }
+}
+function createTextures() {
+    texture_scene = new THREE.Scene();
+    ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
+    texture_scene.add(ambientLightTexture);
+
+    createMarshGazerCamera();
+    everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
+    everglades_texture.repeat.set(10,10);
+    generateNature();
+    renderer.setRenderTarget(everglades_texture);
+    renderer.clear(); // manual clear
+    renderer.render(texture_scene, cameras[2]);
+    renderer.setRenderTarget(null)
+
+    createStarGazerCamera();
+    firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
+    firmament_texture.repeat.set(10,10);
+    generateFirmament();
+    renderer.setRenderTarget(firmament_texture);
+    renderer.clear(); // manual clear
+    renderer.render(texture_scene, cameras[3]);
+    renderer.setRenderTarget(null);
 }
 
 //////////////////////
@@ -868,12 +885,6 @@ function render() {
         renderer.render(scene, cameras[1].cameraR);
     }
     else {
-        renderer.setRenderTarget(everglades_texture);
-        renderer.clear(); // manual clear
-        renderer.render(texture_scene, cameras[2]);
-        renderer.setRenderTarget(firmament_texture);
-        renderer.render(texture_scene, cameras[3]);
-        renderer.setRenderTarget(null);
         renderer.render(scene, cameras[0]);
     }
 }
@@ -898,6 +909,7 @@ function init() {
 
     renderer.xr.enabled = true;
 
+    createTextures();
     createScenes();
     createCameras();
     createLights();
