@@ -259,7 +259,7 @@ function createSky() {
 
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
-        side: THREE.DoubleSide,
+        side: THREE.BackSide,
         map: firmament_texture.texture,
     });
 
@@ -298,7 +298,7 @@ function createPlane() {
 
     const everglades_phong_material = new THREE.MeshPhongMaterial({
         color: 0xffffff,
-        side : THREE.DoubleSide,
+        side : THREE.BackSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
         displacementScale: 25,
