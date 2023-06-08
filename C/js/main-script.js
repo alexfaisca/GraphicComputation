@@ -800,7 +800,7 @@ function toggleStars(){
     'use strict'
     if(key_press_map[50]) {
         if(star_mode){ // Destroy stars
-            texture_scene.remove(texture_scene.getObjectByName("firmament"));
+            texture_scene.remove(texture_scene.getObjectByName("stars"));
             star_mode = !star_mode;
         } else { // Create stars
             createStars();
