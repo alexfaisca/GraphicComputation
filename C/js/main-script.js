@@ -27,7 +27,7 @@ var field_radius = 100;
 
 var stars, flowers;
 var star_mode, flower_mode;
-var number_of_stars = 1500, number_of_flowers = 1000, number_of_cork_oaks = 30;
+var number_of_stars = 1600, number_of_flowers = 1000, number_of_cork_oaks = 30;
 
 // -7.896139007327889 37.52503500684735
 
@@ -111,10 +111,10 @@ function createSunset() {
     var sunset_geometry = new THREE.BufferGeometry();
     // Position vertices
     sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
-        -40, 0, -40,
-        40, 0, -40,
-        40, 0, 40,
-        -40, 0, 40
+        -50, 0, -50,
+        50, 0, -50,
+        50, 0, 50,
+        -50, 0, 50
     ]), 3));
     // Index vertices
     const indices = [
@@ -126,9 +126,9 @@ function createSunset() {
     var colorArray = [];
     var color1 = new THREE.Color().setHex(0x152887); // blue
     var color2 = new THREE.Color().setHex(0x6C3D60); // purple
-    colorArray = color1.toArray()
+    colorArray = color2.toArray()
         .concat(color2.toArray())
-        .concat(color2.toArray())
+        .concat(color1.toArray())
         .concat(color1.toArray());
     sunset_geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3));
 
@@ -150,9 +150,9 @@ function createStars(){
         var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
         var star_mesh = new THREE.Mesh(star_geometry, star_material);
 
-        star_mesh.position.x = (Math.random() - 0.5) * 80;
+        star_mesh.position.x = (Math.random() - 0.5) * 100;
         star_mesh.position.y = 110;
-        star_mesh.position.z =  (Math.random() - 0.5) * 80;
+        star_mesh.position.z =  (Math.random() - 0.5) * 100;
         star_mesh.lookAt(0, 0, 0);
         stars.add(star_mesh);
     }
@@ -174,7 +174,7 @@ function createTextures() {
 
     createStarGazerCamera();
     firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
-    firmament_texture.repeat.set(10,10);
+    firmament_texture.repeat.set(50, 1);
     generateFirmament();
     renderer.setRenderTarget(firmament_texture);
     renderer.clear(); // manual clear
@@ -200,7 +200,7 @@ function createMarshGazerCamera() {
     cameras[2].lookAt(texture_scene.position);
 }
 function createStarGazerCamera() {
-    cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 50);
+    cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50,  7 * window.innerHeight / 50 / 2,  - 7 * window.innerHeight / 50 / 2, 1, 50);
     cameras[3].position.set(0, 140, 0);
     cameras[3].lookAt(texture_scene.position);
 
@@ -208,17 +208,13 @@ function createStarGazerCamera() {
 function createIsometricPerspectiveCamera() {
     'use strict'
     cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
-
-
     cameras[0].position.set(20, 10, 20);
-
     cameras[0].lookAt(scene.position);
-
+    //cameras[0].rotateX(Math.PI/ 4);
 }
 
 function createVRCamera(x, y, z){
     auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-
     auxCamera.position.set(x, y, z);
     auxCamera.lookAt(scene.position);
     cameras[1] = new THREE.StereoCamera();
@@ -265,7 +261,7 @@ function createAmbientLightTexture(){
 ////////////////////////
 
 function createSky() {
-    var skydome_geometry = new THREE.SphereGeometry(field_radius, 180, 180);
+    var skydome_geometry = new THREE.SphereGeometry(field_radius, 180, 180, 0, Math.PI * 2, 0, 6 * Math.PI / 11);
 
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
