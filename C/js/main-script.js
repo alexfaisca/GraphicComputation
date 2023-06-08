@@ -363,7 +363,7 @@ function createCorkOaks(){
     //----
 
     for (let i = 0; i < number_of_cork_oaks; i++) {
-        var baseTrunkShapeGeometry = new THREE.CylinderGeometry(0.65, 0.5, 1.5, 10);
+        var baseTrunkShapeGeometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
         var baseTrunk = new THREE.Mesh(baseTrunkShapeGeometry, lambertMaterialTrunk);
         baseTrunk.receiveShadow = true;
         baseTrunk.castShadow = true;
@@ -371,55 +371,51 @@ function createCorkOaks(){
 
         baseTrunk.rotateZ(Math.PI);
 
-        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.45, 0.5, 3.5, 10);
+        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
         var trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk);
         trunk1.receiveShadow = true;
         trunk1.castShadow = true;
-        trunk1.position.set(-0.9, 1.85, 0);
+        trunk1.position.set(-0.795, 1.9, 0);
 
         trunk1.rotateZ((Math.PI)/5);
 
-        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.35, 0.35, 4, 10);
+        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
         var trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk);
         trunk2.receiveShadow = true;
         trunk2.castShadow = true;
 
-        trunk2.rotateZ((Math.PI)/(-6));
-        trunk2.position.set(1.2, 2.5, 0);
+        trunk2.rotateZ((Math.PI)/(-4));
+        trunk2.position.set(1, 1.8, 0);
 
         var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
         var treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
         treeTop1.receiveShadow = true;
         treeTop1.castShadow = true;
         treeTop1.scale.set(2, 1, 1);
-        treeTop1.position.set(-2.0, 4.5, 0.7);
+        treeTop1.position.set(-2.0, 4, 0.7);
 
         var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
         var treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
         treeTop2.receiveShadow = true;
         treeTop2.castShadow = true;
         treeTop2.scale.set(1.5, 1, 1);
-        treeTop2.position.set(-1, 5.5, -0.7);
+        treeTop2.position.set(-1, 4.5, -0.7);
 
         var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
         var treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
         treeTop3.receiveShadow = true;
         treeTop3.castShadow = true;
         treeTop3.scale.set(2, 1, 1);
-        treeTop3.position.set(1.5, 4.8, -0.3);
+        treeTop3.position.set(1.5, 3.8, -0.3);
 
         corkOak = new THREE.Group();
 
         corkOak.add(baseTrunk, trunk1, trunk2, treeTop1, treeTop2, treeTop3);
         corkOak.position.set(10,0,10);
-
-        corkOak.rotateY(2 *Math.PI / 4)
-
         corkOak.rotateY(2*(Math.PI) * Math.random());
         corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
         /* Polar coordinates */
-
         let r = 8 + (field_radius/4* (Math.random() + 1));
         let theta = (3.3/4) * (30 / i) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
