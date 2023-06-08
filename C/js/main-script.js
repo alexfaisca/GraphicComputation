@@ -2,7 +2,7 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var scene, texture_scene, renderer, everglades_texture;
+var scene, texture_scene, renderer, everglades_texture, firmament_texture;
 
 var key_press_map = {};
 var cameras = new Array(4);
@@ -15,7 +15,7 @@ var ambientLight;
 var materials = [];
 var meshes = [];
 
-var sky, skyTexture, skydome;
+var sky, skyTexture, skydome, sunset;
 var moon;
 var house, body, door, window1, window2, roof;
 var ufo, spotlight, pointlights = [], spotlight_target;
@@ -23,7 +23,7 @@ var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
 var plane; 
-var field_edge = 100, skydome_radius = 200;
+var field_radius = 100, skydome_radius = 200;
 
 // -7.896139007327889 37.52503500684735
 
@@ -43,7 +43,7 @@ function createScenes(){
 
     scene.background = new THREE.Color(0xeeeeff);
     generateNature();
-//    createFlowers();
+    generateFirmament();
     createSky();
     createStars();
     createMoon();
@@ -52,59 +52,8 @@ function createScenes(){
     createUfo();
     createCorkOaks();
 }
-/*
-function createScene(){
-    'use strict';
-
-    scene = new THREE.Scene();
-
-    scene.background = new THREE.Color(0xffffff);
-    scene.add(new THREE.AxesHelper(20));
-
-    plane = new THREE.Object3D();
-    var colorArray = [];
-    everglades_texture = new THREE.BufferGeometry();
-    everglades_texture.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
-        -40, -40, 0,
-        40, -40, 0,
-        40, 40, 0,
-        -40, 40, 0
-    ]) 3)); 
-
-    const indices =[
-        0, 1, 2,
-        2, 3, 0
-    ] 
-
-    var color1 = new THREE.Color().setHex(0xff0000);
-    var color2 = new THREE.Color().setHex(0x0000ff);
-    colorArray = color1.toArray()
-                .concat(color2.toArray())
-                .concat(color2.toArray())
-                .concat(color1.toArray());
-}   
-
-
-var flower_color;
-for(var i = 0; i < n_flowers; i++){
-    flower_color = Math.random() * 0xffffff;
-    geometry = new THREE.CircleGeometry(5, 32);
-    material = new THREE.MeshBasicMaterial({color: flower_color});
-    mesh = new THREE.Mesh(geometry, material);
-
-    var position_x = Math.random() * 400 - 200;
-    var position_y = Math.random() * 400 - 200;
-    mesh.position.x = position_x;
-    mesh.position.y = position_y;
-
-    grass_scene.add(mesh);
-}
-
-*/
-
 function generateNature() {
-    texture_scene = new THREE.Scene();
-    everglades_texture = new THREE.WebGLRenderTarget(150*field_edge, 150*field_edge, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
+    everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
     everglades_texture.repeat.set(10,10);
     createGrass();
     createFlowers();
@@ -150,6 +99,63 @@ function createFlowers(){
     }
 }
 
+function generateFirmament() {
+    firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
+    firmament_texture.repeat.set(10,10);
+    createSunset();
+    createStars();
+}
+function createSunset() {
+    var colorArray = [];
+    var sunset_texture = new THREE.BufferGeometry();
+    sunset_texture.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
+        -40, 0, -40,
+        40, 0, -40,
+        40, 0, 40,
+        -40, 0, 40
+    ]), 3));
+
+    const indices = [
+        0, 1, 2,
+        2, 3, 0
+    ]
+
+    sunset_texture.setIndex(indices);
+
+    var color1 = new THREE.Color().setHex(0xff0000);
+    var color2 = new THREE.Color().setHex(0x0000ff);
+    colorArray = color1.toArray()
+        .concat(color2.toArray())
+        .concat(color2.toArray())
+        .concat(color1.toArray());
+
+    sunset_texture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3, true));
+
+    var sunset_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff, vertexColors: THREE.VertexColors});
+    sunset = new THREE.Mesh(sunset_texture, sunset_lambert_material);
+    sunset.position.set(300, 0, 300);
+    texture_scene.add(sunset);
+}
+function createStars(){
+    var star_color = new THREE.Color().setHex(0xffffff);
+    for(var i = 0; i < 1500; i++){
+        var geometry = new THREE.CircleGeometry(0.2*(Math.random() + 1), 32);
+        var material = new THREE.MeshBasicMaterial({color: star_color});
+        var mesh = new THREE.Mesh(geometry, material);
+
+        /* Spherical coordinates */
+        let r = skydome_radius - 5;
+        let theta = (3 * Math.random() + 1) * (Math.PI)/2;
+        let phi = Math.random() * (Math.PI)/2;
+        mesh.position.x = r * Math.sin(phi) * Math.sin(theta);
+        mesh.position.y = r * Math.cos(phi)
+        mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
+        mesh.lookAt(0, 0, 0);
+
+        scene.add(mesh);
+    }
+}
+
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
@@ -165,12 +171,12 @@ function createCameras() {
 function createMarshGazerCamera() {
     cameras[2] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 40 );
     cameras[2].position.set(0, 10, 0);
-    cameras[2].lookAt(scene.position);
+    cameras[2].lookAt(texture_scene.position);
 }
 function createStarGazerCamera() {
     cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 40 );
-    cameras[3].position.set(0, 10, 0);
-    cameras[3].lookAt(scene.position);
+    cameras[3].position.set(300, 10, 300);
+    cameras[3].lookAt(sunset.position);
 }
 function createIsometricPerspectiveCamera() {
     'use strict'
@@ -233,7 +239,7 @@ function createAmbientLightTexture(){
 ////////////////////////
 
 function createSky() {
-    var skydome_geometry = new THREE.SphereGeometry(skydome_radius, 180, 180);
+    var skydome_geometry = new THREE.SphereGeometry(field_radius, 180, 180);
 
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
@@ -269,25 +275,6 @@ function createSky() {
     */
 
 }
-function createStars(){
-    var star_color = new THREE.Color().setHex(0xffffff);
-    for(var i = 0; i < 1500; i++){
-        var geometry = new THREE.CircleGeometry(0.2*(Math.random() + 1), 32);
-        var material = new THREE.MeshBasicMaterial({color: star_color});
-        var mesh = new THREE.Mesh(geometry, material);
-        
-        /* Spherical coordinates */
-        let r = skydome_radius - 5;
-        let theta = (3 * Math.random() + 1) * (Math.PI)/2; 
-        let phi = Math.random() * (Math.PI)/2;
-        mesh.position.x = r * Math.sin(phi) * Math.sin(theta);
-        mesh.position.y = r * Math.cos(phi)
-        mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
-        mesh.lookAt(0, 0, 0);
-
-        scene.add(mesh);
-    }
-}
 function createMoon(){
     'use strict';
     // Moon yellow colour
@@ -311,7 +298,7 @@ function createMoon(){
 
 function createPlane() {
 
-    var everglades_geometry = new THREE.CircleGeometry(field_edge, 2000);
+    var everglades_geometry = new THREE.CircleGeometry(field_radius, 2000);
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
@@ -448,7 +435,7 @@ function createCorkOaks(){
         corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
         /* Polar coordinates */
-        let r = field_edge/4 * (Math.random() + 1);
+        let r = field_radius/4 * (Math.random() + 1);
         let theta = (3 * Math.random() + 1) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
         corkOak.position.z = r * Math.cos(theta);
@@ -883,12 +870,13 @@ function render() {
         renderer.render(scene, cameras[1].cameraL);
         renderer.render(scene, cameras[1].cameraR);
     }
-    else {
+    else {/*
         renderer.setRenderTarget(everglades_texture);
         renderer.clear(); // manual clear
         renderer.render(texture_scene, cameras[2]);
         renderer.setRenderTarget(null);
-        renderer.render(scene, cameras[0]);
+        renderer.render(scene, cameras[0]);*/
+        renderer.render(texture_scene, cameras[3]);
     }
 }
 
