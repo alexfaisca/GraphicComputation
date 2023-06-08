@@ -41,7 +41,6 @@ function createScenes(){
     'use strict';
 
     scene = new THREE.Scene();
-
     scene.add(new THREE.AxesHelper(100));
 
     scene.background = new THREE.Color(0xeeeeff);
@@ -160,7 +159,7 @@ function createStars(){
 }
 function createTextures() {
     texture_scene = new THREE.Scene();
-    ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
+    var ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
     texture_scene.add(ambientLightTexture);
 
     createMarshGazerCamera();
@@ -189,8 +188,6 @@ function createTextures() {
 function createCameras() {
     'use strict'
     active_camera = 0;
-    createMarshGazerCamera();
-    createStarGazerCamera();
     createIsometricPerspectiveCamera();
     createVRCamera(0, 20, 20);
 }
@@ -225,7 +222,7 @@ function createVRCamera(x, y, z){
 /* CREATE LIGHT(S) */
 /////////////////////
 
-function createLights(){
+function createLights() {
     createAmbientLight();
     createDirectionalLight();
 }
@@ -246,12 +243,12 @@ function createDirectionalLight() {
     scene.add(dirLight);
 }
 
-function createAmbientLight(){
+function createAmbientLight() {
     ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
     scene.add(ambientLight);
 }
 
-function createAmbientLightTexture(){
+function createAmbientLightTexture() {
     ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
     texture_scene.add(ambientLightTexture);
 }
@@ -272,7 +269,7 @@ function createSky() {
     skydome = new THREE.Mesh(skydome_geometry, skydome_material);
     scene.add(skydome);
 }
-function createMoon(){
+function createMoon() {
     'use strict';
     // Moon yellow colour
     var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
@@ -699,7 +696,7 @@ function createUfo() {
     ufo.position.set(ufo_x, ufo_y, ufo_z);
     scene.add(ufo);
 }
-function createSpotLight(x, y, z){
+function createSpotLight(x, y, z) {
     spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
     spotlight.castShadow = true;
 
@@ -733,7 +730,7 @@ function checkCollisions(){
 ///////////////////////
 /* HANDLE COLLISIONS */
 ///////////////////////
-function handleCollisions(){
+function handleCollisions() {
     'use strict';
 
 }
@@ -755,7 +752,7 @@ function update(){
     updateUfoRotation(delta);
 }
 
-function changeDirectionalLight(){
+function changeDirectionalLight() {
     'use strict'
     if(key_press_map[68]) {
         dirLight.visible = !dirLight.visible;
@@ -763,7 +760,7 @@ function changeDirectionalLight(){
     }
 }
 
-function changeSpotLight(){
+function changeSpotLight() {
     'use strict'
     if(key_press_map[83]) {
         spotlight.visible = !spotlight.visible;
@@ -771,7 +768,7 @@ function changeSpotLight(){
     }
 }
 
-function changePointLight(){
+function changePointLight() {
     'use strict'
     if(key_press_map[80]) {
         for (const light of pointlights) light.visible = !light.visible;
@@ -779,7 +776,7 @@ function changePointLight(){
     }
 }
 
-function toggleFlowers(){
+function toggleFlowers() {
     'use strict'
     if(key_press_map[49]) {
         if(flower_mode){ // Destroy flowers
@@ -788,15 +785,15 @@ function toggleFlowers(){
         } else { // Create flowers
             createFlowers();
         }
-        renderer.clear();
         renderer.setRenderTarget(everglades_texture);
+        renderer.clear();
         renderer.render(texture_scene, cameras[2]);
         renderer.setRenderTarget(null);
         key_press_map[49] = 0;
     }
 }
 
-function toggleStars(){
+function toggleStars() {
     'use strict'
     if(key_press_map[50]) {
         if(star_mode){ // Destroy stars
@@ -805,8 +802,8 @@ function toggleStars(){
         } else { // Create stars
             createStars();
         }
-        renderer.clear();
         renderer.setRenderTarget(firmament_texture);
+        renderer.clear();
         renderer.render(texture_scene, cameras[3]);
         renderer.setRenderTarget(null);
         key_press_map[50] = 0;
@@ -814,7 +811,7 @@ function toggleStars(){
     }
 }
 
-function changeMaterials(){
+function changeMaterials() {
     'use strict'
     for (var i = 0; i < meshes.length; i++) {
         if(key_press_map[81]) // Cartoon
@@ -850,7 +847,7 @@ function updateUfoRotation(delta) {
 /////////////
 function render() {
     'use strict';
-    if(renderer.xr.isPresenting){
+    if(renderer.xr.isPresenting) {
         if(!presented){
             presented = true;
             scene.translateZ(-5);
