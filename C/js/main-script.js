@@ -24,6 +24,9 @@ var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
 var plane; 
 var field_radius = 100;
+var number_of_stars, number_of_flowers;
+
+var star_mode, flower_mode;
 
 // -7.896139007327889 37.52503500684735
 
@@ -72,7 +75,7 @@ function createGrass() {
 
 function createFlowers(){
     var flower_color;
-    for(var i = 0; i < 1000; i++){
+    for(var i = 0; i < number_of_flowers; i++){
         switch(i % 4){
             case 0:
                 flower_color = 0xffffff;
@@ -91,11 +94,16 @@ function createFlowers(){
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
 
-        mesh.position.x = (Math.random() -0.5) * 50 ;
+        mesh.position.x = (Math.random() -0.5) * 50;
         mesh.position.y = 0;
-        mesh.position.z = (Math.random() - 0.5) * 50 ;
+        mesh.position.z = (Math.random() - 0.5) * 50;
         mesh.rotateX(Math.PI / 2);
+
+        mesh.name = 'flower${i}';
+
         texture_scene.add(mesh);
+
+        flower_mode = 1;
     }
 }
 
@@ -138,7 +146,7 @@ function createSunset() {
 }
 function createStars(){
     var star_color = new THREE.Color().setHex(0xffffff);
-    for(var i = 0; i < 1500; i++){
+    for(var i = 0; i < number_of_stars; i++){
         var geometry = new THREE.CircleGeometry(0.05*(Math.random() + 1), 32);
         var material = new THREE.MeshBasicMaterial({color: star_color});
         var mesh = new THREE.Mesh(geometry, material);
@@ -155,6 +163,8 @@ function createStars(){
         mesh.name = 'star${i}';
 
         scene.add(mesh);
+
+        star_mode = 1;
     }
 }
 
@@ -782,7 +792,8 @@ function update(){
     changeDirectionalLight();
     changeSpotLight();
     changePointLight();
-    changeStarsPosition();
+    changeStars();
+    changeFlowers();
 
     let delta =  clock.getDelta();
     changeMaterials();
@@ -823,23 +834,58 @@ function changePointLight(){
     }
 }
 
-function changeStarsPosition(){
+function changeFlowers(){
+    'use strict'
+    if(key_press_map[49]) {
+        
+        if(flower_mode) 
+            createFlowers();
+        else 
+            removeFlowers()
+        
+
+        flower_mode = !flower_mode;
+        key_press_map[49] = 0;
+
+        //renderer.renderLists.dispose();
+    }
+}
+
+function removeFlowers(){
+    for(var i = 0; i < number_of_flowers; i++){
+    
+        const flower_i = scene.getObjectByName('flower${i}');
+
+        flower_i.geometry.dispose();
+        flower_i.material.dispose();
+        scene.remove( flower_i );
+    }
+}
+
+function changeStars(){
     'use strict'
     if(key_press_map[50]) {
 
-        for(var i = 0; i < 1500; i++){
-    
-            const star_i = scene.getObjectByName('star${i}');
+        if(star_mode) 
+            createStars();
+        else
+            removeStars();
 
-            star_i.geometry.dispose();
-            star_i.material.dispose();
-            scene.remove( star_i );
-        }
+        star_mode = !star_mode;
         key_press_map[50] = 0;
 
-        createStars();
-
         //renderer.renderLists.dispose();
+    }
+}
+
+function removeStars(){
+    for(var i = 0; i < number_of_stars; i++){
+    
+        const star_i = scene.getObjectByName('star${i}');
+
+        star_i.geometry.dispose();
+        star_i.material.dispose();
+        scene.remove( star_i );
     }
 }
 
@@ -926,6 +972,8 @@ function init() {
     createScenes();
     createCameras();
     createLights();
+    number_of_stars = 150;
+    number_of_flowers = 100;
 
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
@@ -1039,12 +1087,12 @@ function onKeyDown(e) {
     'use strict';
 
     switch(e.keyCode) {
-        // Change camera
+        // Toggle flowers
         case 49: // 1
             key_press_map[49] = 1;
             break;
-        // Change stars placement
-        case 50:
+        // Toggle stars 
+        case 50: // 2
             key_press_map[50] = 1;
             break
         // Toggle directional light
@@ -1103,11 +1151,6 @@ function onKeyUp(e) {
     'use strict';
 
     switch(e.keyCode) {
-        /*
-        // Change camera
-        case 49: // 1
-            key_press_map[49] = 0;
-            break;
         // Toggle directional light
         case 68: // D
         case 100: // d
@@ -1141,7 +1184,6 @@ function onKeyUp(e) {
         case 115: // s
             key_press_map[83] = 0;
             break;
-        */
         // UFO Movement
         case 37: // Left
             key_press_map[37] = 0;
