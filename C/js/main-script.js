@@ -23,7 +23,7 @@ var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
 var plane; 
-var field_radius = 100, skydome_radius = 200;
+var field_radius = 100;
 
 // -7.896139007327889 37.52503500684735
 
@@ -139,18 +139,20 @@ function createSunset() {
 function createStars(){
     var star_color = new THREE.Color().setHex(0xffffff);
     for(var i = 0; i < 1500; i++){
-        var geometry = new THREE.CircleGeometry(0.2*(Math.random() + 1), 32);
+        var geometry = new THREE.CircleGeometry(0.05*(Math.random() + 1), 32);
         var material = new THREE.MeshBasicMaterial({color: star_color});
         var mesh = new THREE.Mesh(geometry, material);
 
         /* Spherical coordinates */
-        let r = skydome_radius - 5;
+        let r = field_radius - 5;
         let theta = (3 * Math.random() + 1) * (Math.PI)/2;
         let phi = Math.random() * (Math.PI)/2;
         mesh.position.x = r * Math.sin(phi) * Math.sin(theta);
         mesh.position.y = r * Math.cos(phi)
         mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
         mesh.lookAt(0, 0, 0);
+
+        mesh.name = 'star${i}';
 
         scene.add(mesh);
     }
@@ -780,6 +782,7 @@ function update(){
     changeDirectionalLight();
     changeSpotLight();
     changePointLight();
+    changeStarsPosition();
 
     let delta =  clock.getDelta();
     changeMaterials();
@@ -792,7 +795,7 @@ function changeCamera() {
 
     if(key_press_map[49]) {
         active_camera = (active_camera + 1) % 2;
-        key_press_map[49] = false;
+        key_press_map[49] = 0;
     }
 }
 
@@ -817,6 +820,26 @@ function changePointLight(){
     if(key_press_map[80]) {
         for (const light of pointlights) light.visible = !light.visible;
         key_press_map[80] = 0;
+    }
+}
+
+function changeStarsPosition(){
+    'use strict'
+    if(key_press_map[50]) {
+
+        for(var i = 0; i < 1500; i++){
+    
+            const star_i = scene.getObjectByName('star${i}');
+
+            star_i.geometry.dispose();
+            star_i.material.dispose();
+            scene.remove( star_i );
+        }
+        key_press_map[50] = 0;
+
+        createStars();
+
+        //renderer.renderLists.dispose();
     }
 }
 
@@ -1020,6 +1043,10 @@ function onKeyDown(e) {
         case 49: // 1
             key_press_map[49] = 1;
             break;
+        // Change stars placement
+        case 50:
+            key_press_map[50] = 1;
+            break
         // Toggle directional light
         case 68: // D
         case 100: // d
@@ -1076,6 +1103,7 @@ function onKeyUp(e) {
     'use strict';
 
     switch(e.keyCode) {
+        /*
         // Change camera
         case 49: // 1
             key_press_map[49] = 0;
@@ -1113,6 +1141,7 @@ function onKeyUp(e) {
         case 115: // s
             key_press_map[83] = 0;
             break;
+        */
         // UFO Movement
         case 37: // Left
             key_press_map[37] = 0;
