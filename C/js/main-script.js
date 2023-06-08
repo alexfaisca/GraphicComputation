@@ -22,7 +22,8 @@ var ufo, spotlight, pointlights = [], spotlight_target;
 var clock = new THREE.Clock();
 var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
-var plane, field_edge = 100;
+var plane; 
+var field_edge = 100, skydome_radius = 200;
 
 // -7.896139007327889 37.52503500684735
 
@@ -195,31 +196,32 @@ function createVRCamera(x, y, z){
 /* CREATE LIGHT(S) */
 /////////////////////
 
+function createLights(){
+    createAmbientLight();
+    createDirectionalLight();
+}
+
 function createDirectionalLight() {
-    dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    dirLight.position.set(100, 100, 200);
-    dirLight.target.position.set(0, 0, 0); //Should width and height be used here?
+	dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.6);
+	dirLight.position.set(100, 100, 100);
+	dirLight.target.position.set(0, 0, 0);
     dirLight.castShadow = true;
 
-    /*dirL1ight.shadow.mapSize.width = 10;
-    dirLight.shadow.mapSize.height = 10;
-    dirLight.shadow.camera.near = 10;
-    dirLight.shadow.camera.far = 10;*/
+    // Directional lights' default shadow properties
+    dirLight.shadow.mapSize.width = 512;
+    dirLight.shadow.mapSize.height = 512;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 500;
 
     dirLight.target.updateMatrixWorld();
     scene.add(dirLight);
 }
 
 function createAmbientLight(){
-    ambientLight = new THREE.AmbientLight(0x404040, 2);
+    ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2); 
     scene.add(ambientLight);
-    ambientLight2 = new THREE.AmbientLight(0xffffff, 2);
+    ambientLight2 = new THREE.AmbientLight(0xFFFFFF, 1);
     texture_scene.add(ambientLight2);
-}
-
-function createLights(){
-    createAmbientLight();
-    createDirectionalLight();
 }
 
 ////////////////////////
@@ -227,7 +229,7 @@ function createLights(){
 ////////////////////////
 
 function createSky() {
-    var skydome_geometry = new THREE.SphereGeometry(200, 180, 180);
+    var skydome_geometry = new THREE.SphereGeometry(skydome_radius, 180, 180);
 
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
@@ -266,26 +268,29 @@ function createSky() {
 function createStars(){
     var star_color = new THREE.Color().setHex(0xffffff);
     for(var i = 0; i < 1500; i++){
-        var geometry = new THREE.CircleGeometry(20, 32);
-        var material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
+        var geometry = new THREE.CircleGeometry(0.2*(Math.random() + 1), 32);
+        var material = new THREE.MeshBasicMaterial({color: star_color});
         var mesh = new THREE.Mesh(geometry, material);
-
-        mesh.position.x = 200;
-        mesh.position.y = 200;
-        mesh.position.z = 200;
-        mesh.rotateX(Math.random() * Math.PI);
-        mesh.rotateY(Math.random() * Math.PI / 2);
-        mesh.rotateZ(Math.random() * Math.PI);
+        
+        /* Spherical coordinates */
+        let r = skydome_radius - 5;
+        let theta = (3 * Math.random() + 1) * (Math.PI)/2; 
+        let phi = Math.random() * (Math.PI)/2;
+        mesh.position.x = r * Math.sin(phi) * Math.sin(theta);
+        mesh.position.y = r * Math.cos(phi)
+        mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
+        mesh.lookAt(0, 0, 0);
 
         scene.add(mesh);
     }
 }
 function createMoon(){
     'use strict';
-    var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xffffbf});
-    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xffffbf});
-    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xffffbf});
-    var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    // Moon yellow colour
+    var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815});
+    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815});
+    var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
     var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
     moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
@@ -342,9 +347,9 @@ function createPlane() {
         map: everglades_texture.texture,
     });
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
+    everglades.receiveShadow = true;
     meshes.push(everglades)
     materials.push([everglades_lambert_material, everglades_phong_material, everglades_toon_material, everglades_basic_material]);
-
 
     scene.add(everglades);
 }
@@ -360,42 +365,100 @@ function createCorkOaks(){
     var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
     var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
     var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
+    /*
+    var trunk1_path_start = new THREE.Vector3(0, 0, 0)
+    var trunk1_path_end = new THREE.Vector3(1.5, 2, 0)
+    const trunk1_path = new THREE.LineCurve3(trunk1_path_start, trunk1_path_end);
 
-    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
-    trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk);
-    trunk1.receiveShadow = true;
-    trunk1.castShadow = true;
+    const circle = new THREE.Shape(
 
-    trunk1.rotateZ((Math.PI)/(4));
+    );
 
-    var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 10);
-    trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk);
-    trunk2.receiveShadow = true;
-    trunk2.castShadow = true;
+    circle.moveTo( 0,0 );
+    circle.lineTo( 0, 0.5 );
+    circle.lineTo( 0.5, 0.5 );
+    circle.lineTo( 0.5, 0 );
+    circle.lineTo( 0, 0 );
+        
+    const length = 12, width = 8;
 
-    trunk2.rotateZ((Math.PI)/(-4));
-    trunk2.position.set(0.9, 0.9, 0);
+    const shape = new THREE.Shape();
+    shape.moveTo( 0,0 );
+    shape.lineTo( 0, width );
+    shape.lineTo( length, width );
+    shape.lineTo( 0, 0 );
+        
+    const extrudeSettings = {
+        extrudePath: trunk1_path
+    };
+    const trunk1_geometry = new THREE.ExtrudeGeometry( circle, extrudeSettings );
+    const trunk1_material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+    const mesh = new THREE.Mesh( trunk1_geometry, trunk1_material ) ;
 
-    var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-    treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
-    treeTop1.receiveShadow = true;
-    treeTop1.castShadow = true;
-    treeTop1.scale.set(2, 1, 1);
-    treeTop1.position.set(0, 2.5, 0);
+    mesh.position.set(15, 5, 10);
+    scene.add( mesh ); */
+    //----
 
-    corkOak = new THREE.Group();
+    for (let i = 0; i < 20; i++) {
+        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
+        trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+        trunk1.receiveShadow = true;
+        trunk1.castShadow = true;
 
-    corkOak.add(trunk1, trunk2, treeTop1);
-    corkOak.position.set(9, 2.5, 0);
-    corkOak.rotateY((Math.PI)/(6)); // Better side visibility
+        trunk1.rotateZ((Math.PI)/(4));
 
-    meshes.push(trunk1, trunk2, treeTop1);
-    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
-    materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
-    materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);
+        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 10);
+        trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
+        trunk2.receiveShadow = true;
+        trunk2.castShadow = true;
 
-    scene.add(corkOak);
+        trunk2.rotateZ((Math.PI)/(-4));
+        trunk2.position.set(0.9, 0.9, 0);
+
+        var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
+        treeTop1.receiveShadow = true;
+        treeTop1.castShadow = true; 
+        treeTop1.scale.set(2, 1, 1);
+        treeTop1.position.set(-1.5, 2.5, 0);
+
+        var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
+        treeTop2.receiveShadow = true;
+        treeTop2.castShadow = true; 
+        treeTop2.scale.set(1.5, 1, 1);
+        treeTop2.position.set(0, 4, 0);
+
+        var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
+        treeTop3.receiveShadow = true;
+        treeTop3.castShadow = true; 
+        treeTop3.scale.set(2, 1, 1);
+        treeTop3.position.set(1.5, 2.5, 0);
+
+        corkOak = new THREE.Group();
+
+        corkOak.add(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
+        
+        corkOak.rotateY(2*(Math.PI) * Math.random());
+        corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
+
+        /* Polar coordinates */
+        let r = field_edge/4 * (Math.random() + 1);
+        let theta = (3 * Math.random() + 1) * (Math.PI)/2;
+        corkOak.position.x = r * Math.sin(theta);
+        corkOak.position.z = r * Math.cos(theta);
+        
+        meshes.push(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
+        materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+        materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
+        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);
+        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);   
+        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);    
+        scene.add(corkOak);
+    }
 }
+
 function createHouse(){
     'use strict';
 
@@ -585,7 +648,6 @@ function createHouse(){
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
     house.receiveShadow = true;
     house.castShadow = true;
-
     meshes.push(body, door, window1, window2, roof);
     materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
     materials.push([lambertMaterialDoor, phongMaterialDoor, toonMaterialDoor, basicMaterialDoor]);
