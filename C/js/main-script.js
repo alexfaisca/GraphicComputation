@@ -237,8 +237,10 @@ function createDirectionalLight() {
     // Directional lights' default shadow properties
     dirLight.shadow.mapSize.width = 512;
     dirLight.shadow.mapSize.height = 512;
-    dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 500;
+    dirLight.shadow.camera.left = -512; 
+    dirLight.shadow.camera.right = 512;
+    dirLight.shadow.camera.top = 512;
+    dirLight.shadow.camera.bottom = -512; 
 
     dirLight.target.updateMatrixWorld();
     scene.add(dirLight);
