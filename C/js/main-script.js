@@ -291,8 +291,8 @@ function createMoon(){
     'use strict';
     // Moon yellow colour
     var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815});
-    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815});
+    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
     var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
     var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
@@ -325,38 +325,13 @@ function createPlane() {
         displacementScale: 10,
         map: everglades_texture.texture,
     });
-    const everglades_lambert_material = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        side : THREE.DoubleSide,
-        displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
-        map: everglades_texture.texture,
-    });
-    const everglades_toon_material = new THREE.MeshToonMaterial({
-        color: 0xffffff,
-        side : THREE.DoubleSide,
-        displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
-        map: everglades_texture.texture,
-    });
-    const everglades_basic_material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        side : THREE.DoubleSide,
-        displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
-        map: everglades_texture.texture,
-    });
+    
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
     everglades.receiveShadow = true;
-    meshes.push(everglades)
-    materials.push([everglades_lambert_material, everglades_phong_material, everglades_toon_material, everglades_basic_material]);
 
     scene.add(everglades);
 }
-//TODO: Set proper corkOak top
+
 function createCorkOaks(){
     'use strict';
     var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
@@ -920,8 +895,8 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    renderer.setSize(400, 400);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setRenderTarget(null);
 
     document.body.appendChild(renderer.domElement);
@@ -943,11 +918,10 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
-    requestAnimationFrame(animate);
-    renderer.setAnimationLoop(function(){
-        render();
-        update();
-    })
+    update();
+    render();
+
+    renderer.setAnimationLoop(animate);
 }
 
 function update_ufo_velocity(x, z){
