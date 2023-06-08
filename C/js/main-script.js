@@ -25,6 +25,10 @@ var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 var plane; 
 var field_radius = 100;
 
+var stars, flowers;
+var star_mode, flower_mode;
+var number_of_stars = 1500, number_of_flowers = 1000, number_of_cork_oaks = 30;
+
 // -7.896139007327889 37.52503500684735
 
 // -7.896139007327889 37.52503500684735
@@ -66,6 +70,9 @@ function createGrass() {
 }
 
 function createFlowers(){
+    flower_mode = 1;
+    flowers = new THREE.Group();
+    flowers.name = "flowers";
     var flower_color;
     for(var i = 0; i < 1000; i++){
         switch(i % 4){
@@ -90,8 +97,9 @@ function createFlowers(){
         mesh.position.y = 0;
         mesh.position.z = (Math.random() - 0.5) * 50 ;
         mesh.rotateX(Math.PI / 2);
-        texture_scene.add(mesh);
+        flowers.add(mesh);
     }
+    texture_scene.add(flowers);
 }
 
 function generateFirmament() {
@@ -133,8 +141,11 @@ function createSunset() {
     texture_scene.add(sunset);
 }
 function createStars(){
+    star_mode = 1;
+    stars = new THREE.Group();
+    stars.name = "stars";
     var star_color = new THREE.Color().setHex(0xffffff);
-    for(var i = 0; i < 1500; i++){
+    for(var i = 0; i < number_of_stars; i++){
         var star_geometry = new THREE.CircleGeometry(0.05 * (Math.random() + 1), 32);
         var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
         var star_mesh = new THREE.Mesh(star_geometry, star_material);
@@ -143,11 +154,9 @@ function createStars(){
         star_mesh.position.y = 110;
         star_mesh.position.z =  (Math.random() - 0.5) * 80;
         star_mesh.lookAt(0, 0, 0);
-
-        star_mesh.name = 'star${i}';
-
-        texture_scene.add(star_mesh);
+        stars.add(star_mesh);
     }
+    texture_scene.add(stars);
 }
 function createTextures() {
     texture_scene = new THREE.Scene();
@@ -272,8 +281,8 @@ function createMoon(){
     'use strict';
     // Moon yellow colour
     var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815});
-    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815});
+    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
     var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
     var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
@@ -306,38 +315,13 @@ function createPlane() {
         displacementScale: 10,
         map: everglades_texture.texture,
     });
-    const everglades_lambert_material = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        side : THREE.DoubleSide,
-        displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
-        map: everglades_texture.texture,
-    });
-    const everglades_toon_material = new THREE.MeshToonMaterial({
-        color: 0xffffff,
-        side : THREE.DoubleSide,
-        displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
-        map: everglades_texture.texture,
-    });
-    const everglades_basic_material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        side : THREE.DoubleSide,
-        displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
-        map: everglades_texture.texture,
-    });
+    
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
     everglades.receiveShadow = true;
-    meshes.push(everglades)
-    materials.push([everglades_lambert_material, everglades_phong_material, everglades_toon_material, everglades_basic_material]);
 
     scene.add(everglades);
 }
-//TODO: Set proper corkOak top
+
 function createCorkOaks(){
     'use strict';
     var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
@@ -383,7 +367,7 @@ function createCorkOaks(){
     scene.add( mesh ); */
     //----
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < number_of_cork_oaks; i++) {
         var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
         trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
         trunk1.receiveShadow = true;
@@ -428,8 +412,8 @@ function createCorkOaks(){
         corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
         /* Polar coordinates */
-        let r = field_radius/4 * (Math.random() + 1);
-        let theta = (3 * Math.random() + 1) * (Math.PI)/2;
+        let r = 8 + (field_radius/4* (Math.random() + 1));
+        let theta = (3.3/4) * (30 / i) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
         corkOak.position.z = r * Math.cos(theta);
         
@@ -519,7 +503,6 @@ function createHouse(){
     ];
 
     bodyShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bodyVertices, 3));
-    //bodyShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(bodyVertices, 3));
     bodyShapeGeometry.setIndex(bodyIndexes);
     bodyShapeGeometry.computeVertexNormals();
 
@@ -542,7 +525,6 @@ function createHouse(){
     ];
 
     doorShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(doorVertices, 3));
-    //doorShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(doorVertices, 3));
     doorShapeGeometry.setIndex(doorIndexes);
     doorShapeGeometry.computeVertexNormals();
 
@@ -565,7 +547,6 @@ function createHouse(){
     ];
 
     window1ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window1Vertices, 3));
-    //window1ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window1Vertices, 3));
     window1ShapeGeometry.setIndex(window1Indexes);
     window1ShapeGeometry.computeVertexNormals();
 
@@ -588,7 +569,6 @@ function createHouse(){
     ];
 
     window2ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window2Vertices, 3));
-    //window2ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window2Vertices, 3));
     window2ShapeGeometry.setIndex(window2Indexes);
     window2ShapeGeometry.computeVertexNormals();
 
@@ -617,7 +597,6 @@ function createHouse(){
     ];
 
     roofShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(roofVertices, 3));
-    //roofShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(roofVertices, 3));
     roofShapeGeometry.setIndex(roofIndexes);
     roofShapeGeometry.computeVertexNormals();
 
@@ -769,25 +748,16 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-    changeCamera();
     changeDirectionalLight();
     changeSpotLight();
     changePointLight();
-    changeStarsPosition();
+    toggleStars();
+    toggleFlowers();
 
     let delta =  clock.getDelta();
     changeMaterials();
     updateUfoPosition(delta);
     updateUfoRotation(delta);
-}
-
-function changeCamera() {
-    'use strict'
-
-    if(key_press_map[49]) {
-        active_camera = (active_camera + 1) % 2;
-        key_press_map[49] = 0;
-    }
 }
 
 function changeDirectionalLight(){
@@ -814,22 +784,32 @@ function changePointLight(){
     }
 }
 
-function changeStarsPosition(){
+function toggleFlowers(){
+    'use strict'
+    if(key_press_map[49]) {
+        if(flower_mode){
+            var trash = texture_scene.getObjectByName("flowers");
+            texture_scene.remove(trash);
+            flower_mode = !flower_mode;
+        } else {
+            createFlowers();
+        }
+        key_press_map[49] = 0;
+        //renderer.renderLists.dispose();
+    }
+}
+
+function toggleStars(){
     'use strict'
     if(key_press_map[50]) {
-
-        for(var i = 0; i < 1500; i++){
-    
-            const star_i = scene.getObjectByName('star${i}');
-
-            star_i.geometry.dispose();
-            star_i.material.dispose();
-            scene.remove( star_i );
+        if(star_mode){
+            var trash = scene.getObjectByName("stars");
+            scene.remove(trash);
+            star_mode = !star_mode;
+        } else {
+            createStars();
         }
         key_press_map[50] = 0;
-
-        createStars();
-
         //renderer.renderLists.dispose();
     }
 }
@@ -900,8 +880,8 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    renderer.setSize(400, 400);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setRenderTarget(null);
 
     document.body.appendChild(renderer.domElement);
@@ -924,11 +904,10 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
-    requestAnimationFrame(animate);
-    renderer.setAnimationLoop(function(){
-        render();
-        update();
-    })
+    update();
+    render();
+
+    renderer.setAnimationLoop(animate);
 }
 
 function update_ufo_velocity(x, z){
@@ -1026,12 +1005,12 @@ function onKeyDown(e) {
     'use strict';
 
     switch(e.keyCode) {
-        // Change camera
+        // Toggle flowers
         case 49: // 1
             key_press_map[49] = 1;
             break;
-        // Change stars placement
-        case 50:
+        // Toggle stars
+        case 50: // 2
             key_press_map[50] = 1;
             break
         // Toggle directional light
@@ -1090,11 +1069,6 @@ function onKeyUp(e) {
     'use strict';
 
     switch(e.keyCode) {
-        /*
-        // Change camera
-        case 49: // 1
-            key_press_map[49] = 0;
-            break;
         // Toggle directional light
         case 68: // D
         case 100: // d
@@ -1128,7 +1102,6 @@ function onKeyUp(e) {
         case 115: // s
             key_press_map[83] = 0;
             break;
-        */
         // UFO Movement
         case 37: // Left
             key_press_map[37] = 0;
