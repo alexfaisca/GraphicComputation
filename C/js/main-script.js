@@ -105,10 +105,10 @@ function createSunset() {
     var sunset_geometry = new THREE.BufferGeometry();
     // Position vertices
     sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
-        -window.innerWidth / 50, 0, -7 * window.innerHeight / 50,
-        window.innerWidth / 50, 0, -7 * window.innerHeight / 50,
-        window.innerWidth / 50, 0, 7 * window.innerHeight / 50,
-        -window.innerWidth / 50, 0, 7 * window.innerHeight / 50
+        -50, 0, -50,
+        50, 0, -50,
+        50, 0, 50,
+        -50, 0, 50
     ]), 3));
     // Index vertices
     const indices = [
@@ -144,9 +144,9 @@ function createStars(){
         var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
         var star_mesh = new THREE.Mesh(star_geometry, star_material);
 
-        star_mesh.position.x = (Math.random() - 0.5) * 7 / 2 * window.innerWidth / 50;
+        star_mesh.position.x = (Math.random() - 0.5) * 100;
         star_mesh.position.y = 110;
-        star_mesh.position.z =  (Math.random() - 0.5) * 7 / 2 * window.innerWidth / 50;
+        star_mesh.position.z =  (Math.random() - 0.5) * 100;
         star_mesh.rotateX(Math.PI / 2);
         stars.add(star_mesh);
     }
