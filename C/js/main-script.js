@@ -870,13 +870,13 @@ function render() {
         renderer.render(scene, cameras[1].cameraL);
         renderer.render(scene, cameras[1].cameraR);
     }
-    else {/*
+    else {
         renderer.setRenderTarget(everglades_texture);
         renderer.clear(); // manual clear
         renderer.render(texture_scene, cameras[2]);
         renderer.setRenderTarget(null);
-        renderer.render(scene, cameras[0]);*/
-        renderer.render(texture_scene, cameras[3]);
+        renderer.render(scene, cameras[0]);
+        //renderer.render(texture_scene, cameras[3]);
     }
 }
 
