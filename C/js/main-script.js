@@ -24,9 +24,10 @@ var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
 var plane; 
 var field_radius = 100;
-var number_of_stars, number_of_flowers;
 
+var stars, flowers;
 var star_mode, flower_mode;
+var number_of_stars = 1500, number_of_flowers = 1000;
 
 // -7.896139007327889 37.52503500684735
 
@@ -74,8 +75,11 @@ function createGrass() {
 }
 
 function createFlowers(){
+    flower_mode = 1;
+    flowers = new THREE.Group();
+    flowers.name = "flowers";
     var flower_color;
-    for(var i = 0; i < number_of_flowers; i++){
+    for(var i = 0; i < 1000; i++){
         switch(i % 4){
             case 0:
                 flower_color = 0xffffff;
@@ -94,17 +98,13 @@ function createFlowers(){
         var material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var mesh = new THREE.Mesh(geometry, material);
 
-        mesh.position.x = (Math.random() -0.5) * 50;
+        mesh.position.x = (Math.random() -0.5) * 50 ;
         mesh.position.y = 0;
-        mesh.position.z = (Math.random() - 0.5) * 50;
+        mesh.position.z = (Math.random() - 0.5) * 50 ;
         mesh.rotateX(Math.PI / 2);
-
-        mesh.name = 'flower${i}';
-
-        texture_scene.add(mesh);
-
-        flower_mode = 1;
+        flowers.add(mesh);
     }
+    texture_scene.add(flowers);
 }
 
 function generateFirmament() {
@@ -145,6 +145,9 @@ function createSunset() {
     texture_scene.add(sunset);
 }
 function createStars(){
+    star_mode = 1;
+    stars = new THREE.Group();
+    stars.name = "stars";
     var star_color = new THREE.Color().setHex(0xffffff);
     for(var i = 0; i < number_of_stars; i++){
         var geometry = new THREE.CircleGeometry(0.05*(Math.random() + 1), 32);
@@ -160,12 +163,9 @@ function createStars(){
         mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
         mesh.lookAt(0, 0, 0);
 
-        mesh.name = 'star${i}';
-
-        scene.add(mesh);
-
-        star_mode = 1;
+        stars.add(mesh);
     }
+    scene.add(stars);
 }
 
 //////////////////////
@@ -788,26 +788,16 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-    changeCamera();
     changeDirectionalLight();
     changeSpotLight();
     changePointLight();
-    changeStars();
-    changeFlowers();
+    toggleStars();
+    toggleFlowers();
 
     let delta =  clock.getDelta();
     changeMaterials();
     updateUfoPosition(delta);
     updateUfoRotation(delta);
-}
-
-function changeCamera() {
-    'use strict'
-
-    if(key_press_map[49]) {
-        active_camera = (active_camera + 1) % 2;
-        key_press_map[49] = 0;
-    }
 }
 
 function changeDirectionalLight(){
@@ -834,58 +824,33 @@ function changePointLight(){
     }
 }
 
-function changeFlowers(){
+function toggleFlowers(){
     'use strict'
     if(key_press_map[49]) {
-        
-        if(flower_mode) 
+        if(flower_mode){
+            var trash = texture_scene.getObjectByName("flowers");
+            texture_scene.remove(trash);
+            flower_mode = !flower_mode;
+        } else {
             createFlowers();
-        else 
-            removeFlowers()
-        
-
-        flower_mode = !flower_mode;
+        }
         key_press_map[49] = 0;
-
         //renderer.renderLists.dispose();
     }
 }
 
-function removeFlowers(){
-    for(var i = 0; i < number_of_flowers; i++){
-    
-        const flower_i = scene.getObjectByName('flower${i}');
-
-        flower_i.geometry.dispose();
-        flower_i.material.dispose();
-        scene.remove( flower_i );
-    }
-}
-
-function changeStars(){
+function toggleStars(){
     'use strict'
     if(key_press_map[50]) {
-
-        if(star_mode) 
+        if(star_mode){
+            var trash = scene.getObjectByName("stars");
+            scene.remove(trash);
+            star_mode = !star_mode;
+        } else {
             createStars();
-        else
-            removeStars();
-
-        star_mode = !star_mode;
+        }
         key_press_map[50] = 0;
-
         //renderer.renderLists.dispose();
-    }
-}
-
-function removeStars(){
-    for(var i = 0; i < number_of_stars; i++){
-    
-        const star_i = scene.getObjectByName('star${i}');
-
-        star_i.geometry.dispose();
-        star_i.material.dispose();
-        scene.remove( star_i );
     }
 }
 
@@ -972,8 +937,6 @@ function init() {
     createScenes();
     createCameras();
     createLights();
-    number_of_stars = 150;
-    number_of_flowers = 100;
 
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
@@ -1091,7 +1054,7 @@ function onKeyDown(e) {
         case 49: // 1
             key_press_map[49] = 1;
             break;
-        // Toggle stars 
+        // Toggle stars
         case 50: // 2
             key_press_map[50] = 1;
             break
