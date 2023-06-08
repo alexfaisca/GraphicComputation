@@ -9,23 +9,17 @@ var cameras = new Array(4);
 var auxCamera;
 var active_camera;
 var presented = false;
-var dirLight;
-var ambientLight;
+var ambientLight, dirLight;
 
 var materials = [];
 var meshes = [];
 
-var sky, skyTexture, skydome, sunset;
-var moon;
-var house, body, door, window1, window2, roof;
-var ufo, spotlight, pointlights = [], spotlight_target;
+var pointlights = [];
 var clock = new THREE.Clock();
-var corkOak, trunk1, trunk2, treeTop1, treeTop2, treeTop3;
 
-var plane;
+var plane, ufo, spotlight_target;
 var field_radius = 100;
 
-var stars, flowers;
 var star_mode, flower_mode;
 var number_of_stars = 1600, number_of_flowers = 1000, number_of_cork_oaks = 30;
 
@@ -71,7 +65,7 @@ function createGrass() {
 
 function createFlowers(){
     flower_mode = true;
-    flowers = new THREE.Group();
+    var flowers = new THREE.Group();
     flowers.name = "flowers";
     var flower_color;
     for(var i = 0; i < number_of_flowers; i++) {
@@ -111,10 +105,10 @@ function createSunset() {
     var sunset_geometry = new THREE.BufferGeometry();
     // Position vertices
     sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
-        -50, 0, -50,
-        50, 0, -50,
-        50, 0, 50,
-        -50, 0, 50
+        -window.innerWidth / 50, 0, -7 * window.innerHeight / 50,
+        window.innerWidth / 50, 0, -7 * window.innerHeight / 50,
+        window.innerWidth / 50, 0, 7 * window.innerHeight / 50,
+        -window.innerWidth / 50, 0, 7 * window.innerHeight / 50
     ]), 3));
     // Index vertices
     const indices = [
@@ -136,13 +130,13 @@ function createSunset() {
         vertexColors: THREE.VertexColors, side: THREE.BackSide,
     });
 
-    sunset = new THREE.Mesh(sunset_geometry, sunset_material);
+    var sunset = new THREE.Mesh(sunset_geometry, sunset_material);
     sunset.position.set(0, 100, 0);
     texture_scene.add(sunset);
 }
 function createStars(){
     star_mode = true;
-    stars = new THREE.Group();
+    var stars = new THREE.Group();
     stars.name = "stars";
     var star_color = new THREE.Color().setHex(0xffffff);
     for(var i = 0; i < number_of_stars; i++) {
@@ -150,9 +144,9 @@ function createStars(){
         var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
         var star_mesh = new THREE.Mesh(star_geometry, star_material);
 
-        star_mesh.position.x = (Math.random() - 0.5) * 100;
+        star_mesh.position.x = (Math.random() - 0.5) * 7 / 2 * window.innerWidth / 50;
         star_mesh.position.y = 110;
-        star_mesh.position.z =  (Math.random() - 0.5) * 100;
+        star_mesh.position.z =  (Math.random() - 0.5) * 7 / 2 * window.innerWidth / 50;
         star_mesh.rotateX(Math.PI / 2);
         stars.add(star_mesh);
     }
@@ -265,7 +259,7 @@ function createSky() {
 
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
-        side: THREE.DoubleSide,
+        side: THREE.BackSide,
         map: firmament_texture.texture,
     });
 
@@ -281,7 +275,7 @@ function createMoon() {
     var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
     var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
-    moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
+    var moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
 
     moon.receiveShadow = true;
     moon.castShadow = true;
@@ -304,7 +298,7 @@ function createPlane() {
 
     const everglades_phong_material = new THREE.MeshPhongMaterial({
         color: 0xffffff,
-        side : THREE.DoubleSide,
+        side : THREE.BackSide,
         displacementMap: displacement_map,
         normalMap: normal_map,
         displacementScale: 25,
@@ -328,39 +322,7 @@ function createCorkOaks(){
     var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
     var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
     var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
-    /*
-    var trunk1_path_start = new THREE.Vector3(0, 0, 0)
-    var trunk1_path_end = new THREE.Vector3(1.5, 2, 0)
-    const trunk1_path = new THREE.LineCurve3(trunk1_path_start, trunk1_path_end);
 
-    const circle = new THREE.Shape(
-
-    );
-
-    circle.moveTo( 0,0 );
-    circle.lineTo( 0, 0.5 );
-    circle.lineTo( 0.5, 0.5 );
-    circle.lineTo( 0.5, 0 );
-    circle.lineTo( 0, 0 );
-
-    const length = 12, width = 8;
-
-    const shape = new THREE.Shape();
-    shape.moveTo( 0,0 );
-    shape.lineTo( 0, width );
-    shape.lineTo( length, width );
-    shape.lineTo( 0, 0 );
-
-    const extrudeSettings = {
-        extrudePath: trunk1_path
-    };
-    const trunk1_geometry = new THREE.ExtrudeGeometry( circle, extrudeSettings );
-    const trunk1_material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-    const mesh = new THREE.Mesh( trunk1_geometry, trunk1_material ) ;
-
-    mesh.position.set(15, 5, 10);
-    scene.add( mesh ); */
-    //----
 
     for (let i = 0; i < number_of_cork_oaks; i++) {
         var baseTrunkShapeGeometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
@@ -408,7 +370,7 @@ function createCorkOaks(){
         treeTop3.scale.set(2, 1, 1);
         treeTop3.position.set(1.5, 3.8, -0.3);
 
-        corkOak = new THREE.Group();
+        var corkOak = new THREE.Group();
 
         corkOak.add(baseTrunk, trunk1, trunk2, treeTop1, treeTop2, treeTop3);
         corkOak.position.set(10,0,10);
@@ -510,7 +472,7 @@ function createHouse(){
     bodyShapeGeometry.setIndex(bodyIndexes);
     bodyShapeGeometry.computeVertexNormals();
 
-    body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
+    var body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
     body.receiveShadow = true;
     body.castShadow = true;
 
@@ -532,7 +494,7 @@ function createHouse(){
     doorShapeGeometry.setIndex(doorIndexes);
     doorShapeGeometry.computeVertexNormals();
 
-    door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
+    var door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
     door.receiveShadow = true;
     door.castShadow = true;
 
@@ -554,7 +516,7 @@ function createHouse(){
     window1ShapeGeometry.setIndex(window1Indexes);
     window1ShapeGeometry.computeVertexNormals();
 
-    window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
+    var window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
     window1.receiveShadow = true;
     window1.castShadow = true;
 
@@ -576,7 +538,7 @@ function createHouse(){
     window2ShapeGeometry.setIndex(window2Indexes);
     window2ShapeGeometry.computeVertexNormals();
 
-    window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
+    var window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
     window2.receiveShadow = true;
     window2.castShadow = true;
 
@@ -604,11 +566,11 @@ function createHouse(){
     roofShapeGeometry.setIndex(roofIndexes);
     roofShapeGeometry.computeVertexNormals();
 
-    roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
+    var roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
     roof.receiveShadow = true;
     roof.castShadow = true;
 
-    house = new THREE.Group();
+    var house = new THREE.Group();
 
     house.add(body, door, window1, window2, roof);
     house.position.set(-5, 0, 2.5); // Center house
@@ -698,12 +660,6 @@ function createUfo() {
         angular_velocity :  Math.PI / 4,
         linear_velocity : new THREE.Vector3(0,0,0)
     };
-
-
-    /*
-    const geometry = new THREE.SphereBufferGeometry( 15, 32, 16 );
-    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-    const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere ); */
 
     ufo.position.set(ufo_x, ufo_y, ufo_z);
     scene.add(ufo);
