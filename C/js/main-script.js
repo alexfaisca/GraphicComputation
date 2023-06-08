@@ -11,17 +11,14 @@ var active_camera;
 var presented = false;
 var ambientLight, dirLight;
 
-var materials = [];
-var meshes = [];
 
-var pointlights = [];
 var clock = new THREE.Clock();
 
-var plane, ufo, spotlight_target;
-var field_radius = 100;
-
-var star_mode, flower_mode;
-var number_of_stars = 1600, number_of_flowers = 1000, number_of_cork_oaks = 30;
+var materials = [];
+var meshes = [];
+var plane, ufo, spotlight_target, pointlights = [];
+var field_radius = 100, number_of_stars = 1600, number_of_flowers = 1000, number_of_cork_oaks = 30, has_flowers, has_stars;
+var create_flowers_args = {l:30, w:30, x:0, y:0, z:0}, create_stars_args = {l:100, w:100, x:0, y:110, z:0};
 
 // -7.896139007327889 37.52503500684735
 
@@ -45,14 +42,14 @@ function createScenes(){
     createUfo();
     createCorkOaks();
 }
-function generateNature() {
-    createGrass();
-    createFlowers();
-    createMarshGazerCamera();
+function generateNature(l, w, x, y, z) {
+    createGrass(l, w, x, y, z);
+    createFlowers(l, w, x, y, z);
+    createMarshGazerCamera(l, w, x, y, z);
 }
 
-function createGrass() {
-    var grass_geometry = new THREE.PlaneGeometry(30, 30, 200);
+function createGrass(l, w, x, y, z) {
+    var grass_geometry = new THREE.PlaneGeometry(l, w, 200);
     grass_geometry.rotateX(Math.PI / 2);
     const grass_material = new THREE.MeshPhongMaterial({
         color: 0x236b25,
@@ -60,11 +57,12 @@ function createGrass() {
     });
     var grass = new THREE.Mesh(grass_geometry, grass_material);
     grass.receiveShadow = true;
+    grass.position.set(x, y, z);
     texture_scene.add(grass);
 }
 
-function createFlowers(){
-    flower_mode = true;
+function createFlowers(l, w, x, y, z) {
+    has_flowers = true;
     var flowers = new THREE.Group();
     flowers.name = "flowers";
     var flower_color;
@@ -87,28 +85,28 @@ function createFlowers(){
         var flower_material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var flower_mesh = new THREE.Mesh(flower_geometry, flower_material);
 
-        flower_mesh.position.x = (Math.random() -0.5) * 30 ;
-        flower_mesh.position.y = 0;
-        flower_mesh.position.z = (Math.random() - 0.5) * 30 ;
+        flower_mesh.position.x = (Math.random() -0.5) * l + x;
+        flower_mesh.position.y = 0 + y;
+        flower_mesh.position.z = (Math.random() - 0.5) * w + z;
         flower_mesh.rotateX(Math.PI / 2);
         flowers.add(flower_mesh);
     }
     texture_scene.add(flowers);
 }
 
-function generateFirmament() {
-    createSunset();
-    createStars();
-    createStarGazerCamera();
+function generateFirmament(l, w, x, y, z) {
+    createSunset(l, w, x, y, z);
+    createStars(l, w, x, y, z);
+    createStarGazerCamera(l, w, x, y, z);
 }
-function createSunset() {
+function createSunset(l, w, x, y, z) {
     var sunset_geometry = new THREE.BufferGeometry();
     // Position vertices
     sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
-        -50, 0, -50,
-        50, 0, -50,
-        50, 0, 50,
-        -50, 0, 50
+        -l / 2, 0, -w / 2,
+        l / 2, 0, -w / 2,
+        l / 2, 0, w / 2,
+        -l / 2, 0, w / 2
     ]), 3));
     // Index vertices
     const indices = [
@@ -131,11 +129,11 @@ function createSunset() {
     });
 
     var sunset = new THREE.Mesh(sunset_geometry, sunset_material);
-    sunset.position.set(0, 100, 0);
+    sunset.position.set(x, y, z);
     texture_scene.add(sunset);
 }
-function createStars(){
-    star_mode = true;
+function createStars(l, w, x, y, z){
+    has_stars = true;
     var stars = new THREE.Group();
     stars.name = "stars";
     var star_color = new THREE.Color().setHex(0xffffff);
@@ -144,9 +142,9 @@ function createStars(){
         var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
         var star_mesh = new THREE.Mesh(star_geometry, star_material);
 
-        star_mesh.position.x = (Math.random() - 0.5) * 100;
-        star_mesh.position.y = 110;
-        star_mesh.position.z =  (Math.random() - 0.5) * 100;
+        star_mesh.position.x = (Math.random() - 0.5) * l + x;
+        star_mesh.position.y = 0 + y;
+        star_mesh.position.z =  (Math.random() - 0.5) * w + z;
         star_mesh.rotateX(Math.PI / 2);
         stars.add(star_mesh);
     }
@@ -157,19 +155,19 @@ function createTextures() {
     var ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
     texture_scene.add(ambientLightTexture);
 
-    createMarshGazerCamera();
+    createMarshGazerCamera(30, 30, 0, 0, 0);
     everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
     everglades_texture.repeat.set(10,10);
-    generateNature();
+    generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z);
     renderer.setRenderTarget(everglades_texture);
     renderer.clear(); // manual clear
     renderer.render(texture_scene, cameras[2]);
     renderer.setRenderTarget(null)
 
-    createStarGazerCamera();
+    createStarGazerCamera(100, 100, 0, 110, 0);
     firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
     firmament_texture.repeat.set(25, 1);
-    generateFirmament();
+    generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z);
     renderer.setRenderTarget(firmament_texture);
     renderer.clear(); // manual clear
     renderer.render(texture_scene, cameras[3]);
@@ -186,14 +184,14 @@ function createCameras() {
     createIsometricPerspectiveCamera();
     createVRCamera(0, 20, 20);
 }
-function createMarshGazerCamera() {
-    cameras[2] = new THREE.OrthographicCamera( -14.9, 14.9, 14.9, -14.9, 1, 40);
-    cameras[2].position.set(0, 10, 0);
+function createMarshGazerCamera(l, w, x, y, z) {
+    cameras[2] = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
+    cameras[2].position.set(x, y + 30, z);
     cameras[2].lookAt(texture_scene.position);
 }
-function createStarGazerCamera() {
-    cameras[3] = new THREE.OrthographicCamera( -49.9, 49.9, 49.9, -49.9, 1, 50);
-    cameras[3].position.set(0, 140, 0);
+function createStarGazerCamera(l, w, x, y, z) {
+    cameras[3] = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
+    cameras[3].position.set(x, y + 30, z);
     cameras[3].lookAt(texture_scene.position);
 
 }
@@ -749,11 +747,11 @@ function changePointLight() {
 function toggleFlowers() {
     'use strict'
     if(key_press_map[49]) {
-        if(flower_mode){ // Destroy flowers
+        if(has_flowers){ // Destroy flowers
             texture_scene.remove(texture_scene.getObjectByName("flowers"));
-            flower_mode = !flower_mode;
+            has_flowers = !has_flowers;
         } else { // Create flowers
-            createFlowers();
+            createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z);
         }
         renderer.setRenderTarget(everglades_texture);
         renderer.clear();
@@ -766,11 +764,11 @@ function toggleFlowers() {
 function toggleStars() {
     'use strict'
     if(key_press_map[50]) {
-        if(star_mode){ // Destroy stars
+        if(has_stars){ // Destroy stars
             texture_scene.remove(texture_scene.getObjectByName("stars"));
-            star_mode = !star_mode;
+            has_stars = !has_stars;
         } else { // Create stars
-            createStars();
+            createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z);
         }
         renderer.setRenderTarget(firmament_texture);
         renderer.clear();
@@ -823,10 +821,6 @@ function render() {
             scene.translateZ(-5);
             scene.translateY(-5);
         }
-        renderer.setRenderTarget(everglades_texture);
-        renderer.clear(); // manual clear
-        renderer.render(texture_scene, cameras[2]);
-        renderer.setRenderTarget(null);
         cameras[1].update(auxCamera);
         renderer.render(scene, cameras[1].cameraL);
         renderer.render(scene, cameras[1].cameraR);
