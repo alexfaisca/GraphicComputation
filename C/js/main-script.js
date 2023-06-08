@@ -100,61 +100,59 @@ function createFlowers(){
 }
 
 function generateFirmament() {
-    firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
+    firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
     firmament_texture.repeat.set(10,10);
     createSunset();
     createStars();
 }
 function createSunset() {
-    var colorArray = [];
-    var sunset_texture = new THREE.BufferGeometry();
-    sunset_texture.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
+    var sunset_geometry = new THREE.BufferGeometry();
+    // Position vertices
+    sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
         -40, 0, -40,
         40, 0, -40,
         40, 0, 40,
         -40, 0, 40
     ]), 3));
-
+    // Index vertices
     const indices = [
         0, 1, 2,
         2, 3, 0
     ]
-
-    sunset_texture.setIndex(indices);
-
-    var color1 = new THREE.Color().setHex(0xff0000);
-    var color2 = new THREE.Color().setHex(0x0000ff);
+    sunset_geometry.setIndex(indices);
+    // Color vertices
+    var colorArray = [];
+    var color1 = new THREE.Color().setHex(0x152887); // blue
+    var color2 = new THREE.Color().setHex(0x6C3D60); // purple
     colorArray = color1.toArray()
         .concat(color2.toArray())
         .concat(color2.toArray())
         .concat(color1.toArray());
+    sunset_geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3));
 
-    sunset_texture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3, true));
+    var sunset_material = new THREE.MeshBasicMaterial({
+        vertexColors: THREE.VertexColors, side: THREE.BackSide,
+    });
 
-    var sunset_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff, vertexColors: THREE.VertexColors});
-    sunset = new THREE.Mesh(sunset_texture, sunset_lambert_material);
-    sunset.position.set(300, 0, 300);
+    sunset = new THREE.Mesh(sunset_geometry, sunset_material);
+    sunset.position.set(0, 100, 0);
     texture_scene.add(sunset);
 }
 function createStars(){
     var star_color = new THREE.Color().setHex(0xffffff);
     for(var i = 0; i < 1500; i++){
-        var geometry = new THREE.CircleGeometry(0.05*(Math.random() + 1), 32);
-        var material = new THREE.MeshBasicMaterial({color: star_color});
-        var mesh = new THREE.Mesh(geometry, material);
+        var star_geometry = new THREE.CircleGeometry(0.05 * (Math.random() + 1), 32);
+        var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
+        var star_mesh = new THREE.Mesh(star_geometry, star_material);
 
-        /* Spherical coordinates */
-        let r = field_radius - 5;
-        let theta = (3 * Math.random() + 1) * (Math.PI)/2;
-        let phi = Math.random() * (Math.PI)/2;
-        mesh.position.x = r * Math.sin(phi) * Math.sin(theta);
-        mesh.position.y = r * Math.cos(phi)
-        mesh.position.z = r * Math.sin(phi) * Math.cos(theta);
-        mesh.lookAt(0, 0, 0);
+        star_mesh.position.x = (Math.random() - 0.5) * 80;
+        star_mesh.position.y = 110;
+        star_mesh.position.z =  (Math.random() - 0.5) * 80;
+        star_mesh.lookAt(0, 0, 0);
 
-        mesh.name = 'star${i}';
+        star_mesh.name = 'star${i}';
 
-        scene.add(mesh);
+        texture_scene.add(star_mesh);
     }
 }
 
@@ -171,14 +169,15 @@ function createCameras() {
     createVRCamera(0, 20, 20);
 }
 function createMarshGazerCamera() {
-    cameras[2] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 40 );
+    cameras[2] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 40);
     cameras[2].position.set(0, 10, 0);
     cameras[2].lookAt(texture_scene.position);
 }
 function createStarGazerCamera() {
-    cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 40 );
-    cameras[3].position.set(300, 10, 300);
-    cameras[3].lookAt(sunset.position);
+    cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 50);
+    cameras[3].position.set(0, 140, 0);
+    cameras[3].lookAt(texture_scene.position);
+
 }
 function createIsometricPerspectiveCamera() {
     'use strict'
@@ -246,36 +245,11 @@ function createSky() {
     var skydome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
         side: THREE.DoubleSide,
-        color: 'violet',
+        map: firmament_texture.texture,
     });
 
     skydome = new THREE.Mesh(skydome_geometry, skydome_material);
     scene.add(skydome);
-
-    /*
-    const indices = [0, 1, 2, 2, 3, 0];
-    skyTexture = new THREE.BufferGeometry();
-    skyTexture.setAttribute('position', new THREE.BufferAttribute(
-        new Float32Array([
-            -300, 50, -300,
-            300, 50, -300,
-            300, 50, 300,
-            -300, 50, 300
-        ]), 3));
-
-    skyTexture.setIndex(indices);
-
-    var colorArray = [];
-    var color1 = new THREE.Color().setHex("red");
-    var color2 = new THREE.Color().setHex("violet");
-    colorArray = (color1.toArray()
-        .concat(color2.toArray())
-        .concat(color2.toArray())
-        .concat(color1.toArray()));
-
-    skyTexture.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray, 3), true))
-    */
-
 }
 function createMoon(){
     'use strict';
@@ -897,9 +871,10 @@ function render() {
         renderer.setRenderTarget(everglades_texture);
         renderer.clear(); // manual clear
         renderer.render(texture_scene, cameras[2]);
+        renderer.setRenderTarget(firmament_texture);
+        renderer.render(texture_scene, cameras[3]);
         renderer.setRenderTarget(null);
         renderer.render(scene, cameras[0]);
-        //renderer.render(texture_scene, cameras[3]);
     }
 }
 
