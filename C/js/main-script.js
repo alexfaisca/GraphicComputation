@@ -187,12 +187,12 @@ function createCameras() {
     createVRCamera(0, 20, 20);
 }
 function createMarshGazerCamera() {
-    cameras[2] = new THREE.OrthographicCamera( -15, 15, 15, -15, 1, 40);
+    cameras[2] = new THREE.OrthographicCamera( -14.9, 14.9, 14.9, -14.9, 1, 40);
     cameras[2].position.set(0, 10, 0);
     cameras[2].lookAt(texture_scene.position);
 }
 function createStarGazerCamera() {
-    cameras[3] = new THREE.OrthographicCamera( -50, 50, 50, -50, 1, 50);
+    cameras[3] = new THREE.OrthographicCamera( -49.9, 49.9, 49.9, -49.9, 1, 50);
     cameras[3].position.set(0, 140, 0);
     cameras[3].lookAt(texture_scene.position);
 
