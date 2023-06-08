@@ -198,6 +198,7 @@ function createVRCamera(x, y, z){
 
 function createLights(){
     createAmbientLight();
+    createAmbientLightTexture();
     createDirectionalLight();
 }
 
@@ -220,8 +221,11 @@ function createDirectionalLight() {
 function createAmbientLight(){
     ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2); 
     scene.add(ambientLight);
-    ambientLight2 = new THREE.AmbientLight(0xFFFFFF, 1);
-    texture_scene.add(ambientLight2);
+}
+
+function createAmbientLightTexture(){
+    ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
+    texture_scene.add(ambientLightTexture);
 }
 
 ////////////////////////
