@@ -307,6 +307,7 @@ function createPlane() {
 
     var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
     everglades.receiveShadow = true;
+    everglades.position.set(0, 5, 0);
 
     scene.add(everglades);
 }
@@ -375,7 +376,8 @@ function createCorkOaks(){
         corkOak.add(baseTrunk, trunk1, trunk2, treeTop1, treeTop2, treeTop3);
         corkOak.position.set(10,0,10);
         corkOak.rotateY(2*(Math.PI) * Math.random());
-        corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
+        let scale = Math.random();
+        corkOak.scale.set(0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1));
 
         /* Polar coordinates */
         let r = 8 + (field_radius/4* (Math.random() + 1));
