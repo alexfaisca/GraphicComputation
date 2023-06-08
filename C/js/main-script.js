@@ -27,7 +27,7 @@ var field_radius = 100;
 
 var stars, flowers;
 var star_mode, flower_mode;
-var number_of_stars = 1500, number_of_flowers = 1000;
+var number_of_stars = 1500, number_of_flowers = 1000, number_of_cork_oaks = 30;
 
 // -7.896139007327889 37.52503500684735
 
@@ -402,7 +402,7 @@ function createCorkOaks(){
     scene.add( mesh ); */
     //----
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < number_of_cork_oaks; i++) {
         var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 10);
         trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk); 
         trunk1.receiveShadow = true;
@@ -447,8 +447,8 @@ function createCorkOaks(){
         corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
         /* Polar coordinates */
-        let r = field_radius/4 * (Math.random() + 1);
-        let theta = (3 * Math.random() + 1) * (Math.PI)/2;
+        let r = 8 + (field_radius/4* (Math.random() + 1));
+        let theta = (3.3/4) * (30 / i) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
         corkOak.position.z = r * Math.cos(theta);
         
@@ -538,7 +538,6 @@ function createHouse(){
     ];
 
     bodyShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bodyVertices, 3));
-    //bodyShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(bodyVertices, 3));
     bodyShapeGeometry.setIndex(bodyIndexes);
     bodyShapeGeometry.computeVertexNormals();
 
@@ -561,7 +560,6 @@ function createHouse(){
     ];
 
     doorShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(doorVertices, 3));
-    //doorShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(doorVertices, 3));
     doorShapeGeometry.setIndex(doorIndexes);
     doorShapeGeometry.computeVertexNormals();
 
@@ -584,7 +582,6 @@ function createHouse(){
     ];
 
     window1ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window1Vertices, 3));
-    //window1ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window1Vertices, 3));
     window1ShapeGeometry.setIndex(window1Indexes);
     window1ShapeGeometry.computeVertexNormals();
 
@@ -607,7 +604,6 @@ function createHouse(){
     ];
 
     window2ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window2Vertices, 3));
-    //window2ShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(window2Vertices, 3));
     window2ShapeGeometry.setIndex(window2Indexes);
     window2ShapeGeometry.computeVertexNormals();
 
@@ -636,7 +632,6 @@ function createHouse(){
     ];
 
     roofShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(roofVertices, 3));
-    //roofShapeGeometry.setAttribute('uv', new THREE.BufferAttribute(roofVertices, 3));
     roofShapeGeometry.setIndex(roofIndexes);
     roofShapeGeometry.computeVertexNormals();
 
