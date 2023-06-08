@@ -58,7 +58,7 @@ function generateNature() {
 }
 
 function createGrass() {
-    var grass_geometry = new THREE.CircleGeometry(30, 2000);
+    var grass_geometry = new THREE.PlaneGeometry(30, 30, 200);
     grass_geometry.rotateX(Math.PI / 2);
     const grass_material = new THREE.MeshPhongMaterial({
         color: 0x236b25,
@@ -93,9 +93,9 @@ function createFlowers(){
         var flower_material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
         var flower_mesh = new THREE.Mesh(flower_geometry, flower_material);
 
-        flower_mesh.position.x = (Math.random() -0.5) * 50 ;
+        flower_mesh.position.x = (Math.random() -0.5) * 30 ;
         flower_mesh.position.y = 0;
-        flower_mesh.position.z = (Math.random() - 0.5) * 50 ;
+        flower_mesh.position.z = (Math.random() - 0.5) * 30 ;
         flower_mesh.rotateX(Math.PI / 2);
         flowers.add(flower_mesh);
     }
@@ -193,12 +193,12 @@ function createCameras() {
     createVRCamera(0, 20, 20);
 }
 function createMarshGazerCamera() {
-    cameras[2] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50, window.innerHeight / 50, -window.innerHeight / 50, 1, 40);
+    cameras[2] = new THREE.OrthographicCamera( -15, 15, 15, -15, 1, 40);
     cameras[2].position.set(0, 10, 0);
     cameras[2].lookAt(texture_scene.position);
 }
 function createStarGazerCamera() {
-    cameras[3] = new THREE.OrthographicCamera( -window.innerWidth / 50, window.innerWidth / 50,  7 * window.innerHeight / 50 / 2,  - 7 * window.innerHeight / 50 / 2, 1, 50);
+    cameras[3] = new THREE.OrthographicCamera( -50, 50, 50, -50, 1, 50);
     cameras[3].position.set(0, 140, 0);
     cameras[3].lookAt(texture_scene.position);
 
