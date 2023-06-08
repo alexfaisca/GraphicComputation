@@ -392,32 +392,34 @@ function createCorkOaks(){
         treeTop1.receiveShadow = true;
         treeTop1.castShadow = true;
         treeTop1.scale.set(2, 1, 1);
-        treeTop1.position.set(-2.0, 4.5, 0);
+        treeTop1.position.set(-2.0, 4.5, 0.7);
 
         var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
         var treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
         treeTop2.receiveShadow = true;
         treeTop2.castShadow = true;
         treeTop2.scale.set(1.5, 1, 1);
-        treeTop2.position.set(0, 6.5, 0);
+        treeTop2.position.set(-1, 5.5, -0.7);
 
         var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
         var treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
         treeTop3.receiveShadow = true;
         treeTop3.castShadow = true;
         treeTop3.scale.set(2, 1, 1);
-        treeTop3.position.set(1.5, 5.0, 0);
+        treeTop3.position.set(1.5, 4.8, -0.3);
 
         corkOak = new THREE.Group();
 
         corkOak.add(baseTrunk, trunk1, trunk2, treeTop1, treeTop2, treeTop3);
         corkOak.position.set(10,0,10);
-        corkOak.rotateY(Math.PI / 4)
+
+        corkOak.rotateY(2 *Math.PI / 4)
 
         corkOak.rotateY(2*(Math.PI) * Math.random());
         corkOak.scale.set(1, 0.5 * (2 * Math.random() + 1), 1);
 
         /* Polar coordinates */
+
         let r = 8 + (field_radius/4* (Math.random() + 1));
         let theta = (3.3/4) * (30 / i) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
