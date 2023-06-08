@@ -65,6 +65,7 @@ function createGrass() {
         side : THREE.DoubleSide,
     });
     var grass = new THREE.Mesh(grass_geometry, grass_material);
+    grass.receiveShadow = true;
     texture_scene.add(grass);
 }
 
@@ -303,8 +304,9 @@ function createPlane() {
         color: 0xffffff,
         side : THREE.DoubleSide,
         displacementMap: displacement_map,
-        normalMap: normal_map,
-        displacementScale: 10,
+        bumpMap: normal_map,
+        bumpScale: 21,
+        displacementScale: 15,
         map: everglades_texture.texture,
     });
     
