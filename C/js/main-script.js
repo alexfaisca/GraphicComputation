@@ -10,6 +10,7 @@ let meshes = [], ufo;
 let dirLight, spotlight, spotlight_target, pointlights = [];
 
 const field_radius = 100, number_of_cork_oaks = 20, pointlight_count = 6;
+const perspective_camera_settings = {fov:100, x:20, y:10, z:20}, vr_camera_settings = {x:0, y:20, z:20};
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
 
 const cork_oaks_positions = [ [-10, 0, 20], // Height needs adjsutment? default = 0
@@ -45,7 +46,7 @@ function createTextures() {
     texture_scene.userData = {has_stars: false, has_flowers: false};
     texture_scene.add(createAmbientLight(0xFFFFFF, 1));
 
-    cameras[2] = createOrthographicCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, texture_scene.position);
+    cameras[2] = createOrthographicCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, texture_scene.position.x, texture_scene.position.y, texture_scene.position.z);
     everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
     everglades_texture.texture.repeat.set(10,10);
     generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
@@ -54,7 +55,7 @@ function createTextures() {
     renderer.render(texture_scene, cameras[2]);
     renderer.setRenderTarget(null)
 
-    cameras[3] = createOrthographicCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z,  texture_scene.position);
+    cameras[3] = createOrthographicCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, texture_scene.position.x, texture_scene.position.y, texture_scene.position.z);
     firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
     firmament_texture.texture.repeat.set(25, 1);
     generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
@@ -86,7 +87,8 @@ function createScene(){
     scene.add(createMoon(-30, 30, -30));
     scene.add(createEverglades());
     scene.add(createHouse());
-    scene.add(ufo = createUfo());
+    spotlight_target = createSpotlightTarget(0, 0);
+    scene.add(ufo = createUfo(0, 10, 0), spotlight_target);
     scene.add(createCorkOaks());
 }
 //////////////////////
@@ -94,28 +96,27 @@ function createScene(){
 //////////////////////
 function createCameras() {
     'use strict'
-    createIsometricPerspectiveCamera(100, 20, 10, 20);
-    createVRCamera(0, 20, 20);
+    cameras[0] = createIsometricPerspectiveCamera(perspective_camera_settings.fov, perspective_camera_settings.x, perspective_camera_settings.y, perspective_camera_settings.z);
+    cameras[1] = createVRCamera(vr_camera_settings.x, vr_camera_settings.y, vr_camera_settings.z);
 }
 function createIsometricPerspectiveCamera(fov, x, y, z) {
     'use strict'
-    cameras[0] = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 250);
-    cameras[0].position.set(x, y, z);
-    cameras[0].lookAt(scene.position.x, scene.position.y, scene.position.z);
+    const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 250);
+    camera.position.set(x, y, z);
+    camera.lookAt(scene.position.x, scene.position.y, scene.position.z);
     //cameras[0].rotateX(Math.PI/ 4);
-    return cameras[0];
+    return camera;
 }
 function createVRCamera(x, y, z){
     auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
     auxCamera.position.set(x, y, z);
     auxCamera.lookAt(scene.position.x, scene.position.y, scene.position.z);
-    cameras[1] = new THREE.StereoCamera();
-    return cameras[1];
+    return new THREE.StereoCamera();
 }
-function createOrthographicCamera(l, w, x, y, z, target) {
+function createOrthographicCamera(l, w, targetX, targetY, targetZ, lookAtX, lookAtY, lookAtZ) {
     const camera = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
-    camera.position.set(x, y + 30, z);
-    camera.lookAt(target.x, target.y, target.z);
+    camera.position.set(targetX, targetY + 30, targetZ);
+    camera.lookAt(lookAtX, lookAtY, lookAtZ);
     return camera;
 }
 /////////////////////
@@ -156,7 +157,6 @@ function createGrass(l, w, x, y, z) {
         side : THREE.DoubleSide,
     });
     const grass = new THREE.Mesh(grass_geometry, grass_material);
-    grass.receiveShadow = true;
     grass.position.set(x, y, z);
     return grass;
 }
@@ -289,7 +289,6 @@ function createEverglades() {
 }
 function createCorkOaks() {
     'use strict';
-
     const trees = new THREE.Group();
 
     // Create trunks' materials
@@ -308,7 +307,6 @@ function createCorkOaks() {
     const secondary_bough_geometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
     const canopy_geometry = new THREE.SphereGeometry(1.5, 32, 16);
 
-
     let scale, r, theta;
     for (let i = 0, trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy, corkOak; i < number_of_cork_oaks; i++) {
         trunk = new THREE.Mesh(trunk_geometry, wood_lambert_material);
@@ -316,36 +314,30 @@ function createCorkOaks() {
         trunk.rotateZ(Math.PI);
         trunk.userData = {lambert_material: wood_lambert_material, phong_material: wood_phong_material, toon_material: wood_toon_material, basic_material: wood_basic_material};
 
-
         main_bough = new THREE.Mesh(main_bough_geometry, wood_lambert_material);
         main_bough.position.set(-0.795, 1.9, 0);
         main_bough.rotateZ((Math.PI)/5);
         main_bough.userData = {lambert_material: wood_lambert_material, phong_material: wood_phong_material, toon_material: wood_toon_material, basic_material: wood_basic_material};
-
 
         secondary_bough = new THREE.Mesh(secondary_bough_geometry, wood_lambert_material);
         secondary_bough.rotateZ((Math.PI)/(-4));
         secondary_bough.position.set(1, 1.8, 0);
         secondary_bough.userData = {lambert_material: wood_lambert_material, phong_material: wood_phong_material, toon_material: wood_toon_material, basic_material: wood_basic_material};
 
-
         first_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         first_canopy.scale.set(2, 1, 1);
         first_canopy.position.set(-2.0, 4, 0.7);
         first_canopy.userData = {lambert_material: canopy_lambert_material, phong_material: canopy_phong_material, toon_material: canopy_toon_material, basic_material: canopy_basic_material};
-
 
         second_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         second_canopy.scale.set(1.5, 1, 1);
         second_canopy.position.set(-1, 4.5, -0.7);
         second_canopy.userData = {lambert_material: canopy_lambert_material, phong_material: canopy_phong_material, toon_material: canopy_toon_material, basic_material: canopy_basic_material};
 
-
         third_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         third_canopy.scale.set(2, 1, 1);
         third_canopy.position.set(1.5, 3.8, -0.3);
         third_canopy.userData = {lambert_material: canopy_lambert_material, phong_material: canopy_phong_material, toon_material: canopy_toon_material, basic_material: canopy_basic_material};
-
 
         meshes.push(main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
         // Set receiveShadow and castShadow settings to true on all trees' meshes
@@ -363,9 +355,7 @@ function createCorkOaks() {
         third_canopy.castShadow = true;
 
         // Assemble and position cork oak
-        corkOak = new THREE.Group();
-
-        corkOak.add(trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
+        corkOak = (new THREE.Group()).add(trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
 
         scale = Math.random();
         r = 8 + (field_radius/4* (Math.random() + 1));
@@ -537,10 +527,8 @@ function createHouse(){
 
 
     // Assemble and position house
-    const house = new THREE.Group();
-    house.add(body, door, first_window, second_window, roof);
+    const house = (new THREE.Group()).add(body, door, first_window, second_window, roof);
     house.position.set(-5, -1.1, 2.5); // Center house
-    house.rotateY((Math.PI)/(1/8)); // Better side visibility
 
     // Store meshes
     meshes.push(body, door, first_window, second_window, roof);
@@ -561,18 +549,34 @@ function createHouse(){
 
     return house;
 }
-function createUfo() {
-    const ufo_x = 0, ufo_y = 10, ufo_z = 0, pointlight_radius = 0.25;
+function createSpotlightTarget(ufo_x, ufo_z) {
+    // Create spotlight target
+    const target_geometry = new THREE.BufferGeometry();
+    const target_material = new THREE.PointsMaterial( {visible: false} );
+    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
+    return new THREE.Points(target_geometry, target_material);
+}
+function createUfo(ufo_x, ufo_y, ufo_z, spotlight_target) {
+    const ufo = (new THREE.Group());
+    ufo.add(createShip(ufo_x, ufo_y, ufo_z));
+    ufo.userData = {
+        spotlight_target : spotlight_target,
+        angular_velocity :  Math.PI / 4,
+        linear_velocity : new THREE.Vector3(0,0,0)
+    };
+    ufo.position.set(ufo_x, ufo_y, ufo_z);
 
+    return ufo;
+}
+function createShip() {
+    const pointlight_radius = 0.25;
     const ufo = new THREE.Group();
 
-    const target_geometry = new THREE.BufferGeometry();
     const cockpit_geometry = new THREE.SphereGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
     const body_geometry = new THREE.SphereGeometry(5, 32, 16);
     const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
     const pointlight_geometry = new THREE.SphereGeometry(pointlight_radius, 32, 16 );
 
-    const target_material = new THREE.PointsMaterial( {visible: false} );
     const cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
     const cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
     const cockpit_toon_material = new THREE.MeshToonMaterial({color: 0xaaaaaa});
@@ -589,9 +593,6 @@ function createUfo() {
     const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
     const pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
-
-    spotlight_target = new THREE.Points(target_geometry, target_material);
-    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
 
     const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_lambert_material);
     cockpit_sphere.userData = {lambert_material: cockpit_lambert_material, phong_material: cockpit_phong_material, toon_material: cockpit_toon_material, basic_material: cockpit_basic_material};
@@ -625,7 +626,6 @@ function createUfo() {
         pointlight.userData = {lambert_material: pointlight_lambert_material, phong_material: pointlight_phong_material, toon_material: pointlight_toon_material, basic_material: pointlight_basic_material};
         pointlight.add(createPointLight(0, 0, 0, 0xffffff));
         pointlight.position.set(15/ 4 * Math.sin(i / pointlight_count * 2 * Math.PI), 2.2, 15 / 4 * Math.cos(i / pointlight_count * 2 * Math.PI));
-        console.log(pointlight.position);
         meshes.push(pointlight);
         pointlight.receiveShadow = true;
         pointlight.castShadow = true;
@@ -633,12 +633,6 @@ function createUfo() {
     }
 
     ufo.add(cockpit_sphere, body_sphere, spotlight_cylinder, pointlight_group);
-    ufo.userData = {
-        angular_velocity :  Math.PI / 4,
-        linear_velocity : new THREE.Vector3(0,0,0)
-    };
-
-    ufo.position.set(ufo_x, ufo_y, ufo_z);
     return ufo;
 }
 function createSpotLight(x, y, z) {
