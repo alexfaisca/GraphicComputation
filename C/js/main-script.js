@@ -9,8 +9,29 @@ let scene, texture_scene, renderer, everglades_texture, firmament_texture;
 let meshes = [], ufo;
 let dirLight, spotlight, spotlight_target, pointlights = [];
 
-const field_radius = 100, number_of_cork_oaks = 30, pointlight_count = 6;
+const field_radius = 100, number_of_cork_oaks = 20, pointlight_count = 6;
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
+
+const cork_oaks_positions = [ [-10, 0, 20], // Height needs adjsutment? default = 0
+                              [-20, 0, 10],
+                              [-20, 0, 20],
+                              [-40, 0, 50],
+                              [-50, 0, 30],
+                              [-60, 0, 10], // 4th octant
+                              [-20, 0, -10],
+                              [-20, 0, -40],
+                              [-30, 0, -60],
+                              [-40, 0, -50],
+                              [-50, 0, -20],
+                              [-30, 0, -20], // 3rd octant
+                              [10, 0, -10],
+                              [20, 0, -50],
+                              [50, 0, -20],
+                              [40, 0, -30],
+                              [50, 0, -60],
+                              [60, 0, -10], // 2nd octant
+                              [5, 0, 25],
+                              [30, 0, 5] ] // 1st octant
 
 const clock = new THREE.Clock();
 const cameras = new Array(4);
@@ -102,7 +123,7 @@ function createOrthographicCamera(l, w, x, y, z, target) {
 /////////////////////
 function createLights() {
     scene.add(dirLight = createDirectionalLight(0xFFFFFF, 0.6, 100, 100, 100, 0, 0, 0));
-    scene.add(createAmbientLight(0xFFFFFF, 0.8));
+    scene.add(createAmbientLight(0xFFFFFF, 0.5));
 }
 function createDirectionalLight(color, intensity, x, y, z, tx, ty, tz) {
     const light = new THREE.DirectionalLight(color, intensity);
@@ -352,8 +373,7 @@ function createCorkOaks() {
 
         corkOak.rotateY(2 * Math.PI * scale);
         corkOak.scale.set(0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1));
-        corkOak.position.x = r * Math.sin(theta);
-        corkOak.position.z = r * Math.cos(theta);
+        corkOak.position.set(cork_oaks_positions[i][0], cork_oaks_positions[i][1], cork_oaks_positions[i][2]);
 
         trees.add(corkOak);
     }
@@ -858,6 +878,8 @@ function init() {
     createScene();
     createCameras();
     createLights();
+
+    //new THREE.OrbitControls(cameras[0], renderer.domElement)
 
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
