@@ -2,25 +2,19 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-let scene, texture_scene, renderer, everglades_texture, firmament_texture;
 let key_press_map = {};
 let auxCamera;
-let active_camera;
 let presented = false;
-let ambientLight, dirLight;
-let materials = [], meshes = [], pointlights = [];
-let plane, ufo, spotlight, spotlight_target;
+let materials = [], meshes = [];
+let scene, texture_scene, renderer, everglades_texture, firmament_texture;
+let plane, ufo;
+let dirLight, spotlight, spotlight_target, pointlights = [];
 
 const field_radius = 100, number_of_cork_oaks = 30, pointlight_count = 6;
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:1600};
 
 const clock = new THREE.Clock();
 const cameras = new Array(4);
-
-// -7.896139007327889 37.52503500684735
-
-// -7.896139007327889 37.52503500684735
-
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -69,7 +63,6 @@ function createScene(){
 //////////////////////
 function createCameras() {
     'use strict'
-    active_camera = 0;
     createIsometricPerspectiveCamera();
     createVRCamera(0, 20, 20);
 }
@@ -122,7 +115,7 @@ function createDirectionalLight() {
     scene.add(dirLight);
 }
 function createAmbientLight() {
-    ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
     scene.add(ambientLight);
 }
 function createAmbientLightTexture() {
@@ -726,12 +719,7 @@ function changeMaterials() {
     if(key_press_map[69]) action = 2;
     if(key_press_map[82]) action = 3;
     if(action < 0) return;
-    else for (let i = 0; i < meshes.length; i++) {
-            meshes[i].material = materials[i][action];
-            meshes[i].material = materials[i][action];
-            meshes[i].material = materials[i][action];
-            meshes[i].material = materials[i][action];
-    }
+    else for (let i = 0; i < meshes.length; i++) meshes[i].material = materials[i][action];
     key_press_map[81] = 0;
     key_press_map[87] = 0;
     key_press_map[69] = 0;
@@ -865,7 +853,6 @@ function init() {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 }
-
 /////////////////////
 /* ANIMATION CYCLE */
 /////////////////////
@@ -885,8 +872,12 @@ function onResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     if (window.innerWidth > 0 && window.innerHeight > 0) {
-        cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
-        cameras[active_camera].updateProjectionMatrix();
+        cameras[0].aspect = window.innerWidth / window.innerHeight;
+        cameras[0].updateProjectionMatrix();
+        cameras[1].aspect = window.innerWidth / window.innerHeight;
+        cameras[1].updateProjectionMatrix();
+        auxCamera.aspect = window.innerWidth / window.innerHeight;
+        auxCamera.updateProjectionMatrix();
     }
 }
 ///////////////////////
