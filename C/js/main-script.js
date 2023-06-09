@@ -9,30 +9,9 @@ let scene, texture_scene, renderer, everglades_texture, firmament_texture;
 let meshes = [], ufo;
 let dirLight;
 
-const field_radius = 100, number_of_cork_oaks = 20;
+const field_radius = 100;
 const perspective_camera_settings = {fov:100, x:20, y:10, z:20}, vr_camera_settings = {x:0, y:20, z:20};
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
-
-const cork_oaks_positions = [ [-10, 0, 20], // Height needs adjsutment? default = 0
-                              [-20, 0, 10],
-                              [-20, 0, 20],
-                              [-40, 0, 50],
-                              [-50, 0, 30],
-                              [-60, 0, 10], // 4th octant
-                              [-20, 0, -10],
-                              [-20, 0, -40],
-                              [-30, 0, -60],
-                              [-40, 0, -50],
-                              [-50, 0, -20],
-                              [-30, 0, -20], // 3rd octant
-                              [10, 0, -10],
-                              [20, 0, -50],
-                              [50, 0, -20],
-                              [40, 0, -30],
-                              [50, 0, -60],
-                              [60, 0, -10], // 2nd octant
-                              [5, 0, 25],
-                              [30, 0, 5] ] // 1st octant
 
 const clock = new THREE.Clock();
 const cameras = new Array(4);
@@ -78,17 +57,38 @@ function generateFirmament(l, w, x, y, z, count) {
 }
 function createScene(){
     'use strict';
+    const number_of_cork_oaks = 20, space_ship = {x: -5, y: 10, z: -5, pointlights_count: 6}, moon = {x: -30, y:30, z: -30};
+    const cork_oaks_positions = [ [-10, 0, 20],
+        [-20, 0, 10],
+        [-20, 0, 20],
+        [-40, 0, 50],
+        [-50, 0, 30],
+        [-60, 0, 10], // 4th octant
+        [-20, 0, -10],
+        [-20, 0, -40],
+        [-30, 0, -60],
+        [-40, 0, -50],
+        [-50, 0, -20],
+        [-30, 0, -20], // 3rd octant
+        [10, 0, -10],
+        [20, 0, -50],
+        [50, 0, -20],
+        [40, 0, -30],
+        [50, 0, -60],
+        [60, 0, -10], // 2nd octant
+        [5, 0, 25],
+        [30, 0, 5] ] // 1st octant
 
     scene = new THREE.Scene();
     scene.add(new THREE.AxesHelper(100));
     scene.background = new THREE.Color(0xeeeeff);
 
-    scene.add(createSky());
-    scene.add(createMoon(-30, 30, -30));
-    scene.add(createEverglades());
+    scene.add(createSky(field_radius));
+    scene.add(createMoon(moon.x, moon.y, moon.z));
+    scene.add(createEverglades(field_radius));
     scene.add(createHouse());
-    scene.add(ufo = createUfo(10, 10, 10, 6));
-    scene.add(createCorkOaks());
+    scene.add(ufo = createUfo(space_ship.x, space_ship.y, space_ship.z, space_ship.pointlights_count));
+    scene.add(createCorkOaks(number_of_cork_oaks, cork_oaks_positions));
 }
 //////////////////////
 /* CREATE CAMERA(S) */
@@ -286,7 +286,7 @@ function createEverglades() {
 
     return everglades;
 }
-function createCorkOaks() {
+function createCorkOaks(number_of_cork_oaks, cork_oaks_positions) {
     'use strict';
     const trees = new THREE.Group();
 
