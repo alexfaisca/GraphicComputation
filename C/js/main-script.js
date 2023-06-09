@@ -611,8 +611,9 @@ function createUfo() {
     for(let i = 0, pointlight; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
         pointlight.userData = {lambert_material: pointlight_lambert_material, phong_material: pointlight_phong_material, toon_material: pointlight_toon_material, basic_material: pointlight_basic_material};
-        pointlight.add(createPointLight(0, -pointlight_radius, 0, i));
-        pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
+        pointlight.add(createPointLight(0, 0, 0, 0xffffff));
+        pointlight.position.set(15/ 4 * Math.sin(i / pointlight_count * 2 * Math.PI), 2.2, 15 / 4 * Math.cos(i / pointlight_count * 2 * Math.PI));
+        console.log(pointlight.position);
         meshes.push(pointlight);
         pointlight.receiveShadow = true;
         pointlight.castShadow = true;
@@ -645,10 +646,10 @@ function createPointLight(x, y, z, color) {
         throw "Too many pointlights!";
     }
 
-    const point = new THREE.PointLight(color, 0.3, 15);
+    const point = new THREE.PointLight(color, 1, 12, 1);
     point.position.set(x, y, z);
     point.castShadow = true;
-    point.visible = false;
+    point.visible = true;
     pointlights.push(point);
 
     return point;
