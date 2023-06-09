@@ -371,25 +371,25 @@ function createHouse(){
     'use strict';
 
     // Create house's materials
-    const body_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff});
-    const body_phong_material = new THREE.MeshPhongMaterial({color: 0xffffff});
-    const body_toon_material = new THREE.MeshToonMaterial({color: 0xffffff});
-    const body_basic_material = new THREE.MeshBasicMaterial({color: 0xffffff});
+    const body_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff, roughness: 1.0});
+    const body_phong_material = new THREE.MeshPhongMaterial({color: 0xffffff, roughness: 1.0});
+    const body_toon_material = new THREE.MeshToonMaterial({color: 0xffffff, roughness: 1.0});
+    const body_basic_material = new THREE.MeshBasicMaterial({color: 0xffffff, roughness: 1.0});
 
-    const door_lambert_material = new THREE.MeshLambertMaterial({color: 0xC4A484});
-    const door_phong_material = new THREE.MeshPhongMaterial({color: 0xC4A484});
-    const door_toon_material = new THREE.MeshToonMaterial({color: 0xC4A484});
-    const door_basic_material = new THREE.MeshBasicMaterial({color: 0xC4A484});
+    const door_lambert_material = new THREE.MeshLambertMaterial({color: 0xC4A484, roughness: 1.0});
+    const door_phong_material = new THREE.MeshPhongMaterial({color: 0xC4A484, roughness: 1.0});
+    const door_toon_material = new THREE.MeshToonMaterial({color: 0xC4A484, roughness: 1.0});
+    const door_basic_material = new THREE.MeshBasicMaterial({color: 0xC4A484, roughness: 1.0});
 
-    const window_lambert_material = new THREE.MeshLambertMaterial({color: 0x89cff0});
-    const window_phong_material = new THREE.MeshPhongMaterial({color: 0x89cff0});
-    const window_toon_material = new THREE.MeshToonMaterial({color: 0x89cff0});
-    const window_basic_material = new THREE.MeshBasicMaterial({color: 0x89cff0});
+    const window_lambert_material = new THREE.MeshLambertMaterial({color: 0x89cff0, metalness: 1});
+    const window_phong_material = new THREE.MeshPhongMaterial({color: 0x89cff0, metalness: 1});
+    const window_toon_material = new THREE.MeshToonMaterial({color: 0x89cff0, metalness: 1});
+    const window_basic_material = new THREE.MeshBasicMaterial({color: 0x89cff0, metalness: 1});
 
-    const roof_lambert_material = new THREE.MeshLambertMaterial({color: 0xDC582A});
-    const roof_phong_material = new THREE.MeshPhongMaterial({color: 0xDC582A});
-    const roof_toon_material = new THREE.MeshToonMaterial({color: 0xDC582A});
-    const roof_basic_material = new THREE.MeshBasicMaterial({color: 0xDC582A});
+    const roof_lambert_material = new THREE.MeshLambertMaterial({color: 0xDC582A, roughness: 1.0});
+    const roof_phong_material = new THREE.MeshPhongMaterial({color: 0xDC582A, roughness: 1.0});
+    const roof_toon_material = new THREE.MeshToonMaterial({color: 0xDC582A, roughness: 1.0});
+    const roof_basic_material = new THREE.MeshBasicMaterial({color: 0xDC582A, roughness: 1.0});
 
     const body_vertices = new Float32Array( [
         0, 0, 0, // v0
@@ -527,7 +527,7 @@ function createHouse(){
     // Assemble and position house
     const house = new THREE.Group();
     house.add(body, door, first_window, second_window, roof);
-    house.position.set(-5, 0, 2.5); // Center house
+    house.position.set(-5, -1.1, 2.5); // Center house
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
 
     // Store meshes
