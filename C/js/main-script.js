@@ -26,7 +26,7 @@ function createTextures() {
 
     cameras[2] = createOrthographicCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, texture_scene.position);
     everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
-    everglades_texture.repeat.set(10,10);
+    everglades_texture.texture.repeat.set(10,10);
     generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
     renderer.setRenderTarget(everglades_texture);
     renderer.clear(); // manual clear
@@ -35,7 +35,7 @@ function createTextures() {
 
     cameras[3] = createOrthographicCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z,  texture_scene.position);
     firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
-    firmament_texture.repeat.set(25, 1);
+    firmament_texture.texture.repeat.set(25, 1);
     generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
     renderer.setRenderTarget(firmament_texture);
     renderer.clear(); // manual clear
@@ -198,7 +198,7 @@ function createSunset(l, w, x, y, z) {
     sunset_geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3));
 
     const sunset_material = new THREE.MeshBasicMaterial({
-        vertexColors: THREE.VertexColors, side: THREE.BackSide,
+        vertexColors: true, side: THREE.BackSide,
     });
     const sunset = new THREE.Mesh(sunset_geometry, sunset_material);
     sunset.position.set(x, y, z);
@@ -225,7 +225,6 @@ function createStars(l, w, x, y, z, count){
 function createSky() {
     const sky_dome_geometry = new THREE.SphereGeometry(field_radius, 180, 180, 0, Math.PI * 2, 0, 6 * Math.PI / 11);
     const sky_dome_material = new THREE.MeshPhongMaterial({
-        vertexColors: THREE.vertexColors,
         side: THREE.BackSide,
         map: firmament_texture.texture,
     });
@@ -239,7 +238,7 @@ function createMoon() {
     const moon_toon_material = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
     const moon_basic_material = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
-    const moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    const moonShapeGeometry = new THREE.SphereGeometry(5, 32, 16);
 
     const moon = new THREE.Mesh(moonShapeGeometry, moon_lambert_material);
     moon.position.set(-30, 30, -30);
@@ -294,7 +293,7 @@ function createCorkOaks() {
     const trunk_geometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
     const main_bough_geometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
     const secondary_bough_geometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
-    const canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+    const canopy_geometry = new THREE.SphereGeometry(1.5, 32, 16);
 
 
     let scale, r, theta;
@@ -556,10 +555,10 @@ function createUfo() {
     const ufo = new THREE.Group();
 
     const target_geometry = new THREE.BufferGeometry();
-    const cockpit_geometry = new THREE.SphereBufferGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
-    const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    const cockpit_geometry = new THREE.SphereGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
+    const body_geometry = new THREE.SphereGeometry(5, 32, 16);
     const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
-    const pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
+    const pointlight_geometry = new THREE.SphereGeometry(pointlight_radius, 32, 16 );
 
     const target_material = new THREE.PointsMaterial( {visible: false} );
     const cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
