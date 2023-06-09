@@ -103,7 +103,7 @@ function createIsometricPerspectiveCamera(fov, x, y, z) {
     const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 250);
     camera.position.set(x, y, z);
     camera.lookAt(scene.position.x, scene.position.y, scene.position.z);
-    //cameras[0].rotateX(Math.PI/ 4);
+    //camera.rotateX(Math.PI/ 4);
     return camera;
 }
 function createVRCamera(x, y, z){
@@ -549,7 +549,7 @@ function createHouse(){
     return house;
 }
 function createUfo(ufo_x, ufo_y, ufo_z, pointlight_count) {
-    const ufo = (new THREE.Group());
+    const ufo = new THREE.Group();
     const spotlight_target = createSpotlightTarget(ufo_x, 0, ufo_z);
     const spotlight = createSpotLight(0, 0, 0, spotlight_target);
     const pointlights = createPointLight(0, 0, 0, 0xffffff, pointlight_count)
@@ -563,7 +563,6 @@ function createUfo(ufo_x, ufo_y, ufo_z, pointlight_count) {
         linear_velocity : new THREE.Vector3(0,0,0),
     };
     ufo.position.set(ufo_x, ufo_y, ufo_z);
-
     return ufo;
 }
 function createShip(pointlights, pointlight_count) {
@@ -583,10 +582,10 @@ function createShip(pointlights, pointlight_count) {
     const body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
     const body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
     const body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
-    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
-    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
-    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
-    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf, metalness: 1.0});
+    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf, metalness: 1.0});
+    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf, metalness: 1.0});
+    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf, metalness: 1.0});
     const pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
