@@ -122,7 +122,7 @@ function createOrthographicCamera(l, w, targetX, targetY, targetZ, lookAtX, look
 /* CREATE LIGHT(S) */
 /////////////////////
 function createLights() {
-    scene.add(dirLight = createDirectionalLight(0xFFFFFF, 0.6, 100, 100, 100, 0, 0, 0));
+    scene.add(dirLight = createDirectionalLight(0xEBC815, 0.8, 100, 100, 100, 0, 0, 0));
     scene.add(createAmbientLight(0xFFFFFF, 0.5));
 }
 function createDirectionalLight(color, intensity, x, y, z, tx, ty, tz) {
