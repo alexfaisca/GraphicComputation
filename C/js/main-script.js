@@ -7,7 +7,7 @@ let auxCamera;
 let presented = false;
 let materials = [], meshes = [];
 let scene, texture_scene, renderer, everglades_texture, firmament_texture;
-let plane, ufo;
+let ufo;
 let dirLight, spotlight, spotlight_target, pointlights = [];
 
 const field_radius = 100, number_of_cork_oaks = 30, pointlight_count = 6;
@@ -23,9 +23,9 @@ function createTextures() {
     renderer.autoClear = false;
     texture_scene = new THREE.Scene();
     texture_scene.userData = {has_stars: false, has_flowers: false};
-    createAmbientLightTexture();
+    texture_scene.add(createAmbientLight(0xFFFFFF, 1));
 
-    createMarshGazerCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z);
+    cameras[2] = createOrthographicCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, texture_scene.position);
     everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
     everglades_texture.repeat.set(10,10);
     generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
@@ -34,7 +34,7 @@ function createTextures() {
     renderer.render(texture_scene, cameras[2]);
     renderer.setRenderTarget(null)
 
-    createStarGazerCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z);
+    cameras[3] = createOrthographicCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z,  texture_scene.position);
     firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
     firmament_texture.repeat.set(25, 1);
     generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
@@ -42,7 +42,18 @@ function createTextures() {
     renderer.clear(); // manual clear
     renderer.render(texture_scene, cameras[3]);
     renderer.setRenderTarget(null);
+
     renderer.autoClear = true;
+}
+function generateNature(l, w, x, y, z, count) {
+    texture_scene.add(createGrass(l, w, x, y, z));
+    texture_scene.add(createFlowers(l, w, x, y, z, count));
+    texture_scene.userData.has_flowers = true;
+}
+function generateFirmament(l, w, x, y, z, count) {
+    texture_scene.add(createSunset(l, w, x, y, z));
+    texture_scene.add(createStars(l, w, x, y, z, count));
+    texture_scene.userData.has_stars = true;
 }
 function createScene(){
     'use strict';
@@ -51,88 +62,72 @@ function createScene(){
     scene.add(new THREE.AxesHelper(100));
     scene.background = new THREE.Color(0xeeeeff);
 
-    createSky();
-    createMoon();
-    createEverglades();
-    createHouse();
-    createUfo();
-    createCorkOaks();
+    scene.add(createSky());
+    scene.add(createMoon());
+    scene.add(createEverglades());
+    scene.add(createHouse());
+    scene.add(ufo = createUfo());
+    scene.add(createCorkOaks());
 }
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
 function createCameras() {
     'use strict'
-    createIsometricPerspectiveCamera();
+    createIsometricPerspectiveCamera(100, 20, 10, 20);
     createVRCamera(0, 20, 20);
 }
-function createIsometricPerspectiveCamera() {
+function createIsometricPerspectiveCamera(fov, x, y, z) {
     'use strict'
-    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
-    cameras[0].position.set(20, 10, 20);
-    cameras[0].lookAt(scene.position);
+    cameras[0] = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 250);
+    cameras[0].position.set(x, y, z);
+    cameras[0].lookAt(scene.position.x, scene.position.y, scene.position.z);
     //cameras[0].rotateX(Math.PI/ 4);
+    return cameras[0];
 }
 function createVRCamera(x, y, z){
     auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
     auxCamera.position.set(x, y, z);
-    auxCamera.lookAt(scene.position);
+    auxCamera.lookAt(scene.position.x, scene.position.y, scene.position.z);
     cameras[1] = new THREE.StereoCamera();
+    return cameras[1];
 }
-function createMarshGazerCamera(l, w, x, y, z) {
-    cameras[2] = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
-    cameras[2].position.set(x, y + 30, z);
-    cameras[2].lookAt(texture_scene.position);
-}
-function createStarGazerCamera(l, w, x, y, z) {
-    cameras[3] = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
-    cameras[3].position.set(x, y + 30, z);
-    cameras[3].lookAt(texture_scene.position);
-
+function createOrthographicCamera(l, w, x, y, z, target) {
+    const camera = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
+    camera.position.set(x, y + 30, z);
+    camera.lookAt(target.x, target.y, target.z);
+    return camera;
 }
 /////////////////////
 /* CREATE LIGHT(S) */
 /////////////////////
 function createLights() {
-    createAmbientLight();
-    createDirectionalLight();
+    scene.add(dirLight = createDirectionalLight(0xFFFFFF, 0.6, 100, 100, 100, 0, 0, 0));
+    scene.add(createAmbientLight(0xFFFFFF, 0.8));
 }
-function createDirectionalLight() {
-    dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.6);
-    dirLight.position.set(100, 100, 100);
-    dirLight.target.position.set(0, 0, 0);
-    dirLight.castShadow = true;
+function createDirectionalLight(color, intensity, x, y, z, tx, ty, tz) {
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(x, y, z);
+    light.target.position.set(tx, ty, tz);
+    light.castShadow = true;
 
     // Directional lights' default shadow properties
-    dirLight.shadow.mapSize.width = 512;
-    dirLight.shadow.mapSize.height = 512;
-    dirLight.shadow.camera.left = -512;
-    dirLight.shadow.camera.right = 512;
-    dirLight.shadow.camera.top = 512;
-    dirLight.shadow.camera.bottom = -512;
+    light.shadow.mapSize.width = 512;
+    light.shadow.mapSize.height = 512;
+    light.shadow.camera.left = -512;
+    light.shadow.camera.right = 512;
+    light.shadow.camera.top = 512;
+    light.shadow.camera.bottom = -512;
 
-    dirLight.target.updateMatrixWorld();
-    scene.add(dirLight);
+    light.target.updateMatrixWorld(true);
+    return light;
 }
-function createAmbientLight() {
-    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
-    scene.add(ambientLight);
-}
-function createAmbientLightTexture() {
-    const ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
-    texture_scene.add(ambientLightTexture);
+function createAmbientLight(color, intensity) {
+    return new THREE.AmbientLight(color, intensity);
 }
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
-function generateNature(l, w, x, y, z, count) {
-    createGrass(l, w, x, y, z);
-    createFlowers(l, w, x, y, z, count);
-}
-function generateFirmament(l, w, x, y, z, count) {
-    createSunset(l, w, x, y, z);
-    createStars(l, w, x, y, z, count);
-}
 function createGrass(l, w, x, y, z) {
     const grass_geometry = new THREE.PlaneGeometry(l, w, 200);
     grass_geometry.rotateX(Math.PI / 2);
@@ -143,7 +138,7 @@ function createGrass(l, w, x, y, z) {
     const grass = new THREE.Mesh(grass_geometry, grass_material);
     grass.receiveShadow = true;
     grass.position.set(x, y, z);
-    texture_scene.add(grass);
+    return grass;
 }
 function createFlowers(l, w, x, y, z, count) {
     const flowers = new THREE.Group();
@@ -176,8 +171,7 @@ function createFlowers(l, w, x, y, z, count) {
         flower_mesh.rotateX(Math.PI / 2);
         flowers.add(flower_mesh);
     }
-    texture_scene.add(flowers);
-    texture_scene.userData.has_flowers = true;
+    return flowers;
 }
 function createSunset(l, w, x, y, z) {
     const sunset_geometry = new THREE.BufferGeometry();
@@ -208,7 +202,7 @@ function createSunset(l, w, x, y, z) {
     });
     const sunset = new THREE.Mesh(sunset_geometry, sunset_material);
     sunset.position.set(x, y, z);
-    texture_scene.add(sunset);
+    return sunset;
 }
 function createStars(l, w, x, y, z, count){
     const stars = new THREE.Group();
@@ -224,8 +218,7 @@ function createStars(l, w, x, y, z, count){
         star_mesh.rotateX(Math.PI / 2);
         stars.add(star_mesh);
     }
-    texture_scene.add(stars);
-    texture_scene.userData.has_stars = true;
+    return stars;
 }
 function createSky() {
     const sky_dome_geometry = new THREE.SphereGeometry(field_radius, 180, 180, 0, Math.PI * 2, 0, 6 * Math.PI / 11);
@@ -234,8 +227,7 @@ function createSky() {
         side: THREE.BackSide,
         map: firmament_texture.texture,
     });
-    const sky_dome = new THREE.Mesh(sky_dome_geometry, sky_dome_material);
-    scene.add(sky_dome);
+    return new THREE.Mesh(sky_dome_geometry, sky_dome_material);
 }
 function createMoon() {
     'use strict';
@@ -255,15 +247,15 @@ function createMoon() {
     meshes.push(moon);
     materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);
 
-    scene.add(moon);
+    return moon;
 }
 function createEverglades() {
     const everglades_geometry = new THREE.CircleGeometry(field_radius, 6000);
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
-    const displacement_map = loader.load('textures/terrain_heightmap.png');
-    const normal_map = loader.load('textures/terrain_shadowmap.png');
+    const displacement_map = loader.load('textures/terrain_heightmap.png', null, null, null);
+    const normal_map = loader.load('textures/terrain_shadowmap.png', null, null, null);
 
     const everglades_phong_material = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -278,10 +270,13 @@ function createEverglades() {
     everglades.receiveShadow = true;
     everglades.position.set(0, 5, 0);
 
-    scene.add(everglades);
+    return everglades;
 }
 function createCorkOaks() {
     'use strict';
+
+    const trees = new THREE.Group();
+
     // Create trunks' materials
     const wood_lambert_material = new THREE.MeshLambertMaterial({color: 0xa45729});
     const wood_phong_material = new THREE.MeshPhongMaterial({color: 0xa45729});
@@ -325,7 +320,7 @@ function createCorkOaks() {
         third_canopy.scale.set(2, 1, 1);
         third_canopy.position.set(1.5, 3.8, -0.3);
 
-        // Set receiveShadow and castShadow settings to true on all tree's meshes
+        // Set receiveShadow and castShadow settings to true on all trees' meshes
         trunk.receiveShadow = true;
         trunk.castShadow = true;
         main_bough.receiveShadow = true;
@@ -359,8 +354,9 @@ function createCorkOaks() {
         materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
         materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
         materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
-        scene.add(corkOak);
+        trees.add(corkOak);
     }
+    return trees;
 }
 function createHouse(){
     'use strict';
@@ -541,59 +537,65 @@ function createHouse(){
     materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
     materials.push([roof_lambert_material, roof_phong_material, roof_toon_material, roof_basic_material]);
 
-    scene.add(house);
+    return house;
 }
 function createUfo() {
-    const ufo_x = 0, ufo_y = 10, ufo_z = 0;
-    const target_geometry = new THREE.BufferGeometry();
-    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
-    const target_material = new THREE.PointsMaterial( {visible: false} );
-    spotlight_target = new THREE.Points(target_geometry, target_material);
+    const ufo_x = 0, ufo_y = 10, ufo_z = 0, pointlight_radius = 0.25;
 
-    ufo = new THREE.Object3D();
+    const ufo = new THREE.Group();
+
+    const target_geometry = new THREE.BufferGeometry();
     const cockpit_geometry = new THREE.SphereBufferGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
+    const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
+    const pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
     const cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
+
+    const target_material = new THREE.PointsMaterial( {visible: false} );
     const cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
     const cockpit_toon_material = new THREE.MeshToonMaterial({color: 0xaaaaaa});
     const cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0xaaaaaa});
-    const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_lambert_material);
-    cockpit_sphere.position.setY(3.6);
-    cockpit_sphere.receiveShadow = true;
-    cockpit_sphere.castShadow = true;
-    materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
-    meshes.push(cockpit_sphere);
-
-    const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
     const body_lambert_material = new THREE.MeshLambertMaterial({color: 0x152238});
     const body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
     const body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
     const body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
-    const body_sphere = new THREE.Mesh(body_geometry, body_lambert_material);
-    body_sphere.scale.set(1, 3 / 10, 1)
-    body_sphere.position.setY(3);
-    body_sphere.receiveShadow = true;
-    body_sphere.castShadow = true;
-    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
-    meshes.push(body_sphere);
-
-    const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
     const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
     const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
-    const spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
-    spotlight_cilinder.add(createSpotLight(0,-0.1,0, ));
-    spotlight_cilinder.position.setY(1.6);
-    spotlight_cilinder.receiveShadow = true;
-    spotlight_cilinder.castShadow = true;
-    materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
-    meshes.push(spotlight_cilinder);
-
-    const pointlight_radius = 0.25, pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
     const pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
     const pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+
+    spotlight_target = new THREE.Points(target_geometry, target_material);
+    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
+
+    const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_lambert_material);
+    cockpit_sphere.position.setY(3.6);
+
+    const body_sphere = new THREE.Mesh(body_geometry, body_lambert_material);
+    body_sphere.scale.set(1, 3 / 10, 1)
+    body_sphere.position.setY(3);
+
+    const spotlight_cylinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
+    spotlight_cylinder.add(createSpotLight(0,-0.1,0));
+    spotlight_cylinder.position.setY(1.6);
+
+    materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
+    meshes.push(cockpit_sphere);
+    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
+    meshes.push(body_sphere);
+    materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
+    meshes.push(spotlight_cylinder);
+    body_sphere.receiveShadow = true;
+    body_sphere.castShadow = true;
+    cockpit_sphere.receiveShadow = true;
+    cockpit_sphere.castShadow = true;
+    spotlight_cylinder.receiveShadow = true;
+    spotlight_cylinder.castShadow = true;
+
+    const pointlight_group = new THREE.Group();
 
     for(let i = 0, pointlight; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
@@ -603,18 +605,17 @@ function createUfo() {
         pointlight.castShadow = true;
         materials.push([pointlight_lambert_material, pointlight_phong_material, pointlight_toon_material, pointlight_basic_material]);
         meshes.push(pointlight);
-        ufo.add(pointlight);
+        pointlight_group.add(pointlight);
     }
 
-    ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
-
+    ufo.add(cockpit_sphere, body_sphere, spotlight_cylinder, pointlight_group);
     ufo.userData = {
         angular_velocity :  Math.PI / 4,
         linear_velocity : new THREE.Vector3(0,0,0)
     };
 
     ufo.position.set(ufo_x, ufo_y, ufo_z);
-    scene.add(ufo);
+    return ufo;
 }
 function createSpotLight(x, y, z) {
     spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
@@ -683,10 +684,10 @@ function toggleFlowers() {
     if(key_press_map[49]) {
         if(texture_scene.userData.has_flowers){ // Destroy flowers
             texture_scene.remove(texture_scene.getObjectByName("flowers"));
-            texture_scene.userData.has_flowers = !texture_scene.userData.has_flowers;
         } else { // Create flowers
-            createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
+            texture_scene.add(createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count));
         }
+        texture_scene.userData.has_flowers = !texture_scene.userData.has_flowers;
         renderer.setRenderTarget(everglades_texture);
         renderer.clear();
         renderer.render(texture_scene, cameras[2]);
@@ -699,10 +700,10 @@ function toggleStars() {
     if(key_press_map[50]) {
         if(texture_scene.userData.has_stars){ // Destroy stars
             texture_scene.remove(texture_scene.getObjectByName("stars"));
-            texture_scene.userData.has_stars = !texture_scene.userData.has_stars;
         } else { // Create stars
-            createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
+            texture_scene.add(createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count));
         }
+        texture_scene.userData.has_stars = !texture_scene.userData.has_stars;
         renderer.setRenderTarget(firmament_texture);
         renderer.clear();
         renderer.render(texture_scene, cameras[3]);
