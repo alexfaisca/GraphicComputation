@@ -630,7 +630,7 @@ function createSpotLight(x, y, z) {
     return spotlight;
 }
 function createPointLight(x, y, z, color) {
-    if(pointlights.lengthi >= pointlight_count) {
+    if(pointlights.length >= pointlight_count) {
         throw "Too many pointlights!";
     }
 
