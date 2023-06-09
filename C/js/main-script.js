@@ -3,7 +3,6 @@
 //////////////////////
 
 let key_press_map = {};
-let auxCamera;
 let presented = false;
 let scene, texture_scene, renderer, everglades_texture, firmament_texture;
 let meshes = [], ufo;
@@ -13,8 +12,29 @@ const field_radius = 100;
 const perspective_camera_settings = {fov:100, x:20, y:10, z:20}, vr_camera_settings = {x:0, y:20, z:20};
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
 
+const cork_oaks_positions = [ [-10, 0, 20],  
+                              [-20, 0, 10],
+                              [-20, 0, 20],
+                              [-40, 0, 50],
+                              [-50, 0, 30],
+                              [-60, 0, 10],  // 4th octant
+                              [-20, 0, -10],
+                              [-20, 0, -40],
+                              [-30, 0, -60],
+                              [-40, 0, -50],
+                              [-50, 0, -20],
+                              [-30, 0, -20], // 3rd octant
+                              [10, 0, -10],
+                              [20, 0, -50],
+                              [50, 0, -20],
+                              [40, 0, -30],
+                              [50, 0, -60],
+                              [60, 0, -10],  // 2nd octant
+                              [5, 0, 25],
+                              [30, 0, 5] ]   // 1st octant
+
 const clock = new THREE.Clock();
-const cameras = new Array(4);
+const cameras = new Array(5);
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -108,9 +128,9 @@ function createIsometricPerspectiveCamera(fov, x, y, z) {
     return camera;
 }
 function createVRCamera(x, y, z){
-    auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-    auxCamera.position.set(x, y, z);
-    auxCamera.lookAt(scene.position.x, scene.position.y, scene.position.z);
+    cameras[4] = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    cameras[4].position.set(x, y, z);
+    cameras[4].lookAt(scene.position.x, scene.position.y, scene.position.z);
     return new THREE.StereoCamera();
 }
 function createOrthographicCamera(l, w, targetX, targetY, targetZ, lookAtX, lookAtY, lookAtZ) {
@@ -392,61 +412,61 @@ function createHouse(){
     const roof_basic_material = new THREE.MeshBasicMaterial({color: 0xDC582A, roughness: 1.0});
 
     const body_vertices = new Float32Array( [
-        0, 0, 0, // v0
-        1, 0, 0, // v1
-        0, 5, 0, // v2
-        1, 5, 0, // v3
-        10, 4, 0, // v4
-        10, 5, 0, // v5
-        1, 4, 0, // v6
-        3, 4, 0, // v7
-        3, 1.5, 0, // v8
-        4, 1.5, 0, // v9
-        4, 4, 0, // v10
-        6, 4, 0, // v11
-        6, 1.5, 0, // 12
-        7, 1.5, 0, // v13
-        7, 4, 0, // v14
-        9, 4, 0, // v15
-        9, 1.5, 0, // v16
+        0, 0, 0,    // v0
+        1, 0, 0,    // v1
+        0, 5, 0,    // v2
+        1, 5, 0,    // v3
+        10, 4, 0,   // v4
+        10, 5, 0,   // v5
+        1, 4, 0,    // v6
+        3, 4, 0,    // v7
+        3, 1.5, 0,  // v8
+        4, 1.5, 0,  // v9
+        4, 4, 0,    // v10
+        6, 4, 0,    // v11
+        6, 1.5, 0,  // 12
+        7, 1.5, 0,  // v13
+        7, 4, 0,    // v14
+        9, 4, 0,    // v15
+        9, 1.5, 0,  // v16
         10, 1.5, 0, // v17
-        10, 4, 0, // v18
-        3, 0, 0, // v19
-        10, 0, 0, // v20
-        0, 0, -5, // v21
-        0, 5, -5, // v22
-        10, 0, -5, // v23
-        10, 5, -5 // v24
+        10, 4, 0,   // v18
+        3, 0, 0,    // v19
+        10, 0, 0,   // v20
+        0, 0, -5,   // v21
+        0, 5, -5,   // v22
+        10, 0, -5,  // v23
+        10, 5, -5   // v24
     ] );
     const door_vertices = new Float32Array( [
-        1, 0, 0, // v0
-        3, 0, 0, // v1
-        3, 4, 0, // v2
-        1, 4, 0 // v3
+        1, 0, 0,  // v0
+        3, 0, 0,  // v1
+        3, 4, 0,  // v2
+        1, 4, 0   // v3
     ] );
     const first_window_vertices = new Float32Array( [
         4, 1.5, 0, // v0
         6, 1.5, 0, // v1
-        6, 4, 0, // v2
-        4, 4, 0 // v3
+        6, 4, 0,   // v2
+        4, 4, 0    // v3
     ] );
     const second_window_vertices = new Float32Array( [
         7, 1.5, 0, // v0
         9, 1.5, 0, // v1
-        9, 4, 0, // v2
-        7, 4, 0 // v3
+        9, 4, 0,   // v2
+        7, 4, 0    // v3
     ] );
     const roof_vertices = new Float32Array( [
-        0, 5, 0, // v0
-        10, 5, 0, // v1
-        0, 7, -2.5, // v2
+        0, 5, 0,     // v0
+        10, 5, 0,    // v1
+        0, 7, -2.5,  // v2
         10, 7, -2.5, // v3
-        0, 5, -5, // v4
-        10, 5, -5 // v5
+        0, 5, -5,    // v4
+        10, 5, -5    // v5
     ] );
 
     const body_indices = [
-        0, 1, 2, // Front side
+        0, 1, 2,    // Front side
         3, 2, 1,
         4, 5, 6,
         6, 5, 3,
@@ -458,9 +478,9 @@ function createHouse(){
         17, 18, 15,
         19, 20, 17,
         17, 8, 19,
-        0, 2, 22, // Left side
+        0, 2, 22,   // Left side
         22, 21, 0,
-        20, 23, 5, // Right Side
+        20, 23, 5,  // Right Side
         5, 23, 24,
         21, 22, 24, // Back side
         24, 23, 21
@@ -483,7 +503,7 @@ function createHouse(){
         2, 3, 5, // Back side
         5, 4, 2,
         0, 2, 4, // Left side
-        1, 5, 3 // Right side
+        1, 5, 3  // Right side
     ];
 
     const body_geometry = new THREE.BufferGeometry();
@@ -844,7 +864,7 @@ function render() {
             scene.translateZ(-5);
             scene.translateY(-5);
         }
-        cameras[1].update(auxCamera);
+        cameras[1].update(cameras[4]);
         renderer.render(scene, cameras[1].cameraL);
         renderer.render(scene, cameras[1].cameraR);
     }
@@ -876,8 +896,6 @@ function init() {
     createCameras();
     createLights();
 
-    //new THREE.OrbitControls(cameras[0], renderer.domElement)
-
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -903,8 +921,8 @@ function onResize() {
     if (window.innerWidth > 0 && window.innerHeight > 0) {
         cameras[0].aspect = window.innerWidth / window.innerHeight;
         cameras[0].updateProjectionMatrix();
-        auxCamera.aspect = window.innerWidth / window.innerHeight; // FIXME: unsure what to do here...
-        auxCamera.updateProjectionMatrix();
+        cameras[4].aspect = window.innerWidth / window.innerHeight;
+        cameras[4].updateProjectionMatrix();
     }
 }
 ///////////////////////
@@ -940,7 +958,7 @@ function onKeyDown(e) {
         case 101: // e
             key_press_map[69] = 1;
             break;
-        // Change to basic material - no light calculation
+        // Change to basic material - no light calculation whatsover
         case 82: // R
         case 114: // r
             key_press_map[82] = 1;
@@ -995,7 +1013,7 @@ function onKeyUp(e) {
         case 101: // e
             key_press_map[69] = 0;
             break;
-        // Change to basic material - no light calculation
+        // Change to basic material - no light calculation whatsover
         case 82: // R
         case 114: // r
             key_press_map[82] = 0;
