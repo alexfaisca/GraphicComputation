@@ -548,17 +548,9 @@ function createHouse(){
 
     return house;
 }
-function createSpotlightTarget() {
-    // Create spotlight target
-    const target_geometry = new THREE.BufferGeometry();
-    const target_material = new THREE.PointsMaterial( {visible: false} );
-    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [0, 0, 0]), 3));
-    return new THREE.Points(target_geometry, target_material);
-}
 function createUfo(ufo_x, ufo_y, ufo_z, pointlight_count) {
     const ufo = (new THREE.Group());
-    const spotlight_target = createSpotlightTarget();
-    spotlight_target.position.set(ufo_x, 0, ufo_z);
+    const spotlight_target = createSpotlightTarget(ufo_x, 0, ufo_z);
     const spotlight = createSpotLight(0, 0, 0, spotlight_target);
     const pointlights = createPointLight(0, 0, 0, 0xffffff, pointlight_count)
 
@@ -639,6 +631,15 @@ function createShip(pointlights, pointlight_count) {
 
     ufo.add(cockpit_sphere, body_sphere, spotlight_cylinder, pointlight_group);
     return ufo;
+}
+function createSpotlightTarget(x, y, z) {
+    // Create spotlight target
+    const target_geometry = new THREE.BufferGeometry();
+    const target_material = new THREE.PointsMaterial( {visible: false} );
+    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [0, 0, 0]), 3));
+    const target = new THREE.Points(target_geometry, target_material);
+    target.position.set(x, y, z);
+    return target;
 }
 function createSpotLight(x, y, z, target) {
     const spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
