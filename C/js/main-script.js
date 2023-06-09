@@ -5,9 +5,8 @@
 let key_press_map = {};
 let auxCamera;
 let presented = false;
-let materials = [], meshes = [];
 let scene, texture_scene, renderer, everglades_texture, firmament_texture;
-let ufo;
+let meshes = [], ufo;
 let dirLight, spotlight, spotlight_target, pointlights = [];
 
 const field_radius = 100, number_of_cork_oaks = 30, pointlight_count = 6;
@@ -235,18 +234,18 @@ function createSky() {
 function createMoon() {
     'use strict';
     // Moon yellow colour
-    const lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    const phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    const toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    const basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
+    const moon_lambert_material = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    const moon_phong_material = new THREE.MeshPhongMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    const moon_toon_material = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    const moon_basic_material = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
     const moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
 
-    const moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
+    const moon = new THREE.Mesh(moonShapeGeometry, moon_lambert_material);
     moon.position.set(-30, 30, -30);
+    moon.userData = {lambert_material: moon_lambert_material, phong_material: moon_phong_material, toon_material: moon_toon_material, basic_material: moon_basic_material};
 
     meshes.push(moon);
-    materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);
     moon.receiveShadow = true;
     moon.castShadow = true;
 
@@ -257,8 +256,8 @@ function createEverglades() {
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
-    const displacement_map = loader.load('textures/terrain_heightmap.png', null, null, null);
-    const normal_map = loader.load('textures/terrain_shadowmap.png', null, null, null);
+    const displacement_map = loader.load('textures/terrain_heightmap.png');
+    const normal_map = loader.load('textures/terrain_shadowmap.png');
 
     const everglades_phong_material = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -303,27 +302,40 @@ function createCorkOaks() {
         trunk = new THREE.Mesh(trunk_geometry, wood_lambert_material);
         trunk.position.set(0, 0, 0);
         trunk.rotateZ(Math.PI);
+        trunk.userData = {lambert_material: wood_lambert_material, phong_material: wood_phong_material, toon_material: wood_toon_material, basic_material: wood_basic_material};
+
 
         main_bough = new THREE.Mesh(main_bough_geometry, wood_lambert_material);
         main_bough.position.set(-0.795, 1.9, 0);
         main_bough.rotateZ((Math.PI)/5);
+        main_bough.userData = {lambert_material: wood_lambert_material, phong_material: wood_phong_material, toon_material: wood_toon_material, basic_material: wood_basic_material};
+
 
         secondary_bough = new THREE.Mesh(secondary_bough_geometry, wood_lambert_material);
         secondary_bough.rotateZ((Math.PI)/(-4));
         secondary_bough.position.set(1, 1.8, 0);
+        secondary_bough.userData = {lambert_material: wood_lambert_material, phong_material: wood_phong_material, toon_material: wood_toon_material, basic_material: wood_basic_material};
+
 
         first_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         first_canopy.scale.set(2, 1, 1);
         first_canopy.position.set(-2.0, 4, 0.7);
+        first_canopy.userData = {lambert_material: canopy_lambert_material, phong_material: canopy_phong_material, toon_material: canopy_toon_material, basic_material: canopy_basic_material};
+
 
         second_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         second_canopy.scale.set(1.5, 1, 1);
         second_canopy.position.set(-1, 4.5, -0.7);
+        second_canopy.userData = {lambert_material: canopy_lambert_material, phong_material: canopy_phong_material, toon_material: canopy_toon_material, basic_material: canopy_basic_material};
+
 
         third_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         third_canopy.scale.set(2, 1, 1);
         third_canopy.position.set(1.5, 3.8, -0.3);
+        third_canopy.userData = {lambert_material: canopy_lambert_material, phong_material: canopy_phong_material, toon_material: canopy_toon_material, basic_material: canopy_basic_material};
 
+
+        meshes.push(main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
         // Set receiveShadow and castShadow settings to true on all trees' meshes
         trunk.receiveShadow = true;
         trunk.castShadow = true;
@@ -352,12 +364,6 @@ function createCorkOaks() {
         corkOak.position.x = r * Math.sin(theta);
         corkOak.position.z = r * Math.cos(theta);
 
-        meshes.push(main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
-        materials.push([wood_lambert_material, wood_phong_material, wood_toon_material, wood_basic_material]);
-        materials.push([wood_lambert_material, wood_phong_material, wood_toon_material, wood_basic_material]);
-        materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
-        materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
-        materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
         trees.add(corkOak);
     }
     return trees;
@@ -486,6 +492,7 @@ function createHouse(){
     body_geometry.setIndex(body_indices);
     body_geometry.computeVertexNormals();
 
+
     const door_geometry = new THREE.BufferGeometry();
     door_geometry.setAttribute('position', new THREE.Float32BufferAttribute(door_vertices, 3));
     door_geometry.setIndex(door_indices);
@@ -507,10 +514,16 @@ function createHouse(){
     roof_geometry.computeVertexNormals();
 
     const body = new THREE.Mesh(body_geometry, body_lambert_material);
+    body.userData = {lambert_material: body_lambert_material, phong_material: body_phong_material, toon_material: body_toon_material, basic_material: body_basic_material};
     const door = new THREE.Mesh(door_geometry, door_lambert_material);
+    door.userData = {lambert_material: door_lambert_material, phong_material: door_phong_material, toon_material: door_toon_material, basic_material: door_basic_material};
     const first_window = new THREE.Mesh(first_window_geometry, window_lambert_material);
+    first_window.userData = {lambert_material: window_lambert_material, phong_material: window_phong_material, toon_material: window_toon_material, basic_material: window_basic_material};
     const second_window = new THREE.Mesh(second_window_geometry, window_lambert_material);
+    second_window.userData = {lambert_material: window_lambert_material, phong_material: window_phong_material, toon_material: window_toon_material, basic_material: window_basic_material};
     const roof = new THREE.Mesh(roof_geometry, roof_lambert_material);
+    roof.userData = {lambert_material: roof_lambert_material, phong_material: roof_phong_material, toon_material: roof_toon_material, basic_material: roof_basic_material};
+
 
     // Assemble and position house
     const house = new THREE.Group();
@@ -518,13 +531,8 @@ function createHouse(){
     house.position.set(-5, 0, 2.5); // Center house
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
 
-    // Store mesehes and materials
+    // Store meshes
     meshes.push(body, door, first_window, second_window, roof);
-    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
-    materials.push([door_lambert_material, door_phong_material, door_toon_material, door_basic_material]);
-    materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
-    materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
-    materials.push([roof_lambert_material, roof_phong_material, roof_toon_material, roof_basic_material]);
 
     // Set shadow settings
     body.receiveShadow = true;
@@ -552,9 +560,9 @@ function createUfo() {
     const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
     const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
     const pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
-    const cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
 
     const target_material = new THREE.PointsMaterial( {visible: false} );
+    const cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
     const cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
     const cockpit_toon_material = new THREE.MeshToonMaterial({color: 0xaaaaaa});
     const cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0xaaaaaa});
@@ -575,21 +583,22 @@ function createUfo() {
     target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
 
     const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_lambert_material);
+    cockpit_sphere.userData = {lambert_material: cockpit_lambert_material, phong_material: cockpit_phong_material, toon_material: cockpit_toon_material, basic_material: cockpit_basic_material};
+
     cockpit_sphere.position.setY(3.6);
 
     const body_sphere = new THREE.Mesh(body_geometry, body_lambert_material);
+    body_sphere.userData = {lambert_material: body_lambert_material, phong_material: body_phong_material, toon_material: body_toon_material, basic_material: body_basic_material};
     body_sphere.scale.set(1, 3 / 10, 1)
     body_sphere.position.setY(3);
 
     const spotlight_cylinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
+    spotlight_cylinder.userData = {lambert_material: spotlight_lambert_material, phong_material: spotlight_phong_material, toon_material: spotlight_toon_material, basic_material: spotlight_basic_material};
     spotlight_cylinder.add(createSpotLight(0,-0.1,0));
     spotlight_cylinder.position.setY(1.6);
 
-    materials.push([cockpit_lambert_material, cockpit_phong_material, cockpit_toon_material, cockpit_basic_material]);
     meshes.push(cockpit_sphere);
-    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
     meshes.push(body_sphere);
-    materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
     meshes.push(spotlight_cylinder);
     body_sphere.receiveShadow = true;
     body_sphere.castShadow = true;
@@ -602,9 +611,9 @@ function createUfo() {
 
     for(let i = 0, pointlight; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
+        pointlight.userData = {lambert_material: pointlight_lambert_material, phong_material: pointlight_phong_material, toon_material: pointlight_toon_material, basic_material: pointlight_basic_material};
         pointlight.add(createPointLight(0, -pointlight_radius, 0, i));
         pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
-        materials.push([pointlight_lambert_material, pointlight_phong_material, pointlight_toon_material, pointlight_basic_material]);
         meshes.push(pointlight);
         pointlight.receiveShadow = true;
         pointlight.castShadow = true;
@@ -717,17 +726,22 @@ function toggleStars() {
 }
 function changeMaterials() {
     'use strict'
-    let action = -1;
-    if(key_press_map[81]) action = 0;
-    if(key_press_map[87]) action = 1;
-    if(key_press_map[69]) action = 2;
-    if(key_press_map[82]) action = 3;
-    if(action < 0) return;
-    else for (let i = 0; i < meshes.length; i++) meshes[i].material = materials[i][action];
-    key_press_map[81] = 0;
-    key_press_map[87] = 0;
-    key_press_map[69] = 0;
-    key_press_map[82] = 0;
+    if(key_press_map[81]){
+        for (let i = 0; i < meshes.length; i++) meshes[i].material = meshes[i].userData.lambert_material;
+        key_press_map[81] = 0;
+    }
+    if(key_press_map[87]) {
+        for (let i = 0; i < meshes.length; i++) meshes[i].material = meshes[i].userData.phong_material;
+        key_press_map[87] = 0;
+    }
+    if(key_press_map[69]) {
+        for (let i = 0; i < meshes.length; i++) meshes[i].material = meshes[i].userData.toon_material;
+        key_press_map[69] = 0;
+    }
+    if(key_press_map[82]) {
+        for (let i = 0; i < meshes.length; i++) meshes[i].material = meshes[i].userData.basic_material;
+        key_press_map[82] = 0;
+    }
 }
 function updateUfoPosition(delta) {
     'use strict';
