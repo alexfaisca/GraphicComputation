@@ -8,11 +8,10 @@ let auxCamera;
 let active_camera;
 let presented = false;
 let ambientLight, dirLight;
-let materials = [], meshes = [];
+let materials = [], meshes = [], pointlights = [];
 let plane, ufo, spotlight, spotlight_target;
 
-const pointlight_count = 6, pointlights = new Array(pointlight_count);
-const field_radius = 100, number_of_cork_oaks = 30;
+const field_radius = 100, number_of_cork_oaks = 30, pointlight_count = 6;
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:1600};
 
 const clock = new THREE.Clock();
@@ -136,12 +135,10 @@ function createAmbientLightTexture() {
 function generateNature(l, w, x, y, z, count) {
     createGrass(l, w, x, y, z);
     createFlowers(l, w, x, y, z, count);
-    createMarshGazerCamera(l, w, x, y, z);
 }
 function generateFirmament(l, w, x, y, z, count) {
     createSunset(l, w, x, y, z);
     createStars(l, w, x, y, z, count);
-    createStarGazerCamera(l, w, x, y, z);
 }
 function createGrass(l, w, x, y, z) {
     const grass_geometry = new THREE.PlaneGeometry(l, w, 200);
@@ -586,7 +583,6 @@ function createUfo() {
     materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
     meshes.push(body_sphere);
 
-
     const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
     const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
@@ -600,24 +596,21 @@ function createUfo() {
     materials.push([spotlight_lambert_material, spotlight_phong_material, spotlight_toon_material, spotlight_basic_material]);
     meshes.push(spotlight_cilinder);
 
-
-
     const pointlight_radius = 0.25, pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
     const pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
     const pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
 
-    let pointlight;
-    for(let i = 0; i < pointlight_count; i++) {
+    for(let i = 0, pointlight; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
         pointlight.add(createPointLight(0, -pointlight_radius, 0, i));
         pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
         pointlight.receiveShadow = true;
         pointlight.castShadow = true;
-        ufo.add(pointlight);
         materials.push([pointlight_lambert_material, pointlight_phong_material, pointlight_toon_material, pointlight_basic_material]);
         meshes.push(pointlight);
+        ufo.add(pointlight);
     }
 
     ufo.add(cockpit_sphere, body_sphere, spotlight_cilinder);
@@ -642,15 +635,16 @@ function createSpotLight(x, y, z) {
     scene.add(spotlight.target);
     return spotlight;
 }
-function createPointLight(x, y, z, color, i) {
-    if(i < 0 || i >= pointlight_count) throw "Not a valid pointlight!";
-    //we can change individual color of light
-    const point = new THREE.PointLight(color, 0.3, 15);
+function createPointLight(x, y, z, color) {
+    if(pointlights.lengthi >= pointlight_count) {
+        throw "Too many pointlights!";
+    }
 
+    const point = new THREE.PointLight(color, 0.3, 15);
     point.position.set(x, y, z);
     point.castShadow = true;
     point.visible = false;
-    pointlights[i] = point;
+    pointlights.push(point);
 
     return point;
 }
@@ -726,15 +720,17 @@ function toggleStars() {
 }
 function changeMaterials() {
     'use strict'
-    for (let i = 0; i < meshes.length; i++) {
-        if(key_press_map[81]) // Cartoon
-            meshes[i].material = materials[i][0];
-        if(key_press_map[87]) // Phong
-            meshes[i].material = materials[i][1];
-        if(key_press_map[69]) // Gouraud
-            meshes[i].material = materials[i][2];
-        if(key_press_map[82]) // Basic material - no light calculation
-            meshes[i].material = materials[i][3];
+    let action = -1;
+    if(key_press_map[81]) action = 0;
+    if(key_press_map[87]) action = 1;
+    if(key_press_map[69]) action = 2;
+    if(key_press_map[82]) action = 3;
+    if(action < 0) return;
+    else for (let i = 0; i < meshes.length; i++) {
+            meshes[i].material = materials[i][action];
+            meshes[i].material = materials[i][action];
+            meshes[i].material = materials[i][action];
+            meshes[i].material = materials[i][action];
     }
     key_press_map[81] = 0;
     key_press_map[87] = 0;
