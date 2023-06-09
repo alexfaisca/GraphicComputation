@@ -58,26 +58,27 @@ function generateFirmament(l, w, x, y, z, count) {
 function createScene(){
     'use strict';
     const number_of_cork_oaks = 20, space_ship = {x: -5, y: 10, z: -5, pointlights_count: 6}, moon = {x: -30, y:30, z: -30};
-    const cork_oaks_positions = [ [-10, 0, 20],
-        [-20, 0, 10],
-        [-20, 0, 20],
-        [-40, 0, 50],
-        [-50, 0, 30],
-        [-60, 0, 10], // 4th octant
-        [-20, 0, -10],
-        [-20, 0, -40],
-        [-30, 0, -60],
-        [-40, 0, -50],
-        [-50, 0, -20],
-        [-30, 0, -20], // 3rd octant
-        [10, 0, -10],
-        [20, 0, -50],
-        [50, 0, -20],
-        [40, 0, -30],
-        [50, 0, -60],
-        [60, 0, -10], // 2nd octant
-        [5, 0, 25],
-        [30, 0, 5] ] // 1st octant
+
+    const cork_oaks_positions = [ [-10, -1.1, 20], // Height needs adjsutment? default = 0
+        [-20, -1.1, 10],
+        [-20, -1.1, 20],
+        [-40, -1.1, 50],
+        [-50, -1.1, 30],
+        [-60, -1.1, 10], // 4th octant
+        [-20, -1.1, -10],
+        [-20, -1.1, -40],
+        [-30, -1.1, -60],
+        [-40, -1.1, -50],
+        [-50, -1.1, -20],
+        [-30, -1.1, -20], // 3rd octant
+        [10, -1.1, -10],
+        [20, -1.1, -50],
+        [50, -1.1, -20],
+        [40, -1.1, -30],
+        [50, -1.1, -60],
+        [60, -1.1, -10], // 2nd octant
+        [5, -1.1, 25],
+        [30, -1.1, 5] ] // 1st octant
 
     scene = new THREE.Scene();
     scene.add(new THREE.AxesHelper(100));
@@ -305,8 +306,8 @@ function createCorkOaks(number_of_cork_oaks, cork_oaks_positions) {
     const main_bough_geometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
     const secondary_bough_geometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
     const canopy_geometry = new THREE.SphereGeometry(1.5, 32, 16);
-
-    let scale, r, theta;
+    
+    let scale;
     for (let i = 0, trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy, corkOak; i < number_of_cork_oaks; i++) {
         trunk = new THREE.Mesh(trunk_geometry, wood_lambert_material);
         trunk.position.set(0, 0, 0);
@@ -357,8 +358,6 @@ function createCorkOaks(number_of_cork_oaks, cork_oaks_positions) {
         corkOak = (new THREE.Group()).add(trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
 
         scale = Math.random();
-        r = 8 + (field_radius/4* (Math.random() + 1));
-        theta = (3.3/4) * (30 / i) * (Math.PI)/2;
 
         corkOak.rotateY(2 * Math.PI * scale);
         corkOak.scale.set(0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1));
