@@ -7,9 +7,9 @@ let auxCamera;
 let presented = false;
 let scene, texture_scene, renderer, everglades_texture, firmament_texture;
 let meshes = [], ufo;
-let dirLight, spotlight, spotlight_target, pointlights = [];
+let dirLight;
 
-const field_radius = 100, number_of_cork_oaks = 20, pointlight_count = 6;
+const field_radius = 100, number_of_cork_oaks = 20;
 const perspective_camera_settings = {fov:100, x:20, y:10, z:20}, vr_camera_settings = {x:0, y:20, z:20};
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
 
@@ -87,8 +87,7 @@ function createScene(){
     scene.add(createMoon(-30, 30, -30));
     scene.add(createEverglades());
     scene.add(createHouse());
-    spotlight_target = createSpotlightTarget(0, 0);
-    scene.add(ufo = createUfo(0, 10, 0), spotlight_target);
+    scene.add(ufo = createUfo(10, 10, 10, 6));
     scene.add(createCorkOaks());
 }
 //////////////////////
@@ -549,26 +548,33 @@ function createHouse(){
 
     return house;
 }
-function createSpotlightTarget(ufo_x, ufo_z) {
+function createSpotlightTarget() {
     // Create spotlight target
     const target_geometry = new THREE.BufferGeometry();
     const target_material = new THREE.PointsMaterial( {visible: false} );
-    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
+    target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [0, 0, 0]), 3));
     return new THREE.Points(target_geometry, target_material);
 }
-function createUfo(ufo_x, ufo_y, ufo_z, spotlight_target) {
+function createUfo(ufo_x, ufo_y, ufo_z, pointlight_count) {
     const ufo = (new THREE.Group());
-    ufo.add(createShip(ufo_x, ufo_y, ufo_z));
+    const spotlight_target = createSpotlightTarget();
+    spotlight_target.position.set(ufo_x, 0, ufo_z);
+    const spotlight = createSpotLight(0, 0, 0, spotlight_target);
+    const pointlights = createPointLight(0, 0, 0, 0xffffff, pointlight_count)
+
+    ufo.add(createShip(pointlights, pointlight_count), spotlight);
     ufo.userData = {
+        spotlight : spotlight,
         spotlight_target : spotlight_target,
-        angular_velocity :  Math.PI / 4,
-        linear_velocity : new THREE.Vector3(0,0,0)
+        pointlights : pointlights,
+        angular_velocity :  Math.PI / 6,
+        linear_velocity : new THREE.Vector3(0,0,0),
     };
     ufo.position.set(ufo_x, ufo_y, ufo_z);
 
     return ufo;
 }
-function createShip() {
+function createShip(pointlights, pointlight_count) {
     const pointlight_radius = 0.25;
     const ufo = new THREE.Group();
 
@@ -606,7 +612,6 @@ function createShip() {
 
     const spotlight_cylinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
     spotlight_cylinder.userData = {lambert_material: spotlight_lambert_material, phong_material: spotlight_phong_material, toon_material: spotlight_toon_material, basic_material: spotlight_basic_material};
-    spotlight_cylinder.add(createSpotLight(0,-0.1,0));
     spotlight_cylinder.position.setY(1.6);
 
     meshes.push(cockpit_sphere);
@@ -624,7 +629,7 @@ function createShip() {
     for(let i = 0, pointlight; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
         pointlight.userData = {lambert_material: pointlight_lambert_material, phong_material: pointlight_phong_material, toon_material: pointlight_toon_material, basic_material: pointlight_basic_material};
-        pointlight.add(createPointLight(0, 0, 0, 0xffffff));
+        pointlight.add(pointlights[i]);
         pointlight.position.set(15/ 4 * Math.sin(i / pointlight_count * 2 * Math.PI), 2.2, 15 / 4 * Math.cos(i / pointlight_count * 2 * Math.PI));
         meshes.push(pointlight);
         pointlight.receiveShadow = true;
@@ -635,30 +640,29 @@ function createShip() {
     ufo.add(cockpit_sphere, body_sphere, spotlight_cylinder, pointlight_group);
     return ufo;
 }
-function createSpotLight(x, y, z) {
-    spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
+function createSpotLight(x, y, z, target) {
+    const spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
     spotlight.castShadow = true;
 
-    // Place Spotlight on UFO
+    // Place Spotlight on given position
     spotlight.position.set(x,y,z);
 
     // Set SpotLight Target
-    spotlight.target = spotlight_target;
+    spotlight.target = target;
     scene.add(spotlight.target);
     return spotlight;
 }
-function createPointLight(x, y, z, color) {
-    if(pointlights.length >= pointlight_count) {
-        throw "Too many pointlights!";
+function createPointLight(x, y, z, color, count) {
+    const pointlights = [];
+
+    for(let i = 0, point; i < count; i++) {
+        point = new THREE.PointLight(color, 1, 12, 1);
+        point.position.set(x, y, z);
+        point.castShadow = true;
+        point.visible = true;
+        pointlights.push(point);
     }
-
-    const point = new THREE.PointLight(color, 1, 12, 1);
-    point.position.set(x, y, z);
-    point.castShadow = true;
-    point.visible = true;
-    pointlights.push(point);
-
-    return point;
+    return pointlights;
 }
 ////////////
 /* UPDATE */
@@ -686,14 +690,14 @@ function changeDirectionalLight() {
 function changeSpotLight() {
     'use strict'
     if(key_press_map[83]) {
-        spotlight.visible = !spotlight.visible;
+        ufo.userData.spotlight.visible = !ufo.userData.spotlight.visible;
         key_press_map[83] = 0;
     }
 }
 function changePointLight() {
     'use strict'
     if(key_press_map[80]) {
-        for (const light of pointlights) light.visible = !light.visible;
+        for (const light of ufo.userData.pointlights) light.visible = !light.visible;
         key_press_map[80] = 0;
     }
 }
@@ -754,7 +758,7 @@ function updateUfoPosition(delta) {
     compute_ufo_movement();
     ufo.userData.linear_velocity = ufo.userData.linear_velocity.multiplyScalar(delta);
     ufo.position.add(ufo.userData.linear_velocity);
-    spotlight_target.position.add(ufo.userData.linear_velocity);
+    ufo.userData.spotlight_target.position.add(ufo.userData.linear_velocity);
 }
 function updateUfoRotation(delta) {
     'use strict';
