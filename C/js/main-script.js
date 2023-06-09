@@ -2,23 +2,21 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var scene, texture_scene, renderer, everglades_texture, firmament_texture;
+let scene, texture_scene, renderer, everglades_texture, firmament_texture;
+let key_press_map = {};
+let auxCamera;
+let active_camera;
+let presented = false;
+let ambientLight, dirLight;
+let materials = [], meshes = [];
+let plane, ufo, spotlight, spotlight_target;
 
-var key_press_map = {};
-var cameras = new Array(4);
-var auxCamera;
-var active_camera;
-var presented = false;
-var ambientLight, dirLight;
+const pointlight_count = 6, pointlights = new Array(pointlight_count);
+const field_radius = 100, number_of_cork_oaks = 30;
+const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:1600};
 
-
-var clock = new THREE.Clock();
-
-var materials = [];
-var meshes = [];
-var plane, ufo, spotlight_target, pointlights = [];
-var field_radius = 100, number_of_stars = 1600, number_of_flowers = 1000, number_of_cork_oaks = 30, has_flowers, has_stars;
-var create_flowers_args = {l:30, w:30, x:0, y:0, z:0}, create_stars_args = {l:100, w:100, x:0, y:110, z:0};
+const clock = new THREE.Clock();
+const cameras = new Array(4);
 
 // -7.896139007327889 37.52503500684735
 
@@ -28,161 +26,66 @@ var create_flowers_args = {l:30, w:30, x:0, y:0, z:0}, create_stars_args = {l:10
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
-function createScenes(){
-    'use strict';
-
-    scene = new THREE.Scene();
-    scene.add(new THREE.AxesHelper(100));
-
-    scene.background = new THREE.Color(0xeeeeff);
-    createSky();
-    createMoon();
-    createPlane();
-    createHouse();
-    createUfo();
-    createCorkOaks();
-}
-function generateNature(l, w, x, y, z) {
-    createGrass(l, w, x, y, z);
-    createFlowers(l, w, x, y, z);
-    createMarshGazerCamera(l, w, x, y, z);
-}
-
-function createGrass(l, w, x, y, z) {
-    var grass_geometry = new THREE.PlaneGeometry(l, w, 200);
-    grass_geometry.rotateX(Math.PI / 2);
-    const grass_material = new THREE.MeshPhongMaterial({
-        color: 0x236b25,
-        side : THREE.DoubleSide,
-    });
-    var grass = new THREE.Mesh(grass_geometry, grass_material);
-    grass.receiveShadow = true;
-    grass.position.set(x, y, z);
-    texture_scene.add(grass);
-}
-
-function createFlowers(l, w, x, y, z) {
-    has_flowers = true;
-    var flowers = new THREE.Group();
-    flowers.name = "flowers";
-    var flower_color;
-    for(var i = 0; i < number_of_flowers; i++) {
-        switch(i % 4){
-            case 0:
-                flower_color = 0xffffff;
-                break;
-            case 1:
-                flower_color = 0xFFFF00;
-                break;
-            case 2:
-                flower_color = 0x8f00ff;
-                break;
-            case 3:
-                flower_color = 0x89cff0;
-                break;
-        }
-        var flower_geometry = new THREE.CircleGeometry(0.1, 32);
-        var flower_material = new THREE.MeshBasicMaterial({color: flower_color, side: THREE.BackSide});
-        var flower_mesh = new THREE.Mesh(flower_geometry, flower_material);
-
-        flower_mesh.position.x = (Math.random() -0.5) * l + x;
-        flower_mesh.position.y = 0 + y;
-        flower_mesh.position.z = (Math.random() - 0.5) * w + z;
-        flower_mesh.rotateX(Math.PI / 2);
-        flowers.add(flower_mesh);
-    }
-    texture_scene.add(flowers);
-}
-
-function generateFirmament(l, w, x, y, z) {
-    createSunset(l, w, x, y, z);
-    createStars(l, w, x, y, z);
-    createStarGazerCamera(l, w, x, y, z);
-}
-function createSunset(l, w, x, y, z) {
-    var sunset_geometry = new THREE.BufferGeometry();
-    // Position vertices
-    sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
-        -l / 2, 0, -w / 2,
-        l / 2, 0, -w / 2,
-        l / 2, 0, w / 2,
-        -l / 2, 0, w / 2
-    ]), 3));
-    // Index vertices
-    const indices = [
-        0, 1, 2,
-        2, 3, 0
-    ]
-    sunset_geometry.setIndex(indices);
-    // Color vertices
-    var colorArray = [];
-    var color1 = new THREE.Color().setHex(0x152887); // blue
-    var color2 = new THREE.Color().setHex(0x6C3D60); // purple
-    colorArray = color2.toArray()
-        .concat(color2.toArray())
-        .concat(color1.toArray())
-        .concat(color1.toArray());
-    sunset_geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3));
-
-    var sunset_material = new THREE.MeshBasicMaterial({
-        vertexColors: THREE.VertexColors, side: THREE.BackSide,
-    });
-
-    var sunset = new THREE.Mesh(sunset_geometry, sunset_material);
-    sunset.position.set(x, y, z);
-    texture_scene.add(sunset);
-}
-function createStars(l, w, x, y, z){
-    has_stars = true;
-    var stars = new THREE.Group();
-    stars.name = "stars";
-    var star_color = new THREE.Color().setHex(0xffffff);
-    for(var i = 0; i < number_of_stars; i++) {
-        var star_geometry = new THREE.CircleGeometry(0.05 * (Math.random() + 1), 32);
-        var star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
-        var star_mesh = new THREE.Mesh(star_geometry, star_material);
-
-        star_mesh.position.x = (Math.random() - 0.5) * l + x;
-        star_mesh.position.y = 0 + y;
-        star_mesh.position.z =  (Math.random() - 0.5) * w + z;
-        star_mesh.rotateX(Math.PI / 2);
-        stars.add(star_mesh);
-    }
-    texture_scene.add(stars);
-}
 function createTextures() {
+    renderer.autoClear = false;
     texture_scene = new THREE.Scene();
-    var ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
-    texture_scene.add(ambientLightTexture);
+    texture_scene.userData = {has_stars: false, has_flowers: false};
+    createAmbientLightTexture();
 
-    createMarshGazerCamera(30, 30, 0, 0, 0);
+    createMarshGazerCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z);
     everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
     everglades_texture.repeat.set(10,10);
-    generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z);
+    generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
     renderer.setRenderTarget(everglades_texture);
     renderer.clear(); // manual clear
     renderer.render(texture_scene, cameras[2]);
     renderer.setRenderTarget(null)
 
-    createStarGazerCamera(100, 100, 0, 110, 0);
+    createStarGazerCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z);
     firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
     firmament_texture.repeat.set(25, 1);
-    generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z);
+    generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
     renderer.setRenderTarget(firmament_texture);
     renderer.clear(); // manual clear
     renderer.render(texture_scene, cameras[3]);
     renderer.setRenderTarget(null);
+    renderer.autoClear = true;
 }
+function createScene(){
+    'use strict';
 
+    scene = new THREE.Scene();
+    scene.add(new THREE.AxesHelper(100));
+    scene.background = new THREE.Color(0xeeeeff);
+
+    createSky();
+    createMoon();
+    createEverglades();
+    createHouse();
+    createUfo();
+    createCorkOaks();
+}
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
-
 function createCameras() {
     'use strict'
     active_camera = 0;
     createIsometricPerspectiveCamera();
     createVRCamera(0, 20, 20);
+}
+function createIsometricPerspectiveCamera() {
+    'use strict'
+    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
+    cameras[0].position.set(20, 10, 20);
+    cameras[0].lookAt(scene.position);
+    //cameras[0].rotateX(Math.PI/ 4);
+}
+function createVRCamera(x, y, z){
+    auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    auxCamera.position.set(x, y, z);
+    auxCamera.lookAt(scene.position);
+    cameras[1] = new THREE.StereoCamera();
 }
 function createMarshGazerCamera(l, w, x, y, z) {
     cameras[2] = new THREE.OrthographicCamera(-l / 2 + 0.1, l / 2 - 0.1, w / 2 - 0.1, -w / 2 + 0.1, 15);
@@ -195,31 +98,13 @@ function createStarGazerCamera(l, w, x, y, z) {
     cameras[3].lookAt(texture_scene.position);
 
 }
-function createIsometricPerspectiveCamera() {
-    'use strict'
-    cameras[0] = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 250);
-    cameras[0].position.set(20, 10, 20);
-    cameras[0].lookAt(scene.position);
-    //cameras[0].rotateX(Math.PI/ 4);
-}
-
-function createVRCamera(x, y, z){
-    auxCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-    auxCamera.position.set(x, y, z);
-    auxCamera.lookAt(scene.position);
-    cameras[1] = new THREE.StereoCamera();
-}
-
-
 /////////////////////
 /* CREATE LIGHT(S) */
 /////////////////////
-
 function createLights() {
     createAmbientLight();
     createDirectionalLight();
 }
-
 function createDirectionalLight() {
     dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.6);
     dirLight.position.set(100, 100, 100);
@@ -237,43 +122,141 @@ function createDirectionalLight() {
     dirLight.target.updateMatrixWorld();
     scene.add(dirLight);
 }
-
 function createAmbientLight() {
     ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
     scene.add(ambientLight);
 }
-
 function createAmbientLightTexture() {
-    ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
+    const ambientLightTexture = new THREE.AmbientLight(0xFFFFFF, 1);
     texture_scene.add(ambientLightTexture);
 }
-
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
+function generateNature(l, w, x, y, z, count) {
+    createGrass(l, w, x, y, z);
+    createFlowers(l, w, x, y, z, count);
+    createMarshGazerCamera(l, w, x, y, z);
+}
+function generateFirmament(l, w, x, y, z, count) {
+    createSunset(l, w, x, y, z);
+    createStars(l, w, x, y, z, count);
+    createStarGazerCamera(l, w, x, y, z);
+}
+function createGrass(l, w, x, y, z) {
+    const grass_geometry = new THREE.PlaneGeometry(l, w, 200);
+    grass_geometry.rotateX(Math.PI / 2);
+    const grass_material = new THREE.MeshPhongMaterial({
+        color: 0x236b25,
+        side : THREE.DoubleSide,
+    });
+    const grass = new THREE.Mesh(grass_geometry, grass_material);
+    grass.receiveShadow = true;
+    grass.position.set(x, y, z);
+    texture_scene.add(grass);
+}
+function createFlowers(l, w, x, y, z, count) {
+    const flowers = new THREE.Group();
+    flowers.name = "flowers";
+    const flower_geometry = new THREE.CircleGeometry(0.1, 32);
+    const flower_material_white = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.BackSide});
+    const flower_material_yellow = new THREE.MeshBasicMaterial({color: 0xFFFF00, side: THREE.BackSide});
+    const flower_material_blue = new THREE.MeshBasicMaterial({color: 0x8f00ff, side: THREE.BackSide});
+    const flower_material_purple = new THREE.MeshBasicMaterial({color: 0x89cff0, side: THREE.BackSide});
 
+    for(let i = 0; i < count; i++) {
+        let flower_mesh;
+        switch(i % 4){
+            case 0:
+                flower_mesh = new THREE.Mesh(flower_geometry, flower_material_white);
+                break;
+            case 1:
+                flower_mesh = new THREE.Mesh(flower_geometry, flower_material_yellow);
+                break;
+            case 2:
+                flower_mesh = new THREE.Mesh(flower_geometry, flower_material_blue);
+                break;
+            case 3:
+                flower_mesh = new THREE.Mesh(flower_geometry, flower_material_purple);
+                break;
+        }
+        flower_mesh.position.x = (Math.random() -0.5) * l + x;
+        flower_mesh.position.y = 0 + y;
+        flower_mesh.position.z = (Math.random() - 0.5) * w + z;
+        flower_mesh.rotateX(Math.PI / 2);
+        flowers.add(flower_mesh);
+    }
+    texture_scene.add(flowers);
+    texture_scene.userData.has_flowers = true;
+}
+function createSunset(l, w, x, y, z) {
+    const sunset_geometry = new THREE.BufferGeometry();
+    // Position vertices
+    sunset_geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array([
+        -l / 2, 0, -w / 2,
+        l / 2, 0, -w / 2,
+        l / 2, 0, w / 2,
+        -l / 2, 0, w / 2
+    ]), 3));
+    // Index vertices
+    const indices = [
+        0, 1, 2,
+        2, 3, 0
+    ]
+    sunset_geometry.setIndex(indices);
+    // Color vertices
+    const color1 = new THREE.Color().setHex(0x152887); // blue
+    const color2 = new THREE.Color().setHex(0x6C3D60); // purple
+    const colorArray = color2.toArray()
+        .concat(color2.toArray())
+        .concat(color1.toArray())
+        .concat(color1.toArray());
+    sunset_geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colorArray), 3));
+
+    const sunset_material = new THREE.MeshBasicMaterial({
+        vertexColors: THREE.VertexColors, side: THREE.BackSide,
+    });
+    const sunset = new THREE.Mesh(sunset_geometry, sunset_material);
+    sunset.position.set(x, y, z);
+    texture_scene.add(sunset);
+}
+function createStars(l, w, x, y, z, count){
+    const stars = new THREE.Group();
+    stars.name = "stars";
+    const star_color = new THREE.Color().setHex(0xffffff);
+    const star_geometry = new THREE.CircleGeometry(0.05 * (Math.random() + 1), 32);
+    const star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
+    for(let i = 0; i < count; i++) {
+        const star_mesh = new THREE.Mesh(star_geometry, star_material);
+        star_mesh.position.x = (Math.random() - 0.5) * l + x;
+        star_mesh.position.y = 0 + y;
+        star_mesh.position.z =  (Math.random() - 0.5) * w + z;
+        star_mesh.rotateX(Math.PI / 2);
+        stars.add(star_mesh);
+    }
+    texture_scene.add(stars);
+    texture_scene.userData.has_stars = true;
+}
 function createSky() {
-    var skydome_geometry = new THREE.SphereGeometry(field_radius, 180, 180, 0, Math.PI * 2, 0, 6 * Math.PI / 11);
-
-    var skydome_material = new THREE.MeshPhongMaterial({
+    const sky_dome_geometry = new THREE.SphereGeometry(field_radius, 180, 180, 0, Math.PI * 2, 0, 6 * Math.PI / 11);
+    const sky_dome_material = new THREE.MeshPhongMaterial({
         vertexColors: THREE.vertexColors,
         side: THREE.BackSide,
         map: firmament_texture.texture,
     });
-
-    skydome = new THREE.Mesh(skydome_geometry, skydome_material);
-    scene.add(skydome);
+    const sky_dome = new THREE.Mesh(sky_dome_geometry, sky_dome_material);
+    scene.add(sky_dome);
 }
 function createMoon() {
     'use strict';
     // Moon yellow colour
-    var lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    var phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    var toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
-    var basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
+    const lambertMaterialMoon = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    const phongMaterialMoon = new THREE.MeshPhongMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    const toonMaterialMoon = new THREE.MeshToonMaterial({color: 0xEBC815, emissive: 0xEBC815});
+    const basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
-    var moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
-    var moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
+    const moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
+    const moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
 
     moon.receiveShadow = true;
     moon.castShadow = true;
@@ -284,10 +267,8 @@ function createMoon() {
 
     scene.add(moon);
 }
-
-function createPlane() {
-
-    var everglades_geometry = new THREE.CircleGeometry(field_radius, 6000);
+function createEverglades() {
+    const everglades_geometry = new THREE.CircleGeometry(field_radius, 6000);
     everglades_geometry.rotateX(Math.PI / 2);
 
     const loader = new THREE.TextureLoader();
@@ -303,123 +284,119 @@ function createPlane() {
         map: everglades_texture.texture,
     });
 
-    var everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
+    const everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
     everglades.receiveShadow = true;
     everglades.position.set(0, 5, 0);
 
     scene.add(everglades);
 }
-
-function createCorkOaks(){
+function createCorkOaks() {
     'use strict';
-    var lambertMaterialTrunk = new THREE.MeshLambertMaterial({color: 0xa45729});
-    var phongMaterialTrunk = new THREE.MeshPhongMaterial({color: 0xa45729});
-    var toonMaterialTrunk = new THREE.MeshToonMaterial({color: 0xa45729});
-    var basicMaterialTrunk = new THREE.MeshBasicMaterial({color: 0xa45729});
+    // Create trunks' materials
+    const wood_lambert_material = new THREE.MeshLambertMaterial({color: 0xa45729});
+    const wood_phong_material = new THREE.MeshPhongMaterial({color: 0xa45729});
+    const wood_toon_material = new THREE.MeshToonMaterial({color: 0xa45729});
+    const wood_basic_material = new THREE.MeshBasicMaterial({color: 0xa45729});
+    // Create canopies' materials
+    const canopy_lambert_material = new THREE.MeshLambertMaterial({color: 0x013220});
+    const canopy_phong_material = new THREE.MeshPhongMaterial({color: 0x013220});
+    const canopy_toon_material = new THREE.MeshToonMaterial({color: 0x013220});
+    const canopy_basic_material = new THREE.MeshBasicMaterial({color: 0x013220});
 
-    var lambertMaterialTreeTop = new THREE.MeshLambertMaterial({color: 0x013220});
-    var phongMaterialTreeTop = new THREE.MeshPhongMaterial({color: 0x013220});
-    var toonMaterialTreeToop = new THREE.MeshToonMaterial({color: 0x013220});
-    var basicMaterialTreeToop = new THREE.MeshBasicMaterial({color: 0x013220});
-
-
+    let scale, r, theta;
     for (let i = 0; i < number_of_cork_oaks; i++) {
-        var baseTrunkShapeGeometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
-        var baseTrunk = new THREE.Mesh(baseTrunkShapeGeometry, lambertMaterialTrunk);
-        baseTrunk.receiveShadow = true;
-        baseTrunk.castShadow = true;
-        baseTrunk.position.set(0, 0, 0);
+        const trunk_geometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
+        const trunk = new THREE.Mesh(trunk_geometry, wood_lambert_material);
+        trunk.position.set(0, 0, 0);
+        trunk.rotateZ(Math.PI);
 
-        baseTrunk.rotateZ(Math.PI);
+        const main_bough_geometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
+        const main_bough = new THREE.Mesh(main_bough_geometry, wood_lambert_material);
+        main_bough.position.set(-0.795, 1.9, 0);
+        main_bough.rotateZ((Math.PI)/5);
 
-        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
-        var trunk1 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk);
-        trunk1.receiveShadow = true;
-        trunk1.castShadow = true;
-        trunk1.position.set(-0.795, 1.9, 0);
+        const secondary_bough_geometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
+        const secondary_bough = new THREE.Mesh(secondary_bough_geometry, wood_lambert_material);
+        secondary_bough.rotateZ((Math.PI)/(-4));
+        secondary_bough.position.set(1, 1.8, 0);
 
-        trunk1.rotateZ((Math.PI)/5);
+        const first_canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        const first_canopy = new THREE.Mesh(first_canopy_geometry, canopy_lambert_material);
+        first_canopy.scale.set(2, 1, 1);
+        first_canopy.position.set(-2.0, 4, 0.7);
 
-        var trunk1ShapeGeometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
-        var trunk2 = new THREE.Mesh(trunk1ShapeGeometry, lambertMaterialTrunk);
-        trunk2.receiveShadow = true;
-        trunk2.castShadow = true;
+        const second_canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        const second_canopy = new THREE.Mesh(second_canopy_geometry, canopy_lambert_material);
+        second_canopy.scale.set(1.5, 1, 1);
+        second_canopy.position.set(-1, 4.5, -0.7);
 
-        trunk2.rotateZ((Math.PI)/(-4));
-        trunk2.position.set(1, 1.8, 0);
+        const third_canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+        const third_canopy = new THREE.Mesh(third_canopy_geometry, canopy_lambert_material);
+        third_canopy.scale.set(2, 1, 1);
+        third_canopy.position.set(1.5, 3.8, -0.3);
 
-        var treeTop1ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-        var treeTop1 = new THREE.Mesh(treeTop1ShapeGeometry, lambertMaterialTreeTop);
-        treeTop1.receiveShadow = true;
-        treeTop1.castShadow = true;
-        treeTop1.scale.set(2, 1, 1);
-        treeTop1.position.set(-2.0, 4, 0.7);
+        // Set receiveShadow and castShadow settings to true on all tree's meshes
+        trunk.receiveShadow = true;
+        trunk.castShadow = true;
+        main_bough.receiveShadow = true;
+        main_bough.castShadow = true;
+        secondary_bough.receiveShadow = true;
+        secondary_bough.castShadow = true;
+        first_canopy.receiveShadow = true;
+        first_canopy.castShadow = true;
+        second_canopy.receiveShadow = true;
+        second_canopy.castShadow = true;
+        third_canopy.receiveShadow = true;
+        third_canopy.castShadow = true;
 
-        var treeTop2ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-        var treeTop2 = new THREE.Mesh(treeTop2ShapeGeometry, lambertMaterialTreeTop);
-        treeTop2.receiveShadow = true;
-        treeTop2.castShadow = true;
-        treeTop2.scale.set(1.5, 1, 1);
-        treeTop2.position.set(-1, 4.5, -0.7);
+        // Assemble and position cork oak
+        const corkOak = new THREE.Group();
 
-        var treeTop3ShapeGeometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-        var treeTop3 = new THREE.Mesh(treeTop3ShapeGeometry, lambertMaterialTreeTop);
-        treeTop3.receiveShadow = true;
-        treeTop3.castShadow = true;
-        treeTop3.scale.set(2, 1, 1);
-        treeTop3.position.set(1.5, 3.8, -0.3);
+        corkOak.add(trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
 
-        var corkOak = new THREE.Group();
+        scale = Math.random();
+        r = 8 + (field_radius/4* (Math.random() + 1));
+        theta = (3.3/4) * (30 / i) * (Math.PI)/2;
 
-        corkOak.add(baseTrunk, trunk1, trunk2, treeTop1, treeTop2, treeTop3);
-        corkOak.position.set(10,0,10);
-        corkOak.rotateY(2*(Math.PI) * Math.random());
-        let scale = Math.random();
+        corkOak.rotateY(2 * Math.PI * scale);
         corkOak.scale.set(0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1), 0.5 * (2 * scale + 1));
-
-        /* Polar coordinates */
-        let r = 8 + (field_radius/4* (Math.random() + 1));
-        let theta = (3.3/4) * (30 / i) * (Math.PI)/2;
         corkOak.position.x = r * Math.sin(theta);
         corkOak.position.z = r * Math.cos(theta);
 
-        meshes.push(trunk1, trunk2, treeTop1, treeTop2, treeTop3);
-        materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
-        materials.push([lambertMaterialTrunk, phongMaterialTrunk, toonMaterialTrunk, basicMaterialTrunk]);
-        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);
-        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);
-        materials.push([lambertMaterialTreeTop, phongMaterialTreeTop, toonMaterialTreeToop, basicMaterialTreeToop]);
+        meshes.push(main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
+        materials.push([wood_lambert_material, wood_phong_material, wood_toon_material, wood_basic_material]);
+        materials.push([wood_lambert_material, wood_phong_material, wood_toon_material, wood_basic_material]);
+        materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
+        materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
+        materials.push([canopy_lambert_material, canopy_phong_material, canopy_toon_material, canopy_basic_material]);
         scene.add(corkOak);
     }
 }
-
 function createHouse(){
     'use strict';
 
     // Create house's materials
-    var lambertMaterialBody = new THREE.MeshLambertMaterial({color: 0xffffff});
-    var phongMaterialBody = new THREE.MeshPhongMaterial({color: 0xffffff});
-    var toonMaterialBody = new THREE.MeshToonMaterial({color: 0xffffff});
-    var basicMaterialBody = new THREE.MeshBasicMaterial({color: 0xffffff});
+    const body_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff});
+    const body_phong_material = new THREE.MeshPhongMaterial({color: 0xffffff});
+    const body_toon_material = new THREE.MeshToonMaterial({color: 0xffffff});
+    const body_basic_material = new THREE.MeshBasicMaterial({color: 0xffffff});
 
-    var lambertMaterialDoor = new THREE.MeshLambertMaterial({color: 0xC4A484});
-    var phongMaterialDoor = new THREE.MeshPhongMaterial({color: 0xC4A484});
-    var toonMaterialDoor = new THREE.MeshToonMaterial({color: 0xC4A484});
-    var basicMaterialDoor = new THREE.MeshBasicMaterial({color: 0xC4A484});
+    const door_lambert_material = new THREE.MeshLambertMaterial({color: 0xC4A484});
+    const door_phong_material = new THREE.MeshPhongMaterial({color: 0xC4A484});
+    const door_toon_material = new THREE.MeshToonMaterial({color: 0xC4A484});
+    const door_basic_material = new THREE.MeshBasicMaterial({color: 0xC4A484});
 
-    var lambertMaterialWindow = new THREE.MeshLambertMaterial({color: 0x89cff0});
-    var phongMaterialWindow = new THREE.MeshPhongMaterial({color: 0x89cff0});
-    var toonMaterialWindow = new THREE.MeshToonMaterial({color: 0x89cff0});
-    var basicMaterialWindow = new THREE.MeshBasicMaterial({color: 0x89cff0});
+    const window_lambert_material = new THREE.MeshLambertMaterial({color: 0x89cff0});
+    const window_phong_material = new THREE.MeshPhongMaterial({color: 0x89cff0});
+    const window_toon_material = new THREE.MeshToonMaterial({color: 0x89cff0});
+    const window_basic_material = new THREE.MeshBasicMaterial({color: 0x89cff0});
 
-    var lambertMaterialRoof = new THREE.MeshLambertMaterial({color: 0xDC582A});
-    var phongMaterialRoof = new THREE.MeshPhongMaterial({color: 0xDC582A});
-    var toonMaterialRoof = new THREE.MeshToonMaterial({color: 0xDC582A});
-    var basicMaterialRoof = new THREE.MeshBasicMaterial({color: 0xDC582A});
+    const roof_lambert_material = new THREE.MeshLambertMaterial({color: 0xDC582A});
+    const roof_phong_material = new THREE.MeshPhongMaterial({color: 0xDC582A});
+    const roof_toon_material = new THREE.MeshToonMaterial({color: 0xDC582A});
+    const roof_basic_material = new THREE.MeshBasicMaterial({color: 0xDC582A});
 
-    var bodyShapeGeometry = new THREE.BufferGeometry();
-
-    const bodyVertices = new Float32Array( [
+    const body_vertices = new Float32Array( [
         0, 0, 0, // v0
         1, 0, 0, // v1
         0, 5, 0, // v2
@@ -446,8 +423,34 @@ function createHouse(){
         10, 0, -5, // v23
         10, 5, -5 // v24
     ] );
+    const door_vertices = new Float32Array( [
+        1, 0, 0, // v0
+        3, 0, 0, // v1
+        3, 4, 0, // v2
+        1, 4, 0 // v3
+    ] );
+    const first_window_vertices = new Float32Array( [
+        4, 1.5, 0, // v0
+        6, 1.5, 0, // v1
+        6, 4, 0, // v2
+        4, 4, 0 // v3
+    ] );
+    const second_window_vertices = new Float32Array( [
+        7, 1.5, 0, // v0
+        9, 1.5, 0, // v1
+        9, 4, 0, // v2
+        7, 4, 0 // v3
+    ] );
+    const roof_vertices = new Float32Array( [
+        0, 5, 0, // v0
+        10, 5, 0, // v1
+        0, 7, -2.5, // v2
+        10, 7, -2.5, // v3
+        0, 5, -5, // v4
+        10, 5, -5 // v5
+    ] );
 
-    const bodyIndexes = [
+    const body_indices = [
         0, 1, 2, // Front side
         3, 2, 1,
         4, 5, 6,
@@ -467,93 +470,19 @@ function createHouse(){
         21, 22, 24, // Back side
         24, 23, 21
     ];
-
-    bodyShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bodyVertices, 3));
-    bodyShapeGeometry.setIndex(bodyIndexes);
-    bodyShapeGeometry.computeVertexNormals();
-
-    var body = new THREE.Mesh(bodyShapeGeometry, lambertMaterialBody);
-    body.receiveShadow = true;
-    body.castShadow = true;
-
-    var doorShapeGeometry = new THREE.BufferGeometry();
-
-    const doorVertices = new Float32Array( [
-        1, 0, 0, // v0
-        3, 0, 0, // v1
-        3, 4, 0, // v2
-        1, 4, 0 // v3
-    ] );
-
-    const doorIndexes = [
+    const door_indices = [
         0, 1, 3,
         1, 2, 3
     ];
-
-    doorShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(doorVertices, 3));
-    doorShapeGeometry.setIndex(doorIndexes);
-    doorShapeGeometry.computeVertexNormals();
-
-    var door = new THREE.Mesh(doorShapeGeometry, lambertMaterialDoor);
-    door.receiveShadow = true;
-    door.castShadow = true;
-
-    var window1ShapeGeometry = new THREE.BufferGeometry();
-
-    const window1Vertices = new Float32Array( [
-        4, 1.5, 0, // v0
-        6, 1.5, 0, // v1
-        6, 4, 0, // v2
-        4, 4, 0 // v3
-    ] );
-
-    const window1Indexes = [
+    const first_window_indices = [
         0, 1, 3,
         1, 2, 3
     ];
-
-    window1ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window1Vertices, 3));
-    window1ShapeGeometry.setIndex(window1Indexes);
-    window1ShapeGeometry.computeVertexNormals();
-
-    var window1 = new THREE.Mesh(window1ShapeGeometry, lambertMaterialWindow);
-    window1.receiveShadow = true;
-    window1.castShadow = true;
-
-    var window2ShapeGeometry = new THREE.BufferGeometry();
-
-    const window2Vertices = new Float32Array( [
-        7, 1.5, 0, // v0
-        9, 1.5, 0, // v1
-        9, 4, 0, // v2
-        7, 4, 0 // v3
-    ] );
-
-    const window2Indexes = [
+    const second_window_indices = [
         0, 1, 3,
         1, 2, 3
     ];
-
-    window2ShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(window2Vertices, 3));
-    window2ShapeGeometry.setIndex(window2Indexes);
-    window2ShapeGeometry.computeVertexNormals();
-
-    var window2 = new THREE.Mesh(window2ShapeGeometry, lambertMaterialWindow);
-    window2.receiveShadow = true;
-    window2.castShadow = true;
-
-    var roofShapeGeometry = new THREE.BufferGeometry();
-
-    const roofVertices = new Float32Array( [
-        0, 5, 0, // v0
-        10, 5, 0, // v1
-        0, 7, -2.5, // v2
-        10, 7, -2.5, // v3
-        0, 5, -5, // v4
-        10, 5, -5 // v5
-    ] );
-
-    const roofIndexes = [
+    const roof_indices = [
         0, 1, 2, // Front side
         1, 3, 2,
         2, 3, 5, // Back side
@@ -562,43 +491,81 @@ function createHouse(){
         1, 5, 3 // Right side
     ];
 
-    roofShapeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(roofVertices, 3));
-    roofShapeGeometry.setIndex(roofIndexes);
-    roofShapeGeometry.computeVertexNormals();
+    const body_geometry = new THREE.BufferGeometry();
+    body_geometry.setAttribute('position', new THREE.Float32BufferAttribute(body_vertices, 3));
+    body_geometry.setIndex(body_indices);
+    body_geometry.computeVertexNormals();
 
-    var roof = new THREE.Mesh(roofShapeGeometry, lambertMaterialRoof);
+    const body = new THREE.Mesh(body_geometry, body_lambert_material);
+    body.receiveShadow = true;
+    body.castShadow = true;
+
+    const door_geometry = new THREE.BufferGeometry();
+    door_geometry.setAttribute('position', new THREE.Float32BufferAttribute(door_vertices, 3));
+    door_geometry.setIndex(door_indices);
+    door_geometry.computeVertexNormals();
+
+    const door = new THREE.Mesh(door_geometry, door_lambert_material);
+    door.receiveShadow = true;
+    door.castShadow = true;
+
+    const first_window_geometry = new THREE.BufferGeometry();
+    first_window_geometry.setAttribute('position', new THREE.Float32BufferAttribute(first_window_vertices, 3));
+    first_window_geometry.setIndex(first_window_indices);
+    first_window_geometry.computeVertexNormals();
+
+    const first_window = new THREE.Mesh(first_window_geometry, window_lambert_material);
+    first_window.receiveShadow = true;
+    first_window.castShadow = true;
+
+    const second_window_geometry = new THREE.BufferGeometry();
+    second_window_geometry.setAttribute('position', new THREE.Float32BufferAttribute(second_window_vertices, 3));
+    second_window_geometry.setIndex(second_window_indices);
+    second_window_geometry.computeVertexNormals();
+
+    const second_window = new THREE.Mesh(second_window_geometry, window_lambert_material);
+    second_window.receiveShadow = true;
+    second_window.castShadow = true;
+
+    const roof_geometry = new THREE.BufferGeometry();
+    roof_geometry.setAttribute('position', new THREE.Float32BufferAttribute(roof_vertices, 3));
+    roof_geometry.setIndex(roof_indices);
+    roof_geometry.computeVertexNormals();
+
+    const roof = new THREE.Mesh(roof_geometry, roof_lambert_material);
     roof.receiveShadow = true;
     roof.castShadow = true;
 
-    var house = new THREE.Group();
+    // Assemble and position house
+    const house = new THREE.Group();
 
-    house.add(body, door, window1, window2, roof);
+    house.add(body, door, first_window, second_window, roof);
     house.position.set(-5, 0, 2.5); // Center house
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
     house.receiveShadow = true;
     house.castShadow = true;
-    meshes.push(body, door, window1, window2, roof);
-    materials.push([lambertMaterialBody, phongMaterialBody, toonMaterialBody, basicMaterialBody]);
-    materials.push([lambertMaterialDoor, phongMaterialDoor, toonMaterialDoor, basicMaterialDoor]);
-    materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
-    materials.push([lambertMaterialWindow, phongMaterialWindow, toonMaterialWindow, basicMaterialWindow]);
-    materials.push([lambertMaterialRoof, phongMaterialRoof, toonMaterialRoof, basicMaterialRoof]);
+    meshes.push(body, door, first_window, second_window, roof);
+    materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
+    materials.push([door_lambert_material, door_phong_material, door_toon_material, door_basic_material]);
+    materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
+    materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
+    materials.push([roof_lambert_material, roof_phong_material, roof_toon_material, roof_basic_material]);
 
     scene.add(house);
 }
 function createUfo() {
-    var ufo_x = 0, ufo_y = 10, ufo_z = 0;
-    var target_geometry = new THREE.BufferGeometry();
+    const ufo_x = 0, ufo_y = 10, ufo_z = 0;
+    const target_geometry = new THREE.BufferGeometry();
     target_geometry.setAttribute('vertices', new THREE.BufferAttribute(new Float32Array( [ufo_x, 0, ufo_z]), 3));
-    var target_material = new THREE.PointsMaterial( {visible: false} );
+    const target_material = new THREE.PointsMaterial( {visible: false} );
     spotlight_target = new THREE.Points(target_geometry, target_material);
 
     ufo = new THREE.Object3D();
     const cockpit_geometry = new THREE.SphereBufferGeometry(2.5, 32, 32, 0, 2 * Math.PI, 0, 4 * Math.PI / 9);
-    var cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
-    var cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
-    var cockpit_toon_material = new THREE.MeshToonMaterial({color: 0xaaaaaa});
-    var cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0xaaaaaa});
+    const cockpit_lambert_material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
+    const cockpit_phong_material = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
+    const cockpit_toon_material = new THREE.MeshToonMaterial({color: 0xaaaaaa});
+    const cockpit_basic_material = new THREE.MeshBasicMaterial({color: 0xaaaaaa});
     const cockpit_sphere = new THREE.Mesh(cockpit_geometry, cockpit_lambert_material);
     cockpit_sphere.position.setY(3.6);
     cockpit_sphere.receiveShadow = true;
@@ -607,10 +574,10 @@ function createUfo() {
     meshes.push(cockpit_sphere);
 
     const body_geometry = new THREE.SphereBufferGeometry(5, 32, 16);
-    var body_lambert_material = new THREE.MeshLambertMaterial({color: 0x152238});
-    var body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
-    var body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
-    var body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
+    const body_lambert_material = new THREE.MeshLambertMaterial({color: 0x152238});
+    const body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
+    const body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
+    const body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
     const body_sphere = new THREE.Mesh(body_geometry, body_lambert_material);
     body_sphere.scale.set(1, 3 / 10, 1)
     body_sphere.position.setY(3);
@@ -621,11 +588,11 @@ function createUfo() {
 
 
     const spotlight_geometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
-    var spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
-    var spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
-    var spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
-    var spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
-    var spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
+    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
+    const spotlight_cilinder = new THREE.Mesh(spotlight_geometry, spotlight_lambert_material);
     spotlight_cilinder.add(createSpotLight(0,-0.1,0, ));
     spotlight_cilinder.position.setY(1.6);
     spotlight_cilinder.receiveShadow = true;
@@ -636,16 +603,15 @@ function createUfo() {
 
 
     const pointlight_radius = 0.25, pointlight_geometry = new THREE.SphereBufferGeometry(pointlight_radius, 32, 16 );
-    var pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
-    var pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
-    var pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
-    var pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
-    const pointlight_count = 6;
-    var pointlight;
+    const pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    const pointlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
 
+    let pointlight;
     for(let i = 0; i < pointlight_count; i++) {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
-        pointlight.add(createPointLight(0, -pointlight_radius, 0));
+        pointlight.add(createPointLight(0, -pointlight_radius, 0, i));
         pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
         pointlight.receiveShadow = true;
         pointlight.castShadow = true;
@@ -668,41 +634,26 @@ function createSpotLight(x, y, z) {
     spotlight = new THREE.SpotLight(0xffffff,4,20, Math.PI / 6, 0, 0.5);
     spotlight.castShadow = true;
 
-    // Place Spotlight at Spaceship
+    // Place Spotlight on UFO
     spotlight.position.set(x,y,z);
 
-    // Update Target of SpotLight
+    // Set SpotLight Target
     spotlight.target = spotlight_target;
     scene.add(spotlight.target);
     return spotlight;
 }
-function createPointLight(x, y, z, color) {
+function createPointLight(x, y, z, color, i) {
+    if(i < 0 || i >= pointlight_count) throw "Not a valid pointlight!";
     //we can change individual color of light
-    var point = new THREE.PointLight(color, 0.3, 15);
+    const point = new THREE.PointLight(color, 0.3, 15);
 
     point.position.set(x, y, z);
     point.castShadow = true;
     point.visible = false;
-    pointlights.push(point);
+    pointlights[i] = point;
 
     return point;
 }
-//////////////////////
-/* CHECK COLLISIONS */
-//////////////////////
-function checkCollisions(){
-    'use strict';
-
-}
-
-///////////////////////
-/* HANDLE COLLISIONS */
-///////////////////////
-function handleCollisions() {
-    'use strict';
-
-}
-
 ////////////
 /* UPDATE */
 ////////////
@@ -719,7 +670,6 @@ function update(){
     updateUfoPosition(delta);
     updateUfoRotation(delta);
 }
-
 function changeDirectionalLight() {
     'use strict'
     if(key_press_map[68]) {
@@ -727,7 +677,6 @@ function changeDirectionalLight() {
         key_press_map[68] = 0;
     }
 }
-
 function changeSpotLight() {
     'use strict'
     if(key_press_map[83]) {
@@ -735,7 +684,6 @@ function changeSpotLight() {
         key_press_map[83] = 0;
     }
 }
-
 function changePointLight() {
     'use strict'
     if(key_press_map[80]) {
@@ -743,15 +691,14 @@ function changePointLight() {
         key_press_map[80] = 0;
     }
 }
-
 function toggleFlowers() {
     'use strict'
     if(key_press_map[49]) {
-        if(has_flowers){ // Destroy flowers
+        if(texture_scene.userData.has_flowers){ // Destroy flowers
             texture_scene.remove(texture_scene.getObjectByName("flowers"));
-            has_flowers = !has_flowers;
+            texture_scene.userData.has_flowers = !texture_scene.userData.has_flowers;
         } else { // Create flowers
-            createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z);
+            createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
         }
         renderer.setRenderTarget(everglades_texture);
         renderer.clear();
@@ -760,15 +707,14 @@ function toggleFlowers() {
         key_press_map[49] = 0;
     }
 }
-
 function toggleStars() {
     'use strict'
     if(key_press_map[50]) {
-        if(has_stars){ // Destroy stars
+        if(texture_scene.userData.has_stars){ // Destroy stars
             texture_scene.remove(texture_scene.getObjectByName("stars"));
-            has_stars = !has_stars;
+            texture_scene.userData.has_stars = !texture_scene.userData.has_stars;
         } else { // Create stars
-            createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z);
+            createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
         }
         renderer.setRenderTarget(firmament_texture);
         renderer.clear();
@@ -778,10 +724,9 @@ function toggleStars() {
         //renderer.renderLists.dispose();
     }
 }
-
 function changeMaterials() {
     'use strict'
-    for (var i = 0; i < meshes.length; i++) {
+    for (let i = 0; i < meshes.length; i++) {
         if(key_press_map[81]) // Cartoon
             meshes[i].material = materials[i][0];
         if(key_press_map[87]) // Phong
@@ -796,7 +741,6 @@ function changeMaterials() {
     key_press_map[69] = 0;
     key_press_map[82] = 0;
 }
-
 function updateUfoPosition(delta) {
     'use strict';
     compute_ufo_movement();
@@ -804,80 +748,16 @@ function updateUfoPosition(delta) {
     ufo.position.add(ufo.userData.linear_velocity);
     spotlight_target.position.add(ufo.userData.linear_velocity);
 }
-
 function updateUfoRotation(delta) {
     'use strict';
     ufo.rotateY(ufo.userData.angular_velocity * delta);
 }
-
-/////////////
-/* DISPLAY */
-/////////////
-function render() {
-    'use strict';
-    if(renderer.xr.isPresenting) {
-        if(!presented){
-            presented = true;
-            scene.translateZ(-5);
-            scene.translateY(-5);
-        }
-        cameras[1].update(auxCamera);
-        renderer.render(scene, cameras[1].cameraL);
-        renderer.render(scene, cameras[1].cameraR);
-    }
-    else {
-        renderer.render(scene, cameras[0]);
-    }
-}
-
-////////////////////////////////
-/* INITIALIZE ANIMATION CYCLE */
-////////////////////////////////
-function init() {
-    'use strict';
-
-    renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.autoClear = false;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setRenderTarget(null);
-
-    document.body.appendChild(renderer.domElement);
-    document.body.appendChild(VRButton.createButton(renderer));
-
-    renderer.xr.enabled = true;
-
-    createTextures();
-    createScenes();
-    createCameras();
-    createLights();
-
-    window.addEventListener("resize", onResize);
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-}
-
-/////////////////////
-/* ANIMATION CYCLE */
-/////////////////////
-function animate() {
-    'use strict';
-    update();
-    render();
-
-    renderer.setAnimationLoop(animate);
-}
-
 function update_ufo_velocity(x, z){
     'use strict';
     ufo.userData.linear_velocity.setX(x);
     ufo.userData.linear_velocity.setZ(z);
     ufo.userData.linear_velocity.setLength(4);
 }
-
 function compute_ufo_movement() {
     'use strict';
     if(key_press_map[37] && key_press_map[39] && key_press_map[38] && key_press_map[40]){ // Left + Right + Up + Down
@@ -942,8 +822,64 @@ function compute_ufo_movement() {
     }
     update_ufo_velocity(0,0);
 }
+/////////////
+/* DISPLAY */
+/////////////
+function render() {
+    'use strict';
+    if(renderer.xr.isPresenting) {
+        if(!presented){
+            presented = true;
+            scene.translateZ(-5);
+            scene.translateY(-5);
+        }
+        cameras[1].update(auxCamera);
+        renderer.render(scene, cameras[1].cameraL);
+        renderer.render(scene, cameras[1].cameraR);
+    }
+    else {
+        renderer.render(scene, cameras[0]);
+    }
+}
+////////////////////////////////
+/* INITIALIZE ANIMATION CYCLE */
+////////////////////////////////
+function init() {
+    'use strict';
 
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setRenderTarget(null);
+
+    document.body.appendChild(renderer.domElement);
+    document.body.appendChild(VRButton.createButton(renderer));
+
+    renderer.xr.enabled = true;
+
+    createTextures();
+    createScene();
+    createCameras();
+    createLights();
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+}
+
+/////////////////////
+/* ANIMATION CYCLE */
+/////////////////////
+function animate() {
+    'use strict';
+    update();
+    render();
+
+    renderer.setAnimationLoop(animate);
+}
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
 ////////////////////////////
@@ -956,9 +892,7 @@ function onResize() {
         cameras[active_camera].aspect = window.innerWidth / window.innerHeight;
         cameras[active_camera].updateProjectionMatrix();
     }
-
 }
-
 ///////////////////////
 /* KEY DOWN CALLBACK */
 ///////////////////////
@@ -1022,7 +956,6 @@ function onKeyDown(e) {
             break;
     }
 }
-
 ///////////////////////
 /* KEY UP CALLBACK */
 ///////////////////////
