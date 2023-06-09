@@ -149,8 +149,7 @@ function createFlowers(l, w, x, y, z, count) {
     const flower_material_blue = new THREE.MeshBasicMaterial({color: 0x8f00ff, side: THREE.BackSide});
     const flower_material_purple = new THREE.MeshBasicMaterial({color: 0x89cff0, side: THREE.BackSide});
 
-    for(let i = 0; i < count; i++) {
-        let flower_mesh;
+    for(let i = 0, flower_mesh, scale; i < count; i++) {
         switch(i % 4){
             case 0:
                 flower_mesh = new THREE.Mesh(flower_geometry, flower_material_white);
@@ -169,6 +168,8 @@ function createFlowers(l, w, x, y, z, count) {
         flower_mesh.position.y = 0 + y;
         flower_mesh.position.z = (Math.random() - 0.5) * w + z;
         flower_mesh.rotateX(Math.PI / 2);
+        scale = Math.random() / 2 + 1;
+        flower_mesh.scale.set(scale, scale, scale);
         flowers.add(flower_mesh);
     }
     return flowers;
@@ -210,12 +211,14 @@ function createStars(l, w, x, y, z, count){
     const star_color = new THREE.Color().setHex(0xffffff);
     const star_geometry = new THREE.CircleGeometry(0.05 * (Math.random() + 1), 32);
     const star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
-    for(let i = 0; i < count; i++) {
-        const star_mesh = new THREE.Mesh(star_geometry, star_material);
+    for(let i = 0, star_mesh, scale; i < count; i++) {
+        star_mesh = new THREE.Mesh(star_geometry, star_material);
         star_mesh.position.x = (Math.random() - 0.5) * l + x;
         star_mesh.position.y = 0 + y;
         star_mesh.position.z =  (Math.random() - 0.5) * w + z;
         star_mesh.rotateX(Math.PI / 2);
+        scale = Math.random() / 2 + 1;
+        star_mesh.scale.set(scale, scale, scale);
         stars.add(star_mesh);
     }
     return stars;
@@ -238,14 +241,14 @@ function createMoon() {
     const basicMaterialMoon = new THREE.MeshBasicMaterial({color: 0xEBC815});
 
     const moonShapeGeometry = new THREE.SphereBufferGeometry(5, 32, 16);
-    const moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
 
-    moon.receiveShadow = true;
-    moon.castShadow = true;
+    const moon = new THREE.Mesh(moonShapeGeometry, lambertMaterialMoon);
     moon.position.set(-30, 30, -30);
 
     meshes.push(moon);
     materials.push([lambertMaterialMoon, phongMaterialMoon, toonMaterialMoon, basicMaterialMoon]);
+    moon.receiveShadow = true;
+    moon.castShadow = true;
 
     return moon;
 }
@@ -267,8 +270,9 @@ function createEverglades() {
     });
 
     const everglades = new THREE.Mesh(everglades_geometry, everglades_phong_material);
-    everglades.receiveShadow = true;
     everglades.position.set(0, 5, 0);
+    everglades.receiveShadow = true;
+
 
     return everglades;
 }
@@ -288,35 +292,35 @@ function createCorkOaks() {
     const canopy_toon_material = new THREE.MeshToonMaterial({color: 0x013220});
     const canopy_basic_material = new THREE.MeshBasicMaterial({color: 0x013220});
 
+    const trunk_geometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
+    const main_bough_geometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
+    const secondary_bough_geometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
+    const canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
+
+
     let scale, r, theta;
-    for (let i = 0; i < number_of_cork_oaks; i++) {
-        const trunk_geometry = new THREE.CylinderGeometry(0.65, 0.5, 2, 10);
-        const trunk = new THREE.Mesh(trunk_geometry, wood_lambert_material);
+    for (let i = 0, trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy, corkOak; i < number_of_cork_oaks; i++) {
+        trunk = new THREE.Mesh(trunk_geometry, wood_lambert_material);
         trunk.position.set(0, 0, 0);
         trunk.rotateZ(Math.PI);
 
-        const main_bough_geometry = new THREE.CylinderGeometry(0.45, 0.5, 3, 10);
-        const main_bough = new THREE.Mesh(main_bough_geometry, wood_lambert_material);
+        main_bough = new THREE.Mesh(main_bough_geometry, wood_lambert_material);
         main_bough.position.set(-0.795, 1.9, 0);
         main_bough.rotateZ((Math.PI)/5);
 
-        const secondary_bough_geometry = new THREE.CylinderGeometry(0.35, 0.35, 2.5, 10);
-        const secondary_bough = new THREE.Mesh(secondary_bough_geometry, wood_lambert_material);
+        secondary_bough = new THREE.Mesh(secondary_bough_geometry, wood_lambert_material);
         secondary_bough.rotateZ((Math.PI)/(-4));
         secondary_bough.position.set(1, 1.8, 0);
 
-        const first_canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-        const first_canopy = new THREE.Mesh(first_canopy_geometry, canopy_lambert_material);
+        first_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         first_canopy.scale.set(2, 1, 1);
         first_canopy.position.set(-2.0, 4, 0.7);
 
-        const second_canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-        const second_canopy = new THREE.Mesh(second_canopy_geometry, canopy_lambert_material);
+        second_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         second_canopy.scale.set(1.5, 1, 1);
         second_canopy.position.set(-1, 4.5, -0.7);
 
-        const third_canopy_geometry = new THREE.SphereBufferGeometry(1.5, 32, 16);
-        const third_canopy = new THREE.Mesh(third_canopy_geometry, canopy_lambert_material);
+        third_canopy = new THREE.Mesh(canopy_geometry, canopy_lambert_material);
         third_canopy.scale.set(2, 1, 1);
         third_canopy.position.set(1.5, 3.8, -0.3);
 
@@ -335,7 +339,7 @@ function createCorkOaks() {
         third_canopy.castShadow = true;
 
         // Assemble and position cork oak
-        const corkOak = new THREE.Group();
+        corkOak = new THREE.Group();
 
         corkOak.add(trunk, main_bough, secondary_bough, first_canopy, second_canopy, third_canopy);
 
@@ -482,60 +486,59 @@ function createHouse(){
     body_geometry.setIndex(body_indices);
     body_geometry.computeVertexNormals();
 
-    const body = new THREE.Mesh(body_geometry, body_lambert_material);
-    body.receiveShadow = true;
-    body.castShadow = true;
-
     const door_geometry = new THREE.BufferGeometry();
     door_geometry.setAttribute('position', new THREE.Float32BufferAttribute(door_vertices, 3));
     door_geometry.setIndex(door_indices);
     door_geometry.computeVertexNormals();
-
-    const door = new THREE.Mesh(door_geometry, door_lambert_material);
-    door.receiveShadow = true;
-    door.castShadow = true;
 
     const first_window_geometry = new THREE.BufferGeometry();
     first_window_geometry.setAttribute('position', new THREE.Float32BufferAttribute(first_window_vertices, 3));
     first_window_geometry.setIndex(first_window_indices);
     first_window_geometry.computeVertexNormals();
 
-    const first_window = new THREE.Mesh(first_window_geometry, window_lambert_material);
-    first_window.receiveShadow = true;
-    first_window.castShadow = true;
-
     const second_window_geometry = new THREE.BufferGeometry();
     second_window_geometry.setAttribute('position', new THREE.Float32BufferAttribute(second_window_vertices, 3));
     second_window_geometry.setIndex(second_window_indices);
     second_window_geometry.computeVertexNormals();
-
-    const second_window = new THREE.Mesh(second_window_geometry, window_lambert_material);
-    second_window.receiveShadow = true;
-    second_window.castShadow = true;
 
     const roof_geometry = new THREE.BufferGeometry();
     roof_geometry.setAttribute('position', new THREE.Float32BufferAttribute(roof_vertices, 3));
     roof_geometry.setIndex(roof_indices);
     roof_geometry.computeVertexNormals();
 
+    const body = new THREE.Mesh(body_geometry, body_lambert_material);
+    const door = new THREE.Mesh(door_geometry, door_lambert_material);
+    const first_window = new THREE.Mesh(first_window_geometry, window_lambert_material);
+    const second_window = new THREE.Mesh(second_window_geometry, window_lambert_material);
     const roof = new THREE.Mesh(roof_geometry, roof_lambert_material);
-    roof.receiveShadow = true;
-    roof.castShadow = true;
 
     // Assemble and position house
     const house = new THREE.Group();
-
     house.add(body, door, first_window, second_window, roof);
     house.position.set(-5, 0, 2.5); // Center house
     house.rotateY((Math.PI)/(1/8)); // Better side visibility
-    house.receiveShadow = true;
-    house.castShadow = true;
+
+    // Store mesehes and materials
     meshes.push(body, door, first_window, second_window, roof);
     materials.push([body_lambert_material, body_phong_material, body_toon_material, body_basic_material]);
     materials.push([door_lambert_material, door_phong_material, door_toon_material, door_basic_material]);
     materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
     materials.push([window_lambert_material, window_phong_material, window_toon_material, window_basic_material]);
     materials.push([roof_lambert_material, roof_phong_material, roof_toon_material, roof_basic_material]);
+
+    // Set shadow settings
+    body.receiveShadow = true;
+    body.castShadow = true;
+    door.receiveShadow = true;
+    door.castShadow = true;
+    first_window.receiveShadow = true;
+    first_window.castShadow = true;
+    second_window.receiveShadow = true;
+    second_window.castShadow = true;
+    roof.receiveShadow = true;
+    roof.castShadow = true;
+    house.receiveShadow = true;
+    house.castShadow = true;
 
     return house;
 }
@@ -601,10 +604,10 @@ function createUfo() {
         pointlight = new THREE.Mesh(pointlight_geometry, pointlight_lambert_material);
         pointlight.add(createPointLight(0, -pointlight_radius, 0, i));
         pointlight.position.set(15/ 4 * Math.sin(i * 2 * Math.PI / pointlight_count), 2.2, 15/ 4 * Math.cos(i * 2 * Math.PI / pointlight_count));
-        pointlight.receiveShadow = true;
-        pointlight.castShadow = true;
         materials.push([pointlight_lambert_material, pointlight_phong_material, pointlight_toon_material, pointlight_basic_material]);
         meshes.push(pointlight);
+        pointlight.receiveShadow = true;
+        pointlight.castShadow = true;
         pointlight_group.add(pointlight);
     }
 
