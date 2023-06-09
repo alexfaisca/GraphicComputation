@@ -10,7 +10,7 @@ let meshes = [], ufo;
 let dirLight, spotlight, spotlight_target, pointlights = [];
 
 const field_radius = 100, number_of_cork_oaks = 30, pointlight_count = 6;
-const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:1600};
+const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
 
 const clock = new THREE.Clock();
 const cameras = new Array(4);
@@ -46,12 +46,12 @@ function createTextures() {
 }
 function generateNature(l, w, x, y, z, count) {
     texture_scene.add(createGrass(l, w, x, y, z));
-    texture_scene.add(createFlowers(l, w, x, y, z, count));
+    texture_scene.add(texture_scene.userData.flowers = createFlowers(l, w, x, y, z, count));
     texture_scene.userData.has_flowers = true;
 }
 function generateFirmament(l, w, x, y, z, count) {
     texture_scene.add(createSunset(l, w, x, y, z));
-    texture_scene.add(createStars(l, w, x, y, z, count));
+    texture_scene.add(texture_scene.userData.stars = createStars(l, w, x, y, z, count));
     texture_scene.userData.has_stars = true;
 }
 function createScene(){
@@ -62,7 +62,7 @@ function createScene(){
     scene.background = new THREE.Color(0xeeeeff);
 
     scene.add(createSky());
-    scene.add(createMoon());
+    scene.add(createMoon(-30, 30, -30));
     scene.add(createEverglades());
     scene.add(createHouse());
     scene.add(ufo = createUfo());
@@ -141,14 +141,13 @@ function createGrass(l, w, x, y, z) {
 }
 function createFlowers(l, w, x, y, z, count) {
     const flowers = new THREE.Group();
-    flowers.name = "flowers";
     const flower_geometry = new THREE.CircleGeometry(0.1, 32);
     const flower_material_white = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.BackSide});
     const flower_material_yellow = new THREE.MeshBasicMaterial({color: 0xFFFF00, side: THREE.BackSide});
     const flower_material_blue = new THREE.MeshBasicMaterial({color: 0x8f00ff, side: THREE.BackSide});
     const flower_material_purple = new THREE.MeshBasicMaterial({color: 0x89cff0, side: THREE.BackSide});
 
-    for(let i = 0, flower_mesh, scale; i < count; i++) {
+    for(let i = 0, flower_mesh, scale = Math.random() / 2 + 1; i < count; i++, scale = Math.random() / 2 + 1) {
         switch(i % 4){
             case 0:
                 flower_mesh = new THREE.Mesh(flower_geometry, flower_material_white);
@@ -163,11 +162,8 @@ function createFlowers(l, w, x, y, z, count) {
                 flower_mesh = new THREE.Mesh(flower_geometry, flower_material_purple);
                 break;
         }
-        flower_mesh.position.x = (Math.random() -0.5) * l + x;
-        flower_mesh.position.y = 0 + y;
-        flower_mesh.position.z = (Math.random() - 0.5) * w + z;
+        flower_mesh.position.set((Math.random() -0.5) * l + x, 0 + y, (Math.random() - 0.5) * w + z);
         flower_mesh.rotateX(Math.PI / 2);
-        scale = Math.random() / 2 + 1;
         flower_mesh.scale.set(scale, scale, scale);
         flowers.add(flower_mesh);
     }
@@ -206,17 +202,13 @@ function createSunset(l, w, x, y, z) {
 }
 function createStars(l, w, x, y, z, count){
     const stars = new THREE.Group();
-    stars.name = "stars";
     const star_color = new THREE.Color().setHex(0xffffff);
-    const star_geometry = new THREE.CircleGeometry(0.05 * (Math.random() + 1), 32);
+    const star_geometry = new THREE.CircleGeometry(0.05, 32);
     const star_material = new THREE.MeshBasicMaterial({color: star_color, side: THREE.BackSide});
-    for(let i = 0, star_mesh, scale; i < count; i++) {
+    for(let i = 0, star_mesh, scale = Math.random() / 2 + 1; i < count; i++, scale = Math.random() / 2 + 1) {
         star_mesh = new THREE.Mesh(star_geometry, star_material);
-        star_mesh.position.x = (Math.random() - 0.5) * l + x;
-        star_mesh.position.y = 0 + y;
-        star_mesh.position.z =  (Math.random() - 0.5) * w + z;
+        star_mesh.position.set((Math.random() - 0.5) * l + x, 0 + y, (Math.random() - 0.5) * w + z);
         star_mesh.rotateX(Math.PI / 2);
-        scale = Math.random() / 2 + 1;
         star_mesh.scale.set(scale, scale, scale);
         stars.add(star_mesh);
     }
@@ -230,7 +222,7 @@ function createSky() {
     });
     return new THREE.Mesh(sky_dome_geometry, sky_dome_material);
 }
-function createMoon() {
+function createMoon(x, y, z) {
     'use strict';
     // Moon yellow colour
     const moon_lambert_material = new THREE.MeshLambertMaterial({color: 0xEBC815, emissive: 0xEBC815});
@@ -241,7 +233,7 @@ function createMoon() {
     const moonShapeGeometry = new THREE.SphereGeometry(5, 32, 16);
 
     const moon = new THREE.Mesh(moonShapeGeometry, moon_lambert_material);
-    moon.position.set(-30, 30, -30);
+    moon.position.set(x, y, z);
     moon.userData = {lambert_material: moon_lambert_material, phong_material: moon_phong_material, toon_material: moon_toon_material, basic_material: moon_basic_material};
 
     meshes.push(moon);
@@ -695,9 +687,9 @@ function toggleFlowers() {
     'use strict'
     if(key_press_map[49]) {
         if(texture_scene.userData.has_flowers){ // Destroy flowers
-            texture_scene.remove(texture_scene.getObjectByName("flowers"));
+            texture_scene.remove(texture_scene.userData.flowers);
         } else { // Create flowers
-            texture_scene.add(createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count));
+            texture_scene.add(texture_scene.userData.flowers = createFlowers(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count));
         }
         texture_scene.userData.has_flowers = !texture_scene.userData.has_flowers;
         renderer.setRenderTarget(everglades_texture);
@@ -711,9 +703,9 @@ function toggleStars() {
     'use strict'
     if(key_press_map[50]) {
         if(texture_scene.userData.has_stars){ // Destroy stars
-            texture_scene.remove(texture_scene.getObjectByName("stars"));
+            texture_scene.remove(texture_scene.userData.stars);
         } else { // Create stars
-            texture_scene.add(createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count));
+            texture_scene.add(texture_scene.userData.stars = createStars(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count));
         }
         texture_scene.userData.has_stars = !texture_scene.userData.has_stars;
         renderer.setRenderTarget(firmament_texture);
