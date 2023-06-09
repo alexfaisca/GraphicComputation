@@ -12,27 +12,6 @@ const field_radius = 100;
 const perspective_camera_settings = {fov:100, x:20, y:10, z:20}, vr_camera_settings = {x:0, y:20, z:20};
 const create_flowers_args = {l:30, w:30, x:0, y:0, z:0, count:1000}, create_stars_args = {l:100, w:100, x:0, y:110, z:0, count:2500};
 
-const cork_oaks_positions = [ [-10, 0, 20],  
-                              [-20, 0, 10],
-                              [-20, 0, 20],
-                              [-40, 0, 50],
-                              [-50, 0, 30],
-                              [-60, 0, 10],  // 4th octant
-                              [-20, 0, -10],
-                              [-20, 0, -40],
-                              [-30, 0, -60],
-                              [-40, 0, -50],
-                              [-50, 0, -20],
-                              [-30, 0, -20], // 3rd octant
-                              [10, 0, -10],
-                              [20, 0, -50],
-                              [50, 0, -20],
-                              [40, 0, -30],
-                              [50, 0, -60],
-                              [60, 0, -10],  // 2nd octant
-                              [5, 0, 25],
-                              [30, 0, 5] ]   // 1st octant
-
 const clock = new THREE.Clock();
 const cameras = new Array(5);
 
@@ -79,26 +58,26 @@ function createScene(){
     'use strict';
     const number_of_cork_oaks = 20, space_ship = {x: -5, y: 10, z: -5, pointlights_count: 6}, moon = {x: -30, y:30, z: -30};
 
-    const cork_oaks_positions = [ [-10, -1.1, 20], // Height needs adjsutment? default = 0
-        [-20, -1.1, 10],
-        [-20, -1.1, 20],
-        [-40, -1.1, 50],
-        [-50, -1.1, 30],
-        [-60, -1.1, 10], // 4th octant
-        [-20, -1.1, -10],
-        [-20, -1.1, -40],
-        [-30, -1.1, -60],
-        [-40, -1.1, -50],
-        [-50, -1.1, -20],
-        [-30, -1.1, -20], // 3rd octant
-        [10, -1.1, -10],
-        [20, -1.1, -50],
-        [50, -1.1, -20],
-        [40, -1.1, -30],
-        [50, -1.1, -60],
-        [60, -1.1, -10], // 2nd octant
-        [5, -1.1, 25],
-        [30, -1.1, 5] ] // 1st octant
+    const cork_oaks_positions = [ [-10, -1.1, 20], 
+                                  [-20, -1.1, 10],
+                                  [-20, -1.1, 20],
+                                  [-40, -1.1, 50],
+                                  [-50, -1.1, 30],
+                                  [-60, -1.1, 10],  // 4th octant
+                                  [-20, -1.1, -10],
+                                  [-20, -1.1, -40],
+                                  [-30, -1.1, -60],
+                                  [-40, -1.1, -50],
+                                  [-50, -1.1, -20],
+                                  [-30, -1.1, -20], // 3rd octant
+                                  [10, -1.1, -10],
+                                  [20, -1.1, -50],
+                                  [50, -1.1, -20],
+                                  [40, -1.1, -30],
+                                  [50, -1.1, -60],
+                                  [60, -1.1, -10],  // 2nd octant
+                                  [5, -1.1, 25],
+                                  [30, -1.1, 5] ]   // 1st octant
 
     scene = new THREE.Scene();
     scene.add(new THREE.AxesHelper(100));
@@ -391,25 +370,25 @@ function createHouse(){
     'use strict';
 
     // Create house's materials
-    const body_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff, roughness: 1.0});
-    const body_phong_material = new THREE.MeshPhongMaterial({color: 0xffffff, roughness: 1.0});
-    const body_toon_material = new THREE.MeshToonMaterial({color: 0xffffff, roughness: 1.0});
-    const body_basic_material = new THREE.MeshBasicMaterial({color: 0xffffff, roughness: 1.0});
+    const body_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffff});
+    const body_phong_material = new THREE.MeshPhongMaterial({color: 0xffffff});
+    const body_toon_material = new THREE.MeshToonMaterial({color: 0xffffff});
+    const body_basic_material = new THREE.MeshBasicMaterial({color: 0xffffff});
 
-    const door_lambert_material = new THREE.MeshLambertMaterial({color: 0xC4A484, roughness: 1.0});
-    const door_phong_material = new THREE.MeshPhongMaterial({color: 0xC4A484, roughness: 1.0});
-    const door_toon_material = new THREE.MeshToonMaterial({color: 0xC4A484, roughness: 1.0});
-    const door_basic_material = new THREE.MeshBasicMaterial({color: 0xC4A484, roughness: 1.0});
+    const door_lambert_material = new THREE.MeshLambertMaterial({color: 0xC4A484});
+    const door_phong_material = new THREE.MeshPhongMaterial({color: 0xC4A484});
+    const door_toon_material = new THREE.MeshToonMaterial({color: 0xC4A484});
+    const door_basic_material = new THREE.MeshBasicMaterial({color: 0xC4A484});
 
-    const window_lambert_material = new THREE.MeshLambertMaterial({color: 0x89cff0, metalness: 1});
-    const window_phong_material = new THREE.MeshPhongMaterial({color: 0x89cff0, metalness: 1});
-    const window_toon_material = new THREE.MeshToonMaterial({color: 0x89cff0, metalness: 1});
-    const window_basic_material = new THREE.MeshBasicMaterial({color: 0x89cff0, metalness: 1});
+    const window_lambert_material = new THREE.MeshLambertMaterial({color: 0x89cff0});
+    const window_phong_material = new THREE.MeshPhongMaterial({color: 0x89cff0});
+    const window_toon_material = new THREE.MeshToonMaterial({color: 0x89cff0});
+    const window_basic_material = new THREE.MeshBasicMaterial({color: 0x89cff0});
 
-    const roof_lambert_material = new THREE.MeshLambertMaterial({color: 0xDC582A, roughness: 1.0});
-    const roof_phong_material = new THREE.MeshPhongMaterial({color: 0xDC582A, roughness: 1.0});
-    const roof_toon_material = new THREE.MeshToonMaterial({color: 0xDC582A, roughness: 1.0});
-    const roof_basic_material = new THREE.MeshBasicMaterial({color: 0xDC582A, roughness: 1.0});
+    const roof_lambert_material = new THREE.MeshLambertMaterial({color: 0xDC582A});
+    const roof_phong_material = new THREE.MeshPhongMaterial({color: 0xDC582A});
+    const roof_toon_material = new THREE.MeshToonMaterial({color: 0xDC582A});
+    const roof_basic_material = new THREE.MeshBasicMaterial({color: 0xDC582A});
 
     const body_vertices = new Float32Array( [
         0, 0, 0,    // v0
