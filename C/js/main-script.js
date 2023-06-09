@@ -580,10 +580,10 @@ function createShip(pointlights, pointlight_count) {
     const body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
     const body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
     const body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
-    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf, metalness: 1.0});
-    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf, metalness: 1.0});
-    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf, metalness: 1.0});
-    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf, metalness: 1.0});
+    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
     const pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
