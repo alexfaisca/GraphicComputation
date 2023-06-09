@@ -874,9 +874,7 @@ function onResize() {
     if (window.innerWidth > 0 && window.innerHeight > 0) {
         cameras[0].aspect = window.innerWidth / window.innerHeight;
         cameras[0].updateProjectionMatrix();
-        cameras[1].aspect = window.innerWidth / window.innerHeight;
-        cameras[1].updateProjectionMatrix();
-        auxCamera.aspect = window.innerWidth / window.innerHeight;
+        auxCamera.aspect = window.innerWidth / window.innerHeight; // FIXME: unsure what to do here...
         auxCamera.updateProjectionMatrix();
     }
 }
