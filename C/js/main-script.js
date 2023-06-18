@@ -122,7 +122,7 @@ function createOrthographicCamera(l, w, targetX, targetY, targetZ, lookAtX, look
 /* CREATE LIGHT(S) */
 /////////////////////
 function createLights() {
-    scene.add(dirLight = createDirectionalLight(0xFFFFFF, 0.6, 100, 100, 100, 0, 0, 0));
+    scene.add(dirLight = createDirectionalLight(0xEBC815, 0.8, 100, 100, 100, 0, 0, 0));
     scene.add(createAmbientLight(0xFFFFFF, 0.5));
 }
 function createDirectionalLight(color, intensity, x, y, z, tx, ty, tz) {
@@ -580,10 +580,10 @@ function createShip(pointlights, pointlight_count) {
     const body_phong_material = new THREE.MeshPhongMaterial({color: 0x152238});
     const body_toon_material = new THREE.MeshToonMaterial({color: 0x152238});
     const body_basic_material = new THREE.MeshBasicMaterial({color: 0x152238});
-    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf, metalness: 1.0});
-    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf, metalness: 1.0});
-    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf, metalness: 1.0});
-    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf, metalness: 1.0});
+    const spotlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
+    const spotlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
+    const spotlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
+    const spotlight_basic_material = new THREE.MeshBasicMaterial({color: 0xffffbf});
     const pointlight_lambert_material = new THREE.MeshLambertMaterial({color: 0xffffbf});
     const pointlight_phong_material = new THREE.MeshPhongMaterial({color: 0xffffbf});
     const pointlight_toon_material = new THREE.MeshToonMaterial({color: 0xffffbf});
