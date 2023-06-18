@@ -25,7 +25,7 @@ function createTextures() {
     texture_scene.add(createAmbientLight(0xFFFFFF, 1));
 
     cameras[2] = createOrthographicCamera(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, texture_scene.position.x, texture_scene.position.y, texture_scene.position.z);
-    everglades_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
+    everglades_texture = new THREE.WebGLRenderTarget(1024, 1024, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping}) //wraps
     everglades_texture.texture.repeat.set(10,10);
     generateNature(create_flowers_args.l, create_flowers_args.w, create_flowers_args.x, create_flowers_args.y, create_flowers_args.z, create_flowers_args.count);
     renderer.setRenderTarget(everglades_texture);
@@ -34,7 +34,7 @@ function createTextures() {
     renderer.setRenderTarget(null)
 
     cameras[3] = createOrthographicCamera(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, texture_scene.position.x, texture_scene.position.y, texture_scene.position.z);
-    firmament_texture = new THREE.WebGLRenderTarget(150*field_radius, 150*field_radius, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
+    firmament_texture = new THREE.WebGLRenderTarget(1024, 1024, {minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping})
     firmament_texture.texture.repeat.set(25, 1);
     generateFirmament(create_stars_args.l, create_stars_args.w, create_stars_args.x, create_stars_args.y, create_stars_args.z, create_stars_args.count);
     renderer.setRenderTarget(firmament_texture);
