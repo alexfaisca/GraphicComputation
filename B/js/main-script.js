@@ -24,8 +24,7 @@ var meeting_point = new THREE.Vector3(0, 0, 0);
 var trailer_drag = new THREE.Vector3(0, 0, 0);
 
 // A clock for each type of movement
-var clocks = new Array(new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(), new THREE.Clock(),
-                       new THREE.Clock(), new THREE.Clock());
+var clock = new THREE.Clock();
 
 // Auxiliary vectors
 let v = new THREE.Vector3(0, 0, 0);
@@ -437,16 +436,10 @@ function createTrailer() {
 //////////////////////
 /* CHECK COLLISIONS */
 //////////////////////
-function checkCollisions(){
+function checkCollisions(delta){
     'use strict';
 
     // Enable cameras again after possible collision check
-    if (animation_mode) animation_mode = false;
-
-    if (!hitboxSetupCheck()){
-        clocks[5].start();
-        return;
-    } 
 
     if (
     robot.userData.min_point.x <= trailer.userData.max_point.x &&
@@ -455,12 +448,15 @@ function checkCollisions(){
     robot.userData.max_point.y >= trailer.userData.min_point.y &&
     robot.userData.min_point.z <= trailer.userData.max_point.z &&
     robot.userData.max_point.z >= trailer.userData.min_point.z
-    ) 
-    {   
-        handleCollisions();
+    ) {
+        handleCollisions(delta);
         return;
+    } else if (animation_mode) {
+        v.set(0,0,0)
+        t.set(0,0,0);
+        trailer_drag.set(0,0,0);
+        animation_mode = false;
     }
-    clocks[5].start();
 
 }
 
@@ -488,19 +484,12 @@ function hitboxSetupCheck() {
 ///////////////////////
 /* HANDLE COLLISIONS */
 ///////////////////////
-function handleCollisions(){
+function handleCollisions(delta){
     'use strict';
 
     // Camera keys won't work after this
-    animation_mode = true;
-    
-    v.set(0,0,0)
-    t.set(0,0,0);
-    trailer_drag.set(0,0,0);
+        animation_mode = true;
 
-    if (Math.abs(trailer.position.x - meeting_point.x) > 0.01 || Math.abs(trailer.position.z - meeting_point.z) > 0.01) {
-        var delta = clocks[5].getDelta();
-    
         v.add(meeting_point);
         t.add(trailer.position);
 
@@ -513,10 +502,6 @@ function handleCollisions(){
         trailer.userData.min_point.add(trailer_drag);
         trailer.userData.max_point.add(trailer_drag);
 
-    } else {
-        clocks[5].start();
-        animation_mode = false; // After the trailer is in position, camera changes are allowed
-    }
 
 }
 
@@ -525,20 +510,20 @@ function handleCollisions(){
 ////////////
 function update() {
     'use strict';
-
+    const delta = clock.getDelta();
     toggle_wireframe();
     change_camera();
 
-    rotateRobot();
-    rotateTrailer();
-    updateTrailerPosition();
-    updateHeadPosition();
-    updateArmPosition();
-    updateLegPosition();
-    updateFeetPosition();
-
     updateHitbox();
-    checkCollisions();
+    checkCollisions(delta);
+    if (!animation_mode) {
+        updateTrailerPosition(delta);
+        updateHeadPosition(delta);
+        updateArmPosition(delta);
+        updateLegPosition(delta);
+        updateFeetPosition(delta);
+    }
+
 }
 
 /////////////
@@ -593,28 +578,9 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-function rotateRobot(){
-    'use strict';
-    var delta = clocks[6].getDelta();
-
-    if (robot.userData.rotating) {
-        robot.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), delta);
-    }
-}
-
-function rotateTrailer(){
-    'use strict';
-    var delta = clocks[7].getDelta();
-
-    if (trailer.userData.rotating) {
-        trailer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), delta);
-    }
-}
-
-function updateTrailerPosition() {
+function updateTrailerPosition(delta) {
     'use strict';
     compute_trailer_movement();
-    var delta = clocks[0].getDelta();
 
     trailer.userData.velocity = trailer.userData.velocity.multiplyScalar(delta);
     trailer.position.add(trailer.userData.velocity);
@@ -622,10 +588,9 @@ function updateTrailerPosition() {
     trailer.userData.max_point.add(trailer.userData.velocity);
 }
 
-function updateHeadPosition() {
+function updateHeadPosition(delta) {
     'use strict';
     compute_head_rotation();
-    var delta = clocks[1].getDelta();
 
     if (head_axis.userData.rotating != 0 && head_axis.userData.rotationAngle >= 0 && head_axis.userData.rotationAngle <= Math.PI) {
        head_axis.rotateX(-head_axis.userData.rotating * delta); // Minus sign for clockwise rotation
@@ -666,10 +631,9 @@ function updateHitbox(){
     }
 }
 
-function updateArmPosition() {
+function updateArmPosition(delta) {
     'use strict';
     compute_arm_velocity();
-    var delta = clocks[2].getDelta();
 
 
     if (left_arm.userData.velocity.x != 0 && left_arm.position.x >= -3.5 && left_arm.position.x <= -2.5) { // Only check for x component
@@ -689,10 +653,9 @@ function updateArmPosition() {
 
 }
 
-function updateLegPosition() {
+function updateLegPosition(delta) {
     'use strict';
     compute_leg_rotation();
-    var delta = clocks[3].getDelta();
 
 
     if (legs.userData.rotating != 0 && legs.userData.rotationAngle >= 0 && legs.userData.rotationAngle <= Math.PI / 2) {
@@ -712,10 +675,9 @@ function updateLegPosition() {
     }
 }
 
-function updateFeetPosition() {
+function updateFeetPosition(delta) {
     'use strict';
     compute_feet_rotation();
-    var delta = clocks[4].getDelta();
 
     if (feet_axis.userData.rotating != 0 && feet_axis.userData.rotationAngle >= 0 && feet_axis.userData.rotationAngle <= Math.PI) {
         feet_axis.rotateX(feet_axis.userData.rotating * delta);
